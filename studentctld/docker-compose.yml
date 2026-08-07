@@ -15,7 +15,7 @@ services:
       TZ: Asia/Tehran
     ports:
       # loopback only: put nginx (same host) in front for TLS, or reach via SSH tunnel
-      - "127.0.0.1:5000:5000"
+      - "80:5000"
     volumes:
       # SQLite DB + the generated management SSH key persist across rebuilds
       - panel-data:/var/lib/studentctl
