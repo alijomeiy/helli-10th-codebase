@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}پنل دانشجویی{% endblock %}</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="{{ url_for('index') }}">پنل دانشجویی</a>
+    <div class="spacer"></div>
+    {% if current_user.is_authenticated %}
+      <span class="muted">{{ current_user.username }}</span>
+      <a href="{{ url_for('logout') }}">خروج</a>
+    {% else %}
+      <a href="{{ url_for('student_login') }}">ورود دانشجو</a>
+      <a href="{{ url_for('register') }}">ثبت‌نام</a>
+      <a href="{{ url_for('admin_login') }}">ورود مدیر</a>
+    {% endif %}
+  </nav>
+
+  <main class="wrap">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

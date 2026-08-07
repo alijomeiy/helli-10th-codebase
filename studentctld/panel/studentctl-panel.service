@@ -1,0 +1,28 @@
+[Unit]
+Description=studentctl web panel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=studentctl-panel
+Group=studentctl-panel
+WorkingDirectory=/opt/studentctl/panel
+EnvironmentFile=/opt/studentctl/panel/panel.env
+# A system user has no real home; give paramiko + SQLite a writable HOME.
+Environment=HOME=/var/lib/studentctl
+# waitress is a solid production WSGI server for small VMs.
+# If 0.0.0.0 is blocked at the cloud firewall, change to your internal IP.
+ExecStart=/opt/studentctl/panel/venv/bin/waitress-serve --host=0.0.0.0 --port=5000 app:app
+Restart=on-failure
+RestartSec=3
+
+# Hardening (keep code read-only; only the data dir is writable)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/studentctl
+
+[Install]
+WantedBy=multi-user.target

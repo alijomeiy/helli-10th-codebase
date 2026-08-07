@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}ورود دانشجو{% endblock %}
+{% block content %}
+<h1>ورود دانشجو</h1>
+<form method="post" class="form">
+  <label>نام کاربری
+    <input name="username" required autocomplete="username" dir="ltr">
+  </label>
+  <label>رمز عبور
+    <input name="password" type="password" required autocomplete="current-password" dir="ltr">
+  </label>
+  <button>ورود</button>
+  <p class="muted">هنوز ثبت‌نام نکرده‌اید؟ <a href="{{ url_for('register') }}">درخواست حساب</a>.</p>
+</form>
+{% endblock %}

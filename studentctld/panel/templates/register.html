@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}ثبت‌نام{% endblock %}
+{% block content %}
+<h1>درخواست حساب کاربری</h1>
+<form method="post" class="form">
+  <label>نام کاربری
+    <input name="username" required pattern="[A-Za-z0-9_]{3,24}" autocomplete="username" dir="ltr">
+    <small>فقط حروف انگلیسی، عدد و خط زیر؛ ۳ تا ۲۴ نویسه.</small>
+  </label>
+  <label>نام و نام خانوادگی
+    <input name="full_name">
+  </label>
+  <label>رایانامه (اختیاری)
+    <input name="email" type="email" dir="ltr">
+  </label>
+  <label>رمز ورود به پنل (حداقل ۸ نویسه)
+    <input name="password" type="password" minlength="8" required autocomplete="new-password" dir="ltr">
+  </label>
+  <label>روز مورد نظر در هفته
+    <select name="preferred_day">
+      {% for v, name in weekdays %}
+        <option value="{{ v }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+    <small>در این روز اولویت دسترسی دارید. در سایر روزها، در صورت وجود ظرفیت آزاد نیز می‌توانید وارد شوید.</small>
+  </label>
+  <button>ثبت درخواست</button>
+</form>
+{% endblock %}

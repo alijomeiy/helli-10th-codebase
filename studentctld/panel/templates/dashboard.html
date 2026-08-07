@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}حساب من{% endblock %}
+{% block content %}
+
+{% if rejected %}
+  <h1>حساب تأیید نشد</h1>
+  <p>درخواست شما تأیید نشده است. لطفاً با مدرس خود تماس بگیرید.</p>
+
+{% elif pending %}
+  <h1>در انتظار تأیید</h1>
+  <p>درخواست حساب شما در انتظار تأیید مدیر است. بعداً دوباره بررسی کنید.</p>
+
+{% else %}
+  <h1>حساب لینوکس شما</h1>
+
+  <div class="creds">
+    <div><span>نشانی سرور</span><code>{{ config.SERVER_DOMAIN }}</code></div>
+    <div><span>پورت SSH</span><code>{{ config.SSH_PORT_PUBLIC }}</code></div>
+    <div><span>نام کاربری</span><code>{{ current_user.username }}</code></div>
+    <div><span>رمز عبور</span><code>{{ current_user.ssh_password }}</code></div>
+    <div><span>پورت سرویس</span><code>{{ current_user.port }}</code></div>
+    <div><span>روز مورد نظر</span>
+      <code>{% for v,name in weekdays %}{% if v == current_user.preferred_day %}{{ name }}{% endif %}{% endfor %}</code>
+    </div>
+  </div>
+
+  <h2>نحوه اتصال</h2>
+  <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p {{ config.SSH_PORT_PUBLIC }}</pre>
+  <p class="muted">سپس یک سرویس روی پورت خودتان اجرا کنید، مثلاً:</p>
+  <pre dir="ltr">python3 -m http.server {{ current_user.port }}</pre>
+  <p>و در مرورگر باز کنید:
+    <a href="http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/" dir="ltr">http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/</a>
+  </p>
+
+  {% if capacity %}
+  <h2>ظرفیت فعلی سرور</h2>
+  <p>دانشجویان واردشده: <strong>{{ capacity.current }} از {{ capacity.max }}</strong>
+     ({{ capacity.available }} جای خالی).</p>
+  {% endif %}
+
+  <h2>تغییر روز مورد نظر</h2>
+  <form method="post" action="{{ url_for('change_day') }}" class="form inline">
+    <select name="preferred_day">
+      {% for v, name in weekdays %}
+        <option value="{{ v }}" {% if v == current_user.preferred_day %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+    <button>به‌روزرسانی</button>
+  </form>
+  <p class="muted">روز انتخابی به شما اولویت می‌دهد. ورود در روزهای دیگر فقط در صورت وجود ظرفیت آزاد مجاز است.</p>
+{% endif %}
+
+{% endblock %}

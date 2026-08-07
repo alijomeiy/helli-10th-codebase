@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# Panel runtime data
+panel/panel.db
+panel/panel.db-journal
+panel/panel.db-wal
+panel/panel.db-shm
+*.sqlite
+*.sqlite3
+
+# Secrets / keys
+panel/panel_key
+panel/panel_key.pub
+panel/.ssh/
+panel/panel.env
+*.pem
+*.key
+
+# Logs
+*.log
+studentctl-sync.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.bak
+
+# Env files
+.env
+.env.*
+!.env.example
