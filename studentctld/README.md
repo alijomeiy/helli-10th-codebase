@@ -208,7 +208,7 @@ truth, written by the panel via `studentctl-push-config`.
 | CPU        | 50% of one core    | cgroup v2 `CPUQuota`           |
 | Processes  | 128                | cgroup `TasksMax` + `ulimit`   |
 | Open files | 512                | `ulimit -n`                    |
-| Disk       | 1 GB soft / 1.1 GB | ext4 `usrquota`                |
+| Disk       | 400 MB hard cap    | ext4 `usrquota`                |
 | Idle time  | 2 h auto-logout    | `TMOUT` in profile             |
 | Network    | one service port   | `ufw` per-account + 10000–10100|
 

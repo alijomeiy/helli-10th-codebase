@@ -13,9 +13,9 @@ echo "${U}:${PW}" | chpasswd
 chage -M 180 -W 7 "$U"          # password max life 180d
 passwd -u "$U" >/dev/null       # ensure unlocked
 
-# 1 GB soft / 1.1 GB hard disk quota on / (needs usrquota enabled in fstab).
+# 400 MB disk quota on / (hard cap; needs usrquota enabled in fstab).
 if repquota / >/dev/null 2>&1; then
-    setquota -u "$U" 1048576 1153434 0 0 / || true
+    setquota -u "$U" 409600 409600 0 0 / || true
 fi
 
 # Open the student's service port.
