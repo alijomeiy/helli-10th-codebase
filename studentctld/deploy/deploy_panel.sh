@@ -24,22 +24,25 @@ if [ ! -f "$ENV_FILE" ]; then
     echo
 fi
 
-echo "==> Building & starting the panel container..."
+echo "==> Building & starting the panel container (HTTP on :5000)..."
 cd "$ROOT"
-docker compose up -d --build
+docker compose -f docker-compose.simple.yml up -d --build
 
 sleep 3
 echo
 echo "==> Status:"
-docker compose ps
+docker compose -f docker-compose.simple.yml ps
 echo
-if docker compose ps | grep -q "studentctl-panel.*Up\|studentctl-panel.*running\|healthy"; then
-    echo "Panel up at http://127.0.0.1:5000/  (admin at /admin/login)"
+if docker compose -f docker-compose.simple.yml ps | grep -q "studentctl-panel.*Up\|studentctl-panel.*running\|healthy"; then
+    echo "Panel up at http://<this-server-ip>:5000/  (admin at /admin/login)"
 else
     echo "Container did not report healthy. Logs:" >&2
-    docker compose logs --tail=40 panel >&2
+    docker compose -f docker-compose.simple.yml logs --tail=40 panel >&2
     exit 1
 fi
 echo
 echo "First build prints the SSH public key — copy it to the playground box:"
 echo "  echo '<key>' | sudo -u studentctl tee -a /home/studentctl/.ssh/authorized_keys"
+echo
+echo "Want HTTPS? Set up a domain, then:"
+echo "  sudo DOMAIN=panel.yourdomain.ir EMAIL=you@example.com bash deploy/init-letsencrypt.sh"

@@ -1,0 +1,30 @@
+# Simple HTTP-only deployment — no nginx, no TLS. Use for testing or when you
+# have no domain (reach the panel directly on :5000). For HTTPS, use the main
+# docker-compose.yml + deploy/init-letsencrypt.sh instead.
+#
+#   docker compose -f docker-compose.simple.yml up -d --build
+#
+services:
+  panel:
+    build: ./panel
+    image: studentctl-panel:latest
+    container_name: studentctl-panel
+    restart: unless-stopped
+    env_file: ./panel/panel.env
+    environment:
+      TZ: Asia/Tehran
+    ports:
+      - "5000:5000"                  # direct HTTP access (no TLS)
+    volumes:
+      - panel-data:/var/lib/studentctl
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  panel-data:

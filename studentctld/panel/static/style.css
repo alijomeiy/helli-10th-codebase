@@ -29,8 +29,9 @@ label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mute
 input,select{background:#0b0d12;border:1px solid var(--bd);color:var(--ink);
   padding:10px 12px;border-radius:8px;font-size:16px;width:100%}
 /* font-size:16px prevents iOS Safari auto-zoom on focus */
+button,input,select,textarea{font-family:inherit}
 button{background:var(--accent);color:#fff;border:0;padding:11px 18px;
-  border-radius:8px;cursor:pointer;font-size:15px;min-height:44px}
+  border-radius:8px;cursor:pointer;font-size:15px;font-weight:600;min-height:44px}
 button.ok{background:var(--ok)} button.warn{background:var(--warn)}
 button.danger{background:var(--danger)}
 

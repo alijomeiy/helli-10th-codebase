@@ -1,9 +1,12 @@
-# studentctl panel — container deployment.
+# studentctl panel — container deployment with nginx + automatic HTTPS.
 # The Linux playground stays on the host (PAM/cgroups/quota/ufw need the kernel);
-# only the Flask panel runs in this container.
+# only the Flask panel runs in a container, behind nginx.
 #
-#   docker compose up -d --build
-#   docker compose logs -f panel
+# First time (HTTPS):
+#   sudo DOMAIN=panel.yourdomain.ir EMAIL=you@example.com bash deploy/init-letsencrypt.sh
+#   docker compose up -d
+# Without a domain (HTTP only, local/tunnel): see deploy/deploy_panel.sh
+#
 services:
   panel:
     build: ./panel
@@ -13,21 +16,44 @@ services:
     env_file: ./panel/panel.env
     environment:
       TZ: Asia/Tehran
-    ports:
-      # loopback only: put nginx (same host) in front for TLS, or reach via SSH tunnel
-      - "80:5000"
+    expose:
+      - "5000"                       # internal only; nginx proxies to it
     volumes:
-      # SQLite DB + the generated management SSH key persist across rebuilds
-      - panel-data:/var/lib/studentctl
+      - panel-data:/var/lib/studentctl   # SQLite DB + generated SSH key persist here
     extra_hosts:
-      # lets the container SSH to the playground when the playground IS the host
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"   # SSH to the host playground if colocated
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=3)"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  nginx:
+    image: nginx:alpine
+    container_name: studentctl-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"                      # HTTP  -> ACME challenge + redirect to HTTPS
+      - "443:443"                    # HTTPS -> panel:5000
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./deploy/nginx/templates:/etc/nginx/templates:ro   # envsubst -> conf.d
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    depends_on:
+      - panel
+
+  certbot:
+    image: certbot/certbot
+    container_name: studentctl-certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    # Try to renew every 12h; nginx reloads the new cert on its own restart cycle.
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
 
 volumes:
   panel-data:
