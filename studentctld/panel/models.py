@@ -25,7 +25,6 @@ class User(UserMixin, db.Model):
     uid = db.Column(db.Integer, nullable=True)
     port = db.Column(db.Integer, nullable=True)
     ssh_password = db.Column(db.String(64), default="")       # generated SSH password
-    preferred_day = db.Column(db.Integer, default=1)          # 1=Mon..7=Sun
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)

@@ -16,14 +16,6 @@
   <label>رمز ورود به پنل (حداقل ۸ نویسه)
     <input name="password" type="password" minlength="8" required autocomplete="new-password" dir="ltr">
   </label>
-  <label>روز مورد نظر در هفته
-    <select name="preferred_day">
-      {% for v, name in weekdays %}
-        <option value="{{ v }}">{{ name }}</option>
-      {% endfor %}
-    </select>
-    <small>در این روز اولویت دسترسی دارید. در سایر روزها، در صورت وجود ظرفیت آزاد نیز می‌توانید وارد شوید.</small>
-  </label>
   <button>ثبت درخواست</button>
 </form>
 {% endblock %}

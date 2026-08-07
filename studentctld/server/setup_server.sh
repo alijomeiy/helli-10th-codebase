@@ -1,5 +1,5 @@
 #!/bin/bash
-# studentctl - one-time server bootstrap (run as root on the 4GB/2core box)
+# studentctl - one-time server bootstrap (run as root on the 8GB/4core box)
 # Ubuntu 22.04 / 24.04 (Debian 12) assumed.
 set -euo pipefail
 
@@ -12,6 +12,9 @@ echo "==> Installing packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y jq quota ufw openssh-server curl ca-certificates
+
+echo "==> Setting timezone (open-hours matching uses server local time)"
+timedatectl set-timezone Asia/Tehran || true
 
 echo "==> Enabling filesystem quotas (requires a reboot to take effect on /)"
 if ! grep -qE '^[^#]*\busrquota\b' /etc/fstab; then
@@ -42,8 +45,10 @@ echo "==> Idle-timeout + welcome banner for student shells"
 cat >/etc/profile.d/studentctl-students.sh <<'PROFILE'
 # Applies to interactive student shells. Root/admins unaffected in practice.
 if [ "$(id -u)" -ge 2000 ]; then
-    # Auto-logout after 2 hours of idle time (configurable)
-    TMOUT=${STUDENTCTL_TMOUT:-7200}
+    # Auto-logout after N seconds idle (default 1800s = 30min).
+    # Value comes from the panel-pushed config; env STUDENTCTL_TMOUT overrides.
+    _T=$(jq -r '.idle_timeout // 1800' /etc/studentctl/config.json 2>/dev/null || echo 1800)
+    TMOUT=${STUDENTCTL_TMOUT:-$_T}
     readonly TMOUT
     export TMOUT
     # Friendly limits
@@ -56,8 +61,8 @@ echo "==> cgroup v2 resource limits for all student sessions (systemd user slice
 mkdir -p /etc/systemd/system/user-.slice.d
 cat >/etc/systemd/system/user-.slice.d/50-students.conf <<'EOF'
 [Slice]
-MemoryMax=300M
-CPUQuota=20%
+MemoryMax=384M
+CPUQuota=50%
 TasksMax=128
 IOWeight=20
 EOF
@@ -91,7 +96,7 @@ ufw --force enable
 
 echo "==> Config directory"
 install -d -m 0755 /etc/studentctl
-[ -f /etc/studentctl/config.json ] || echo '{"max_concurrent":15,"reserved_for_onday":3,"users":{}}' >/etc/studentctl/config.json
+[ -f /etc/studentctl/config.json ] || echo '{"max_concurrent":30,"idle_timeout":1800,"users":{}}' >/etc/studentctl/config.json
 
 echo "==> Dedicated management user for the web panel (passwordless, restricted sudo)"
 if ! id studentctl >/dev/null 2>&1; then

@@ -1,8 +1,8 @@
 #!/bin/bash
-# studentctl-provision  <username> <uid> <port> <password> <day(1-7)>
+# studentctl-provision  <username> <uid> <port> <password>
 # Creates a restricted student account able to run ONE simple service.
 set -euo pipefail
-U="$1"; UID_N="$2"; PORT="$3"; PW="$4"; DAY="$5"
+U="$1"; UID_N="$2"; PORT="$3"; PW="$4"
 
 if id "$U" >/dev/null 2>&1; then
     echo "user already exists" >&2; exit 0
@@ -30,4 +30,4 @@ cat >>"/home/${U}/.bashrc" <<EOF
 EOF
 chown "$U:$U" "/home/${U}/.bashrc"
 
-echo "provisioned $U uid=$UID_N port=$PORT day=$DAY"
+echo "provisioned $U uid=$UID_N port=$PORT"

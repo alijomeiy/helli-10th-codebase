@@ -1,9 +1,11 @@
 import os
 import secrets
 from datetime import datetime
+from functools import wraps
 
 from flask import (
-    Flask, render_template, redirect, url_for, request, flash, jsonify, abort
+    Flask, render_template, redirect, url_for, request, flash, jsonify, abort,
+    Blueprint,
 )
 from flask_login import (
     LoginManager, login_user, logout_user, login_required, current_user,
@@ -19,7 +21,7 @@ from models import (
 
 app = Flask(__name__)
 app.config.from_object(Config)
-# Correct scheme/host behind the nginx reverse proxy (panel.domain -> 4GB box -> small VM)
+# Correct scheme/host behind an optional nginx reverse proxy.
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 db.init_app(app)
 
@@ -39,8 +41,8 @@ def max_concurrent():
     return Setting.get_int("max_concurrent", Config.DEFAULT_MAX_CONCURRENT)
 
 
-def reserved_onday():
-    return Setting.get_int("reserved_onday", Config.DEFAULT_RESERVED_ONDAY)
+def idle_timeout():
+    return Setting.get_int("idle_timeout", Config.DEFAULT_IDLE_TIMEOUT)
 
 
 def next_uid_port():
@@ -68,7 +70,6 @@ def build_users_map():
     ).all()
     return {
         r.username: {
-            "day": r.preferred_day,
             "enabled": r.status == STATUS_APPROVED,
             "uid": r.uid,
             "port": r.port,
@@ -80,7 +81,7 @@ def build_users_map():
 def sync_server():
     """Push the current config to the Linux box. Best-effort; flashes on error."""
     try:
-        server_api.push_config(max_concurrent(), reserved_onday(), build_users_map())
+        server_api.push_config(max_concurrent(), idle_timeout(), build_users_map())
         return True
     except Exception as e:
         flash(f"ارتباط با سرور لینوکس برای همگام‌سازی برقرار نشد: {e}", "error")
@@ -108,7 +109,6 @@ def register():
         full_name = request.form.get("full_name", "").strip()
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
-        day = int(request.form.get("preferred_day", 1))
 
         if not username.isidentifier() or not (3 <= len(username) <= 24):
             flash("نام کاربری باید ۳ تا ۲۴ نویسه و فقط شامل حروف انگلیسی، عدد و خط زیر باشد.", "error")
@@ -119,13 +119,10 @@ def register():
         if User.query.filter_by(username=username).first():
             flash("این نام کاربری قبلاً گرفته شده است.", "error")
             return redirect(url_for("register"))
-        if not (1 <= day <= 7):
-            flash("یک روز معتبر از هفته انتخاب کنید.", "error")
-            return redirect(url_for("register"))
 
         u = User(
             role="student", username=username, full_name=full_name, email=email,
-            preferred_day=day, status=STATUS_PENDING,
+            status=STATUS_PENDING,
         )
         u.set_password(password)
         db.session.add(u)
@@ -133,7 +130,7 @@ def register():
         log_event(username, "register", "submitted for approval")
         flash("درخواست شما ثبت شد! به‌زودی یک مدیر آن را تأیید می‌کند.", "ok")
         return redirect(url_for("student_login"))
-    return render_template("register.html", weekdays=Config.WEEKDAYS)
+    return render_template("register.html")
 
 
 # ---------- student auth ------------------------------------------------------
@@ -163,7 +160,7 @@ def logout():
 @login_required
 def dashboard():
     if current_user.is_admin:
-        return redirect(url_for("admin_index"))
+        return redirect(url_for("admin.admin_index"))
     if current_user.status == STATUS_PENDING:
         return render_template("dashboard.html", pending=True)
     if current_user.status == STATUS_REJECTED:
@@ -179,39 +176,28 @@ def dashboard():
     return render_template(
         "dashboard.html",
         pending=False, rejected=False, capacity=capacity,
-        weekdays=Config.WEEKDAYS,
-        today_iso=int(datetime.utcnow().isoweekday()),
     )
 
 
-@app.route("/dashboard/day", methods=["POST"])
-@login_required
-def change_day():
-    if current_user.is_admin or current_user.role != "student":
-        abort(403)
-    day = int(request.form.get("preferred_day", 1))
-    if 1 <= day <= 7:
-        current_user.preferred_day = day
-        db.session.commit()
-        sync_server()
-        flash("روز مورد نظر به‌روزرسانی شد. در روز انتخابی‌تان اولویت دسترسی دارید.", "ok")
-    return redirect(url_for("dashboard"))
+# ---------- admin blueprint ---------------------------------------------------
+# Admin lives entirely under /admin/* and is NOT linked from the student UI.
+# Reach it only by navigating to /admin/login directly.
 
+admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
-# ---------- admin -------------------------------------------------------------
 
 def admin_required(f):
-    from functools import wraps
     @wraps(f)
-    @login_required
     def wrap(*a, **kw):
+        if not current_user.is_authenticated:
+            return redirect(url_for("admin.admin_login"))
         if not current_user.is_admin:
             abort(403)
         return f(*a, **kw)
     return wrap
 
 
-@app.route("/admin/login", methods=["GET", "POST"])
+@admin_bp.route("/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
         u = User.query.filter_by(
@@ -220,13 +206,13 @@ def admin_login():
         ).first()
         if u and u.check_password(request.form.get("password", "")):
             login_user(u)
-            return redirect(url_for("admin_index"))
+            return redirect(url_for("admin.admin_index"))
         flash("اطلاعات ورود مدیر نادرست است.", "error")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("admin.admin_login"))
     return render_template("admin_login.html")
 
 
-@app.route("/admin")
+@admin_bp.route("")
 @admin_required
 def admin_index():
     pending = User.query.filter_by(role="student", status=STATUS_PENDING).order_by(User.created_at).all()
@@ -239,26 +225,25 @@ def admin_index():
         pass
     return render_template(
         "admin.html", pending=pending, active=active, capacity=capacity,
-        max_conc=max_concurrent(), reserved=reserved_onday(),
-        weekdays=Config.WEEKDAYS,
+        max_conc=max_concurrent(), idle=idle_timeout(),
     )
 
 
-@app.route("/admin/approve/<int:uid>", methods=["POST"])
+@admin_bp.route("/approve/<int:uid>", methods=["POST"])
 @admin_required
 def approve(uid):
     u = User.query.get_or_404(uid)
     if u.status != STATUS_PENDING:
         flash("این حساب در حالت انتظار نیست.", "error")
-        return redirect(url_for("admin_index"))
+        return redirect(url_for("admin.admin_index"))
 
     new_uid, port = next_uid_port()
     pw = gen_password()
     try:
-        server_api.provision(u.username, new_uid, port, pw, u.preferred_day)
+        server_api.provision(u.username, new_uid, port, pw)
     except Exception as e:
         flash(f"ایجاد حساب روی سرور لینوکس ناموفق بود: {e}", "error")
-        return redirect(url_for("admin_index"))
+        return redirect(url_for("admin.admin_index"))
 
     u.uid = new_uid
     u.port = port
@@ -269,10 +254,10 @@ def approve(uid):
     sync_server()
     log_event(u.username, "provision", f"uid={new_uid} port={port}")
     flash(f"حساب {u.username} تأیید شد. رمز SSH او در پنل کاربری‌اش نمایش داده می‌شود.", "ok")
-    return redirect(url_for("admin_index"))
+    return redirect(url_for("admin.admin_index"))
 
 
-@app.route("/admin/reject/<int:uid>", methods=["POST"])
+@admin_bp.route("/reject/<int:uid>", methods=["POST"])
 @admin_required
 def reject(uid):
     u = User.query.get_or_404(uid)
@@ -280,15 +265,15 @@ def reject(uid):
     db.session.commit()
     log_event(u.username, "reject")
     flash(f"درخواست {u.username} رد شد.", "ok")
-    return redirect(url_for("admin_index"))
+    return redirect(url_for("admin.admin_index"))
 
 
-@app.route("/admin/disable/<int:uid>", methods=["POST"])
+@admin_bp.route("/disable/<int:uid>", methods=["POST"])
 @admin_required
 def disable(uid):
     u = User.query.get_or_404(uid)
     if u.uid is None:
-        return redirect(url_for("admin_index"))
+        return redirect(url_for("admin.admin_index"))
     try:
         server_api.disable(u.username)
     except Exception as e:
@@ -298,15 +283,15 @@ def disable(uid):
     sync_server()
     log_event(u.username, "disable")
     flash(f"دسترسی {u.username} غیرفعال شد.", "ok")
-    return redirect(url_for("admin_index"))
+    return redirect(url_for("admin.admin_index"))
 
 
-@app.route("/admin/enable/<int:uid>", methods=["POST"])
+@admin_bp.route("/enable/<int:uid>", methods=["POST"])
 @admin_required
 def enable(uid):
     u = User.query.get_or_404(uid)
     if u.uid is None:
-        return redirect(url_for("admin_index"))
+        return redirect(url_for("admin.admin_index"))
     try:
         server_api.enable(u.username)
     except Exception as e:
@@ -316,10 +301,10 @@ def enable(uid):
     sync_server()
     log_event(u.username, "enable")
     flash(f"دسترسی {u.username} دوباره فعال شد.", "ok")
-    return redirect(url_for("admin_index"))
+    return redirect(url_for("admin.admin_index"))
 
 
-@app.route("/admin/delete/<int:uid>", methods=["POST"])
+@admin_bp.route("/delete/<int:uid>", methods=["POST"])
 @admin_required
 def delete(uid):
     u = User.query.get_or_404(uid)
@@ -334,22 +319,25 @@ def delete(uid):
     sync_server()
     log_event(uname, "delete")
     flash(f"{uname} از همه‌جا حذف شد.", "ok")
-    return redirect(url_for("admin_index"))
+    return redirect(url_for("admin.admin_index"))
 
 
-@app.route("/admin/settings", methods=["POST"])
+@admin_bp.route("/settings", methods=["POST"])
 @admin_required
 def settings():
     mc = int(request.form.get("max_concurrent", max_concurrent()))
-    rv = int(request.form.get("reserved_onday", reserved_onday()))
+    it = int(request.form.get("idle_timeout", idle_timeout()))
     mc = max(1, min(mc, 50))
-    rv = max(0, min(rv, mc))
+    it = max(60, min(it, 86400))
     Setting.set("max_concurrent", mc)
-    Setting.set("reserved_onday", rv)
+    Setting.set("idle_timeout", it)
     db.session.commit()
     sync_server()
     flash("تنظیمات ذخیره و همگام‌سازی شد.", "ok")
-    return redirect(url_for("admin_index"))
+    return redirect(url_for("admin.admin_index"))
+
+
+app.register_blueprint(admin_bp)
 
 
 # ---------- init / CLI --------------------------------------------------------

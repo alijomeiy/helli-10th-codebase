@@ -51,8 +51,8 @@ def _sudo(script, *args):
 
 # ---- public actions ----------------------------------------------------------
 
-def provision(username, uid, port, password, day):
-    return _sudo("studentctl-provision", username, uid, port, password, day)
+def provision(username, uid, port, password):
+    return _sudo("studentctl-provision", username, uid, port, password)
 
 
 def disable(username):
@@ -74,14 +74,13 @@ def status():
     return json.loads(out)
 
 
-def push_config(max_concurrent, reserved_onday, users):
-    """users: dict username -> {day, enabled, uid, port}"""
+def push_config(max_concurrent, idle_timeout, users):
+    """users: dict username -> {enabled, uid, port}"""
     payload = json.dumps({
         "max_concurrent": int(max_concurrent),
-        "reserved_for_onday": int(reserved_onday),
+        "idle_timeout": int(idle_timeout),
         "users": {
             u: {
-                "day": int(d["day"]),
                 "enabled": bool(d["enabled"]),
                 "uid": int(d["uid"]),
                 "port": int(d["port"]),

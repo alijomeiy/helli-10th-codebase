@@ -14,15 +14,20 @@ class Config:
     SSH_HOST = os.environ.get("STUDENTCTL_SSH_HOST", "10.0.0.10")
     SSH_PORT = int(os.environ.get("STUDENTCTL_SSH_PORT", "22"))
     SSH_USER = os.environ.get("STUDENTCTL_SSH_USER", "studentctl")
-    SSH_KEY = os.environ.get("STUDENTCTL_SSH_KEY", os.path.join(BASE, "panel_key"))
+    SSH_KEY = os.environ.get("STUDENTCTL_SSH_KEY", "/var/lib/studentctl/panel_key")
 
     # Public hostname/IP students use to SSH in / reach their service
     SERVER_DOMAIN = os.environ.get("STUDENTCTL_SERVER_DOMAIN", SSH_HOST)
     SSH_PORT_PUBLIC = int(os.environ.get("STUDENTCTL_SSH_PORT_PUBLIC", "22"))
 
-    # Defaults (editable from admin UI)
-    DEFAULT_MAX_CONCURRENT = int(os.environ.get("STUDENTCTL_MAX_CONCURRENT", "15"))
-    DEFAULT_RESERVED_ONDAY = int(os.environ.get("STUDENTCTL_RESERVED_ONDAY", "3"))
+    # Timezone used for logging/consistency (server + container should agree).
+    TIMEZONE = os.environ.get("STUDENTCTL_TZ", "Asia/Tehran")
+
+    # Access policy defaults (editable from admin UI). Sized for 8GB/4vCore.
+    #   max_concurrent = hard cap on simultaneous student logins
+    #   idle_timeout   = seconds of inactivity before auto-logout (frees slots)
+    DEFAULT_MAX_CONCURRENT = int(os.environ.get("STUDENTCTL_MAX_CONCURRENT", "30"))
+    DEFAULT_IDLE_TIMEOUT = int(os.environ.get("STUDENTCTL_IDLE_TIMEOUT", "1800"))
 
     # UID / port allocation ranges (must match server firewall: 10000-10100)
     UID_START = 2000
@@ -33,8 +38,3 @@ class Config:
     # Seed admin (created on first run; change the password immediately)
     SEED_ADMIN_USER = os.environ.get("STUDENTCTL_ADMIN_USER", "admin")
     SEED_ADMIN_PASS = os.environ.get("STUDENTCTL_ADMIN_PASS", "changeme123")
-
-    WEEKDAYS = [
-        (1, "دوشنبه"), (2, "سه‌شنبه"), (3, "چهارشنبه"),
-        (4, "پنج‌شنبه"), (5, "جمعه"), (6, "شنبه"), (7, "یکشنبه"),
-    ]

@@ -1,13 +1,16 @@
 #!/bin/bash
 # studentctl-check-login.sh
 # Invoked by pam_exec (account phase) on every SSH login.
-# Enforces: global concurrent cap + preferred-day priority with off-day overflow.
 #
-# Reads: /etc/studentctl/config.json
-#   { "max_concurrent": 15, "reserved_for_onday": 3,
-#     "users": { "alice": { "day": 1, "enabled": true } , ... } }
-#   day is ISO weekday: 1=Mon .. 7=Sun
-set -euo pipefail
+# Access policy (resource-based, no scheduling):
+#   An enabled student may log in as long as logged_in < max_concurrent.
+#   Idle sessions are auto-logged-out after idle_timeout seconds (TMOUT in the
+#   shell profile), so capacity is reclaimed automatically.
+#
+# Reads /etc/studentctl/config.json:
+#   { "max_concurrent": 30, "idle_timeout": 1800,
+#     "users": { "alice": { "enabled": true }, ... } }
+set -uo pipefail
 
 CONFIG="${STUDENTCTL_CONFIG:-/etc/studentctl/config.json}"
 USER="${PAM_USER:-}"
@@ -26,27 +29,15 @@ if [ "$ENABLED" != "true" ]; then
     exit 0
 fi
 
-MAX_CONC=$(jq -r '.max_concurrent // 15' "$CONFIG")
-RESERVED=$(jq -r '.reserved_for_onday // 3' "$CONFIG")
-MY_DAY=$(jq -r --arg u "$USER" '.users[$u].day // 1' "$CONFIG")
-TODAY=$(date +%u)   # 1=Mon .. 7=Sun
+MAX_CONC=$(jq -r '.max_concurrent // 30' "$CONFIG")
 
-# Count currently-logged-in unique users (excluding pure system accounts).
+# Count currently-logged-in unique students (UID >= 1000).
 COUNT=$(who | awk '{print $1}' | sort -u | while read -r u; do
     [ "$(id -u "$u" 2>/dev/null || echo 0)" -ge 1000 ] && echo "$u"
 done | sort -u | wc -l)
 
-deny() { echo "studentctl: $1" >&2; exit 1; }
-
-if [ "$TODAY" -eq "$MY_DAY" ]; then
-    # On-day: priority access, denied only if server genuinely full.
-    [ "$COUNT" -ge "$MAX_CONC" ] && deny "Server full ($COUNT/$MAX_CONC). Please try again shortly."
-    exit 0
-fi
-
-# Off-day: allowed only if spare capacity beyond the reserved on-day buffer.
-AVAIL=$(( MAX_CONC - RESERVED ))
-if [ "$COUNT" -ge "$AVAIL" ]; then
-    deny "Today is not your scheduled day and capacity is reserved (used $COUNT, threshold $AVAIL)."
+if [ "$COUNT" -ge "$MAX_CONC" ]; then
+    echo "studentctl: سرور پر است ($COUNT/$MAX_CONC). کمی بعد تلاش کنید." >&2
+    exit 1
 fi
 exit 0

@@ -1,0 +1,33 @@
+# studentctl panel — container deployment.
+# The Linux playground stays on the host (PAM/cgroups/quota/ufw need the kernel);
+# only the Flask panel runs in this container.
+#
+#   docker compose up -d --build
+#   docker compose logs -f panel
+services:
+  panel:
+    build: ./panel
+    image: studentctl-panel:latest
+    container_name: studentctl-panel
+    restart: unless-stopped
+    env_file: ./panel/panel.env
+    environment:
+      TZ: Asia/Tehran
+    ports:
+      # loopback only: put nginx (same host) in front for TLS, or reach via SSH tunnel
+      - "127.0.0.1:5000:5000"
+    volumes:
+      # SQLite DB + the generated management SSH key persist across rebuilds
+      - panel-data:/var/lib/studentctl
+    extra_hosts:
+      # lets the container SSH to the playground when the playground IS the host
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  panel-data:

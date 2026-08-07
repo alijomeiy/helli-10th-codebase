@@ -9,57 +9,58 @@
 <p class="muted">وضعیت لحظه‌ای در دسترس نیست (ارتباط با سرور لینوکس برقرار نیست).</p>
 {% endif %}
 
-<h2>تنظیمات کلی</h2>
-<form method="post" action="{{ url_for('settings') }}" class="form inline">
+<h2>تنظیمات دسترسی</h2>
+<form method="post" action="{{ url_for('admin.settings') }}" class="form inline">
   <label>حداکثر دانشجوی هم‌زمان
     <input type="number" name="max_concurrent" value="{{ max_conc }}" min="1" max="50">
   </label>
-  <label>ظرفیت رزرو شده برای روزِ دانشجو
-    <input type="number" name="reserved_onday" value="{{ reserved }}" min="0">
+  <label>خروج خودکار بیکار (ثانیه)
+    <input type="number" name="idle_timeout" value="{{ idle }}" min="60" max="86400">
   </label>
   <button>ذخیره و همگام‌سازی</button>
 </form>
-<p class="muted">دانشجویان روزهای دیگر می‌توانند نهایتاً از (حداکثر − رزرو شده) جای خالی استفاده کنند.</p>
+<p class="muted">هر دانشجو هر زمان که ظرفیت آزاد باشد می‌تواند وارد شود. اگر بی‌کار بماند، پس از این مدت به‌صورت خودکار خارج می‌شود تا جای او آزاد شود.</p>
 
 <h2>درخواست‌های در انتظار ({{ pending|length }})</h2>
 {% if pending %}
+<div class="table-scroll">
 <table>
-  <thead><tr><th>نام کاربری</th><th>نام</th><th>رایانامه</th><th>روز</th><th>تاریخ درخواست</th><th></th></tr></thead>
+  <thead><tr><th>نام کاربری</th><th>نام</th><th>رایانامه</th><th>تاریخ درخواست</th><th></th></tr></thead>
   <tbody>
   {% for u in pending %}
     <tr>
       <td dir="ltr">{{ u.username }}</td><td>{{ u.full_name }}</td><td dir="ltr">{{ u.email }}</td>
-      <td>{% for v,name in weekdays %}{% if v == u.preferred_day %}{{ name }}{% endif %}{% endfor %}</td>
       <td>{{ u.created_at }}</td>
       <td class="actions">
-        <form method="post" action="{{ url_for('approve', uid=u.id) }}"><button class="ok">تأیید</button></form>
-        <form method="post" action="{{ url_for('reject', uid=u.id) }}"><button class="warn">رد</button></form>
+        <form method="post" action="{{ url_for('admin.approve', uid=u.id) }}"><button class="ok">تأیید</button></form>
+        <form method="post" action="{{ url_for('admin.reject', uid=u.id) }}"><button class="warn">رد</button></form>
       </td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}<p class="muted">درخواستی در انتظار نیست.</p>{% endif %}
 
 <h2>حساب‌های فعال ({{ active|length }})</h2>
 {% if active %}
+<div class="table-scroll">
 <table>
-  <thead><tr><th>نام کاربری</th><th>UID</th><th>پورت</th><th>روز</th><th>وضعیت</th><th></th></tr></thead>
+  <thead><tr><th>نام کاربری</th><th>UID</th><th>پورت</th><th>وضعیت</th><th></th></tr></thead>
   <tbody>
   {% for u in active %}
     <tr>
       <td dir="ltr">{{ u.username }}</td>
       <td dir="ltr">{{ u.uid }}</td>
       <td dir="ltr">{{ u.port }}</td>
-      <td>{% for v,name in weekdays %}{% if v == u.preferred_day %}{{ name }}{% endif %}{% endfor %}</td>
       <td>{{ u.status }}</td>
       <td class="actions">
         {% if u.status == 'approved' %}
-          <form method="post" action="{{ url_for('disable', uid=u.id) }}"><button class="warn">غیرفعال</button></form>
+          <form method="post" action="{{ url_for('admin.disable', uid=u.id) }}"><button class="warn">غیرفعال</button></form>
         {% else %}
-          <form method="post" action="{{ url_for('enable', uid=u.id) }}"><button class="ok">فعال‌سازی</button></form>
+          <form method="post" action="{{ url_for('admin.enable', uid=u.id) }}"><button class="ok">فعال‌سازی</button></form>
         {% endif %}
-        <form method="post" action="{{ url_for('delete', uid=u.id) }}"
+        <form method="post" action="{{ url_for('admin.delete', uid=u.id) }}"
               onsubmit="return confirm('حساب {{ u.username }} و تمام داده‌های آن برای همیشه حذف شود؟');">
           <button class="danger">حذف</button>
         </form>
@@ -68,6 +69,7 @@
   {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}<p class="muted">هنوز حساب فعالی وجود ندارد.</p>{% endif %}
 
 {% endblock %}
