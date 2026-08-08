@@ -22,6 +22,18 @@
 <p class="muted">هر دانشجو هر زمان که ظرفیت آزاد باشد می‌تواند وارد شود. اگر بی‌کار بماند، پس از این مدت به‌صورت خودکار خارج می‌شود تا جای او آزاد شود.</p>
 
 <h2>مدیریت تسک‌ها و تابلوی امتیازات</h2>
+
+<div class="actions" style="margin:12px 0">
+  <form method="post" action="{{ url_for('admin.deploy_task', task_name='task1') }}"
+        onsubmit="return confirm('تسک ۱ برای همه دانشجویان فعال مستقر شود؟ داده‌های قبلی بازنویسی می‌شود.');">
+    <button class="ok">استقرار تسک ۱</button>
+  </form>
+  <form method="post" action="{{ url_for('admin.deploy_task', task_name='task2') }}"
+        onsubmit="return confirm('تسک ۲ فعال شود؟');">
+    <button class="ok">فعال‌سازی تسک ۲</button>
+  </form>
+</div>
+
 {% if tasks_info %}
 <div class="table-scroll">
 <table>
@@ -35,17 +47,10 @@
       <td>{{ t.completed }} / {{ t.total }}</td>
       <td>{{ t.deployed_at if t.deployed_at else "—" }}</td>
       <td class="actions">
-        {% if t.name == 'task1' %}
-          <form method="post" action="{{ url_for('admin.deploy_task', task_name='task1') }}"
-                onsubmit="return confirm('تسک ۱ برای همه دانشجویان فعال مستقر شود؟ داده‌های قبلی بازنویسی می‌شود.');">
-            <button class="ok">استقرار / بازاستقرار</button>
-          </form>
-        {% elif t.name == 'task2' %}
-          <form method="post" action="{{ url_for('admin.deploy_task', task_name='task2') }}"
-                onsubmit="return confirm('تسک ۲ فعال شود؟');">
-            <button class="ok">فعال‌سازی</button>
-          </form>
-        {% endif %}
+        <form method="post" action="{{ url_for('admin.deploy_task', task_name=t.name) }}"
+              onsubmit="return confirm('این تسک بازاستقرار شود؟');">
+          <button class="ok">بازاستقرار</button>
+        </form>
         {% if t.is_active %}
           <form method="post" action="{{ url_for('admin.reset_task', task_name=t.name) }}"
                 onsubmit="return confirm('امتیازات این تسک بازنشانی شود؟');">
@@ -59,9 +64,9 @@
 </table>
 </div>
 {% else %}
-<p class="muted">هنوز تسکی تعریف نشده است.</p>
+<p class="muted">هنوز تسکی مستقر نشده است. از دکمه‌های بالا برای شروع استفاده کنید.</p>
 {% endif %}
-<p class="muted"><a href="{{ url_for('leaderboard') }}">مشاهده تابلوی امتیازات</a> — این صفحه برای همه (بدون نیاز به ورود) قابل مشاهده است.</p>
+<p class="muted"><a href="{{ url_for('leaderboard') }}">مشاهده تابلوی امتیازات</a></p>
 
 <h2>درخواست‌های در انتظار ({{ pending|length }})</h2>
 {% if pending %}
