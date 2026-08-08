@@ -20,9 +20,8 @@ COMPOSE="docker compose"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-# Absolute paths — docker run -v requires them for bind mounts.
-WWW="$ROOT/certbot/www"
-CONF="$ROOT/certbot/conf"
+WW="$(pwd)/certbot/www"
+CONF="$(pwd)/certbot/conf"
 mkdir -p "$WWW" "$CONF"
 
 echo "==> 1/5  starting nginx with a temporary self-signed certificate"
