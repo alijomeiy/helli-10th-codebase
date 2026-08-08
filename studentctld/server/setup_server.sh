@@ -32,6 +32,8 @@ install -m 0750 studentctl-enable.sh        /usr/local/sbin/studentctl-enable
 install -m 0750 studentctl-delete.sh        /usr/local/sbin/studentctl-delete
 install -m 0750 studentctl-push-config.sh   /usr/local/sbin/studentctl-push-config
 install -m 0750 studentctl-status.sh        /usr/local/sbin/studentctl-status
+install -m 0750 studentctl-deploy-task1.sh  /usr/local/sbin/studentctl-deploy-task1
+install -m 0755 studentctl-submit.sh        /usr/local/bin/submit
 install -m 0755 studentctl-check-login.sh   /usr/local/bin/studentctl-check-login
 
 echo "==> Wiring PAM login check into sshd"
@@ -91,6 +93,8 @@ echo "==> Firewall baseline"
 # (range 10000-10100). Tighten the SSH source below to your classroom/lab subnet.
 ufw --force reset >/dev/null
 ufw allow 22/tcp comment 'ssh'
+ufw allow 80/tcp comment 'http (panel)'
+ufw allow 443/tcp comment 'https (panel)'
 ufw allow 10000:10100/tcp comment 'student services'
 ufw --force enable
 
@@ -109,7 +113,8 @@ studentctl ALL=(root) NOPASSWD: /usr/local/sbin/studentctl-provision, \
  /usr/local/sbin/studentctl-enable, \
  /usr/local/sbin/studentctl-delete, \
  /usr/local/sbin/studentctl-push-config, \
- /usr/local/sbin/studentctl-status
+ /usr/local/sbin/studentctl-status, \
+ /usr/local/sbin/studentctl-deploy-task1
 EOF
 chmod 0440 "$SUDOERS"
 visudo -cf "$SUDOERS"

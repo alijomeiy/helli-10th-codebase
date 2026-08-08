@@ -15,9 +15,10 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import server_api
 from config import Config
 from models import (
-    db, User, Setting, LoginLog,
+    db, User, Setting, LoginLog, Task, TaskAttempt,
     STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED, STATUS_DISABLED,
 )
+import tasks as task_mgr
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -98,6 +99,25 @@ def log_event(username, action, detail=""):
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/leaderboard")
+def leaderboard():
+    t_list, rows = task_mgr.leaderboard_data()
+    return render_template("leaderboard.html", tasks=t_list, rows=rows)
+
+
+@app.route("/api/tasks/submit", methods=["POST"])
+def api_submit_task():
+    data = request.get_json(force=True, silent=True) or {}
+    username = data.get("username", "").strip().lower()
+    answer = str(data.get("answer", "")).strip()
+    task1_exists = bool(data.get("task1_exists", False))
+    task2_ok = bool(data.get("task2_ok", False))
+    result, code = task_mgr.process_submission(
+        username, answer, task1_exists, task2_ok
+    )
+    return jsonify(result), code
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -223,9 +243,21 @@ def admin_index():
         capacity = server_api.status()
     except Exception:
         pass
+    tasks_info = []
+    for t in Task.query.order_by(Task.id).all():
+        completed = TaskAttempt.query.filter_by(task_id=t.id, completed=True).count()
+        total_attempts = TaskAttempt.query.filter_by(task_id=t.id).count()
+        tasks_info.append({
+            "name": t.name,
+            "title": t.title,
+            "is_active": t.is_active,
+            "deployed_at": t.deployed_at,
+            "completed": completed,
+            "total": total_attempts,
+        })
     return render_template(
         "admin.html", pending=pending, active=active, capacity=capacity,
-        max_conc=max_concurrent(), idle=idle_timeout(),
+        max_conc=max_concurrent(), idle=idle_timeout(), tasks_info=tasks_info,
     )
 
 
@@ -334,6 +366,36 @@ def settings():
     db.session.commit()
     sync_server()
     flash("تنظیمات ذخیره و همگام‌سازی شد.", "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/tasks/deploy/<task_name>", methods=["POST"])
+@admin_required
+def deploy_task(task_name):
+    try:
+        if task_name == "task1":
+            n = task_mgr.deploy_task1()
+            flash(f"تسک ۱ برای {n} دانشجو مستقر شد.", "ok")
+        elif task_name == "task2":
+            n = task_mgr.deploy_task2()
+            flash(f"تسک ۲ برای {n} دانشجو فعال شد.", "ok")
+        else:
+            flash("تسک نامعتبر.", "error")
+    except Exception as e:
+        flash(f"خطا در استقرار تسک: {e}", "error")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/tasks/reset/<task_name>", methods=["POST"])
+@admin_required
+def reset_task(task_name):
+    task = Task.query.filter_by(name=task_name).first()
+    if task:
+        TaskAttempt.query.filter_by(task_id=task.id).delete()
+        task.is_active = False
+        task.deployed_at = None
+        db.session.commit()
+        flash(f"تسک {task_name} بازنشانی شد.", "ok")
     return redirect(url_for("admin.admin_index"))
 
 

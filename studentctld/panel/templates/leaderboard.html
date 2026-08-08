@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}تابلوی امتیازات{% endblock %}
+{% block content %}
+<h1>🏆 تابلوی امتیازات</h1>
+
+{% if not tasks %}
+  <p class="muted">هنوز تسکی تعریف نشده است.</p>
+{% elif not rows %}
+  <p class="muted">هنوز دانشجویی ثبت نشده است.</p>
+{% else %}
+<div class="table-scroll">
+<table class="leaderboard">
+  <thead>
+    <tr>
+      <th>رتبه</th>
+      <th>دانشجو</th>
+      {% for t in tasks %}
+        <th>{{ t.title }}</th>
+      {% endfor %}
+      <th>مجموع</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+    <tr class="{% if loop.index <= 3 %}rank-{{ loop.index }}{% endif %}">
+      <td class="rank">{{ loop.index }}</td>
+      <td class="student">
+        {{ r.full_name }}
+        <span class="muted" dir="ltr">@{{ r.username }}</span>
+      </td>
+      {% for t in tasks %}
+        <td class="score">
+          {% if r.scores[t.name] is not none %}
+            <strong>{{ r.scores[t.name] }}</strong>
+          {% else %}
+            <span class="muted">—</span>
+          {% endif %}
+        </td>
+      {% endfor %}
+      <td class="total"><strong>{{ r.total }}</strong></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="muted">امتیاز هر تسک: ۱۰۰ + جایزه سرعت برای ۵ نفر اول (۵۰/۴۰/۳۰/۲۰/۱۰).</p>
+{% endif %}
+{% endblock %}

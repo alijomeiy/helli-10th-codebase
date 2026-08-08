@@ -17,10 +17,12 @@ EMAIL="${EMAIL:?set EMAIL=you@example.com}"
 RSA_KEY_SIZE=4096
 COMPOSE="docker compose"
 
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
 
-WWW=./certbot/www
-CONF=./certbot/conf
+# Absolute paths — docker run -v requires them for bind mounts.
+WWW="$ROOT/certbot/www"
+CONF="$ROOT/certbot/conf"
 mkdir -p "$WWW" "$CONF"
 
 echo "==> 1/5  starting nginx with a temporary self-signed certificate"
@@ -28,8 +30,9 @@ if [ ! -e "$CONF/live/$DOMAIN/fullchain.pem" ]; then
     mkdir -p "$CONF/live/$DOMAIN"
     docker run --rm \
         -v "$CONF:/etc/letsencrypt" \
+        --entrypoint openssl \
         certbot/certbot \
-        openssl req -x509 -nodes -newkey "rsa:$RSA_KEY_SIZE" -days 1 \
+        req -x509 -nodes -newkey "rsa:$RSA_KEY_SIZE" -days 1 \
             -keyout "/etc/letsencrypt/live/$DOMAIN/privkey.pem" \
             -out    "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" \
             -subj "/CN=localhost" >/dev/null 2>&1
@@ -41,10 +44,11 @@ sleep 3
 echo "==> 2/5  deleting the temporary certificate"
 docker run --rm \
     -v "$CONF:/etc/letsencrypt" \
+    --entrypoint rm \
     certbot/certbot \
-    rm -Rf "/etc/letsencrypt/live/$DOMAIN" \
-           "/etc/letsencrypt/archive/$DOMAIN" \
-           "/etc/letsencrypt/renewal/$DOMAIN.conf" >/dev/null 2>&1 || true
+    -Rf "/etc/letsencrypt/live/$DOMAIN" \
+          "/etc/letsencrypt/archive/$DOMAIN" \
+          "/etc/letsencrypt/renewal/$DOMAIN.conf" >/dev/null 2>&1 || true
 
 echo "==> 3/5  requesting the real certificate from Let's Encrypt"
 docker run --rm \

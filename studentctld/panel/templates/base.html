@@ -15,8 +15,10 @@
     <div class="spacer"></div>
     {% if current_user.is_authenticated %}
       <span class="muted">{{ current_user.username }}</span>
+      <a href="{{ url_for('leaderboard') }}">تابلوی امتیازات</a>
       <a href="{{ url_for('logout') }}">خروج</a>
     {% else %}
+      <a href="{{ url_for('leaderboard') }}">تابلوی امتیازات</a>
       <a href="{{ url_for('student_login') }}">ورود دانشجو</a>
       <a href="{{ url_for('register') }}">ثبت‌نام</a>
     {% endif %}

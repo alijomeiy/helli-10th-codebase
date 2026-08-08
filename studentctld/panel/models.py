@@ -72,3 +72,32 @@ class LoginLog(db.Model):
     action = db.Column(db.String(16))   # allow / deny / provision / disable ...
     detail = db.Column(db.String(255), default="")
     at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Task(db.Model):
+    __tablename__ = "tasks"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), unique=True, nullable=False)   # task1, task2
+    title = db.Column(db.String(120), default="")
+    description = db.Column(db.Text, default="")
+    max_points = db.Column(db.Integer, default=100)
+    is_active = db.Column(db.Boolean, default=False)
+    deployed_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class TaskAttempt(db.Model):
+    __tablename__ = "task_attempts"
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey("tasks.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    expected_answer = db.Column(db.String(64), default="")
+    completed = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    time_taken_seconds = db.Column(db.Integer, nullable=True)
+    score = db.Column(db.Integer, default=0)
+    wrong_attempts = db.Column(db.Integer, default=0)
+    rank = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint("task_id", "user_id"),)

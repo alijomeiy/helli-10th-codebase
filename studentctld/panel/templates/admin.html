@@ -21,6 +21,48 @@
 </form>
 <p class="muted">هر دانشجو هر زمان که ظرفیت آزاد باشد می‌تواند وارد شود. اگر بی‌کار بماند، پس از این مدت به‌صورت خودکار خارج می‌شود تا جای او آزاد شود.</p>
 
+<h2>مدیریت تسک‌ها و تابلوی امتیازات</h2>
+{% if tasks_info %}
+<div class="table-scroll">
+<table>
+  <thead><tr><th>تسک</th><th>عنوان</th><th>وضعیت</th><th>تکمیل‌شده</th><th>زمان استقرار</th><th>عملیات</th></tr></thead>
+  <tbody>
+  {% for t in tasks_info %}
+    <tr>
+      <td dir="ltr">{{ t.name }}</td>
+      <td>{{ t.title }}</td>
+      <td>{{ "فعال" if t.is_active else "غیرفعال" }}</td>
+      <td>{{ t.completed }} / {{ t.total }}</td>
+      <td>{{ t.deployed_at if t.deployed_at else "—" }}</td>
+      <td class="actions">
+        {% if t.name == 'task1' %}
+          <form method="post" action="{{ url_for('admin.deploy_task', task_name='task1') }}"
+                onsubmit="return confirm('تسک ۱ برای همه دانشجویان فعال مستقر شود؟ داده‌های قبلی بازنویسی می‌شود.');">
+            <button class="ok">استقرار / بازاستقرار</button>
+          </form>
+        {% elif t.name == 'task2' %}
+          <form method="post" action="{{ url_for('admin.deploy_task', task_name='task2') }}"
+                onsubmit="return confirm('تسک ۲ فعال شود؟');">
+            <button class="ok">فعال‌سازی</button>
+          </form>
+        {% endif %}
+        {% if t.is_active %}
+          <form method="post" action="{{ url_for('admin.reset_task', task_name=t.name) }}"
+                onsubmit="return confirm('امتیازات این تسک بازنشانی شود؟');">
+            <button class="warn">بازنشانی</button>
+          </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">هنوز تسکی تعریف نشده است.</p>
+{% endif %}
+<p class="muted"><a href="{{ url_for('leaderboard') }}">مشاهده تابلوی امتیازات</a> — این صفحه برای همه (بدون نیاز به ورود) قابل مشاهده است.</p>
+
 <h2>درخواست‌های در انتظار ({{ pending|length }})</h2>
 {% if pending %}
 <div class="table-scroll">
