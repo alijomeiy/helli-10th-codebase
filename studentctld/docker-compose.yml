@@ -33,27 +33,29 @@ services:
     image: nginx:alpine
     container_name: studentctl-nginx
     restart: unless-stopped
+    user: root
     ports:
       - "80:80"                      # HTTP  -> ACME challenge + redirect to HTTPS
       - "443:443"                    # HTTPS -> panel:5000
     environment:
-      DOMAIN: ${DOMAIN:-localhost}
+      DOMAIN: ${DOMAIN:-helli-10th-computer.ir}
     volumes:
       - ./deploy/nginx/templates:/etc/nginx/templates:ro   # envsubst -> conf.d
-      - ./certbot/www:/var/www/certbot:ro
-      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./deploy/nginx/certs:/etc/letsencrypt/live/helli-10th-computer.ir:ro
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /home:/home:ro
     depends_on:
       - panel
 
-  certbot:
-    image: certbot/certbot
-    container_name: studentctl-certbot
-    restart: unless-stopped
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    # Try to renew every 12h; nginx reloads the new cert on its own restart cycle.
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+#  certbot:
+#    image: certbot/certbot
+#    container_name: studentctl-certbot
+#    restart: unless-stopped
+#    volumes:
+#      - ./certbot/www:/var/www/certbot
+#      - ./certbot/conf:/etc/letsencrypt
+#    # Try to renew every 12h; nginx reloads the new cert on its own restart cycle.
+#    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
 
 volumes:
   panel-data:
