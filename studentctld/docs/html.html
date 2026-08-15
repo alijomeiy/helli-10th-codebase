@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>آموزش کوتاه HTML</title>
+  <title>درباره HTML</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
   <link rel="stylesheet" href="style.css">
@@ -13,25 +13,44 @@
 <body>
   <main class="wrap">
 
-    <p><a href="index.html">← بازگشت به فهرست آموزش‌ها</a></p>
+    <p><a href="index.html">← بازگشت به فهرست اسناد</a></p>
 
-    <h1>📖 آموزش کوتاه HTML</h1>
-    <p class="muted">همین تگ‌های ساده کافی است تا اولین صفحه وب خود را بسازید!</p>
+    <h1>📖 درباره HTML‍</h1>
+    <p class="muted">یک صفجه در اینترنت چگونه نمایش داده می‌شود؟!</p>
 
-    <h2>HTML چیست و به چه دردی می‌خورد؟</h2>
+    <h2>HTML چیست؟</h2>
     <div class="card">
-      <p><strong>HTML</strong> (زبان نشانه‌گذاری ابرمتن) اسکلت هر صفحه وب است.
+      <p><strong>HTML</strong> (Hyper Text Markup Language) زبان نشانه‌گذاری ابرمتن - اسکلت هر صفحه وب است.
         وقتی سایتی را باز می‌کنید، مرورگر کدهای HTML را می‌خواند و آن را به
-        متن، تصویر، پیوند و جدول تبدیل می‌کند.</p>
+        متن، تصویر، پیوند و جدول تبدیل می‌کند. در واقع بخشی از وب روی کامپیوتر کاربر و بخشی از آن روی سرورها اجرا
+        می‌شود!</p>
+      <p>چند مورد درباره HTML:</p>
       <ul>
-        <li>یادگیری‌اش ساده است؛ فقط یک ویرایشگر متن و یک مرورگر لازم دارید.</li>
+        <li>HTML مانند یک زبان برنامه‌نویسی منطق اجرایی ندارد و تنها برای نمایش است، بنابراین نسبت به آن‌ها ساده‌تر است.
+        </li>
         <li>هر سایتی که بازدید می‌کنید — از کوچک تا بزرگ — بر پایه HTML ساخته شده است.</li>
-        <li>پایه‌ی یادگیری کارهای بزرگ‌تر است: بعداً CSS برای زیبایی و جاوااسکریپت برای تعامل اضافه می‌شود.</li>
+        <li>HTML اسکلت هر صفحه است و با CSS و JavaScript به ترتیب رنگ‌ها و جلوه‌های هنری و انیمیشن‌ها یا کارکردهای دیگر
+          اضافه خواهد شد، این دو نیر بخش مهمی از دنیای وب هستند اما فعلا در بحث ما نیستند.</li>
       </ul>
     </div>
 
     <h2>تگ‌های مهم و پرکاربرد</h2>
-    <p>HTML از <strong>تگ</strong> تشکیل شده؛ بیشتر تگ‌ها جفت هستند: تگ باز و تگ بسته:</p>
+    <p>HTML از <strong>تگ</strong> تشکیل شده؛ بیشتر تگ‌ها جفت هستند: تگ باز و تگ بسته اما گاهی هم یک تگ به تنهایی
+      استفاده می‌شود، تگ‌ها توضیح ساده‌ای هستند از این که آن محتوا درباره چیست، مثلا:
+      <html lang="en">
+
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+      </head>
+
+      <body>
+
+      </body>
+
+      </html>
+    </p>
     <pre><code>&lt;p&gt;این یک پاراگراف است&lt;/p&gt;</code></pre>
 
     <table>
@@ -93,44 +112,39 @@
       </tbody>
     </table>
 
-    <h2>مثال: صفحه‌ی معرفی خودتان</h2>
-    <p>با همین تگ‌ها می‌توانید یک صفحه‌ی «درباره من» بسازید. کد زیر را در فایلی
-      با نام <code>index.html</code> ذخیره کنید:</p>
+    <h2>مثال: صفحه‌ی معرفی</h2>
+    <p>با استفاده از همین کد ساده‌ای که در زیر آمده شروع به ساختن کنید، آن را در مسیر مورد نظر کپی کنید و تلاش کنید
+      تکمیل و اصلاحش کنید </p>
 
     <pre><code>&lt;!DOCTYPE html&gt;
 &lt;html lang="fa" dir="rtl"&gt;
 &lt;head&gt;
   &lt;meta charset="utf-8"&gt;
-  &lt;title&gt;درباره من&lt;/title&gt;
+  &lt;title&gt;درباره&lt;/title&gt;
 &lt;/head&gt;
 &lt;body&gt;
-  &lt;h1&gt;علی دانش‌آموز&lt;/h1&gt;
-  &lt;p&gt;سلام! من به وب و برنامه‌نویسی علاقه دارم.&lt;/p&gt;
+  &lt;h1&gt;سهراب رستم&lt;/h1&gt;
+  &lt;p&gt;اگر مرگ داد است، بی‌داد چیست؟ / ز داد این همه بانگ و فریاد چیست؟.&lt;/p&gt;
 
   &lt;h2&gt;علایق من&lt;/h2&gt;
   &lt;ul&gt;
-    &lt;li&gt;ساخت صفحه وب&lt;/li&gt;
-    &lt;li&gt;کار با لینوکس&lt;/li&gt;
-    &lt;li&gt;ریاضی&lt;/li&gt;
+    &lt;li&gt;اسب‌سواری&lt;/li&gt;
+    &lt;li&gt;شکار&lt;/li&gt;
+    &lt;li&gt;جنگ با شمشیر&lt;/li&gt;
   &lt;/ul&gt;
 
-  &lt;img src="my-photo.jpg" alt="عکس من" width="200"&gt;
+  &lt;img src="https://s2.picofile.com/file/7566286341/phoca_thumb_l_Shahnameh_2.jpg" alt="عکس من" width="200"&gt;
 
   &lt;p&gt;&lt;strong&gt;تماس:&lt;/strong&gt;
-     &lt;a href="mailto:ali@example.com"&gt;ali@example.com&lt;/a&gt;&lt;/p&gt;
+     &lt;a href="mailto:rostam@iran.ir"&gt;rostam@iran.ir&lt;/a&gt;&lt;/p&gt;
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
     <div class="card tip">
-      <strong>📝 تمرین:</strong> همین کد را بردارید، متن‌ها را به اطلاعات خودتان
-      تغییر دهید و فایل را با نام <code>index.html</code> در پوشه‌ی
-      <code>~/public_html/</code> حساب لینوکسی‌تان ذخیره کنید. بعد از چند لحظه،
-      صفحه‌ی شما روی آدرس وب خودتان در دسترس خواهد بود!
+      <strong>📝 توجه:</strong>
+      از مزیت‌های دیگر html این است که به هیچ ابزاری نیازی نیست، می‌توانید آن را در notepad بنویسید، سند خود را با فرمت
+      .html ذخیره کنید و با هر مرورگری که به آن علاقه‌مند هستید آن را باز کنید.
     </div>
-
-    <p class="muted">برای دیدن نتیجه می‌توانید فایل را مستقیماً در مرورگر باز کنید:
-      در فایرفاکس یا کروم کلید Ctrl+O را بزنید و فایل را انتخاب کنید.</p>
-
   </main>
 </body>
 
