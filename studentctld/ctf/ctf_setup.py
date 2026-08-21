@@ -16,6 +16,7 @@ from challenges import CHALLENGES
 class CTFd:
     def __init__(self, base, token):
         self.base = base.rstrip("/") + "/api/v1"
+        self.url = base.rstrip("/")
         self.s = requests.Session()
         self.s.headers.update({
             "Authorization": f"Token {token}",
@@ -82,12 +83,23 @@ def main():
     ap.add_argument("--url", default="http://127.0.0.1:8000")
     ap.add_argument("--token", required=True)
     ap.add_argument("--manifest", default="manifest.json")
+    ap.add_argument("--fresh", action="store_true",
+                    help="delete ALL existing challenges first (full re-deploy)")
     args = ap.parse_args()
 
     with open(args.manifest, encoding="utf-8") as f:
         manifest = json.load(f)
 
     api = CTFd(args.url, args.token)
+
+    if args.fresh:
+        n = 0
+        for ch in api.get("/challenges"):
+            requests.delete(f"{api.url}/api/v1/challenges/{ch['id']}",
+                            headers=api.s.headers, timeout=15)
+            n += 1
+        print(f"  fresh: deleted {n} old challenges")
+
     for ch in CHALLENGES:
         cid, created = get_or_create_challenge(api, ch)
         flags = list(manifest["flags"].get(ch["name"], {}).values())

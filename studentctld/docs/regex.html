@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش کوتاه ریجکس</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+
+  <p><a href="index.html">← بازگشت به فهرست آموزش‌ها</a></p>
+
+  <h1>🔎 آموزش کوتاه ریجکس (Regex)</h1>
+  <p class="muted">با چند علامت ساده، بین هزاران خط متن فقط چیزی را پیدا کنید که می‌خواهید.</p>
+
+  <h2>ریجکس چیست و به چه دردی می‌خورد؟</h2>
+  <div class="card">
+    <p><strong>ریجکس</strong> (عبارت باقاعده) یک زبان کوچک برای <strong>توصیف شکلِ متن</strong> است.
+    به‌جای اینکه بگویید «دنبال این کلمه بگرد»، می‌گویید «دنبال هر متنی بگرد که این شکلی است».</p>
+    <ul>
+      <li>مثلاً «هر چیزی که مثل شماره تلفن است» یا «هر پرچمی که دقیقاً دو حرف و دو رقم دارد».</li>
+      <li>ابزار آشنا با آن کار می‌کند: <code>grep -E 'الگو' فایل</code></li>
+      <li>در خیلی از زبان‌های برنامه‌نویسی، ادیتورها و حتی جست‌وجوی vim هم همین الگوها کار می‌کنند.</li>
+    </ul>
+  </div>
+
+  <h2>علامت‌های مهم</h2>
+  <table>
+    <thead><tr><th>علامت</th><th>معنی</th><th>مثال</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>abc</code></td>
+        <td>متن دقیق</td>
+        <td><code>FLAG</code> فقط همین کلمه</td>
+      </tr>
+      <tr>
+        <td><code>.</code></td>
+        <td>هر کاراکتری</td>
+        <td><code>F.AG</code> ← FLAG و FXAG و ...</td>
+      </tr>
+      <tr>
+        <td><code>[abc]</code></td>
+        <td>یکی از این حرف‌ها</td>
+        <td><code>b[ae]t</code> ← bat یا bet</td>
+      </tr>
+      <tr>
+        <td><code>[a-z]</code></td>
+        <td>هر حرف کوچک انگلیسی</td>
+        <td><code>b[a-z]t</code> ← هر bt با یک حرف وسط</td>
+      </tr>
+      <tr>
+        <td><code>[0-9]</code></td>
+        <td>یک رقم</td>
+        <td><code>b[0-9]t</code> ← b7t</td>
+      </tr>
+      <tr>
+        <td><code>{2}</code></td>
+        <td>دقیقاً ۲ تای قبلی</td>
+        <td><code>[a-z]{3}</code> ← سه حرف کوچک پشت هم</td>
+      </tr>
+      <tr>
+        <td><code>{2,4}</code></td>
+        <td>۲ تا ۴ تای قبلی</td>
+        <td><code>[0-9]{2,4}</code> ← 42 یا 123 یا 1234</td>
+      </tr>
+      <tr>
+        <td><code>*</code></td>
+        <td>صفر یا بیشترِ قبلی</td>
+        <td><code>ab*</code> ← a یا ab یا abbbb</td>
+      </tr>
+      <tr>
+        <td><code>+</code></td>
+        <td>یک یا بیشترِ قبلی</td>
+        <td><code>ab+</code> ← ab یا abbb (حداقل یکی)</td>
+      </tr>
+      <tr>
+        <td><code>^</code></td>
+        <td>ابتدای خط</td>
+        <td><code>^err</code> ← خطی که با err شروع شود</td>
+      </tr>
+      <tr>
+        <td><code>$</code></td>
+        <td>انتهای خط</td>
+        <td><code>flag$</code> ← خطی که به flag ختم شود</td>
+      </tr>
+      <tr>
+        <td><code>|</code></td>
+        <td>یا</td>
+        <td><code>cat|dog</code> ← cat یا dog</td>
+      </tr>
+      <tr>
+        <td><code>\{</code></td>
+        <td>خودِ کاراکتر { (خنثی‌کردن معنی ویژه)</td>
+        <td><code>FLAG\{</code> ← دقیقاً FLAG{</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>چطور با grep استفاده کنم؟</h2>
+  <p>برای الگوهای ریجکسی، از <code>grep -E</code> استفاده کنید:</p>
+  <pre><code>grep -E 'الگو' نام‌فایل</code></pre>
+
+  <h3>مثال ۱: پرچمی با شکل مشخص</h3>
+  <p>فرض کنید پرچم واقعی این شکل را دارد: دو حرف کوچک، خط تیره، دو رقم —
+  مثل <code>FLAG{ab-12}</code>. پس الگو می‌شود:</p>
+  <pre><code>grep -E 'FLAG\{[a-z]{2}-[0-9]{2}\}' decoys.txt</code></pre>
+  <p>یعنی: حرف‌به‌حرف FLAG{ بعد دقیقاً دو حرف کوچک، بعد -، بعد دقیقاً دو رقم، بعد }</p>
+
+  <h3>مثال ۲: فقط خط‌هایی که از اول خط با err شروع می‌شوند</h3>
+  <pre><code>grep -E '^err' anchor.log</code></pre>
+  <p>بدون <code>^</code>، هر خطی که err <em>هر جایش</em> باشد پیدا می‌شود —
+  با <code>^</code> فقط آن‌هایی که از ابتدا شروع می‌شوند.</p>
+
+  <h2>تمرین</h2>
+  <div class="card tip">
+    <strong>📝 تمرین:</strong> در حساب لینوکسی خودتان پوشه‌ی
+    <code>ctf/regex/</code> را ببینید. دو فایل تمرین ریجکس آنجا منتظر شما هستند!
+    با الگوهایی که یاد گرفتید فقط خطِ درست را پیدا کنید.
+  </div>
+
+  <p class="muted">نکته: داخل vim هم می‌توانید با / و همین الگوها جستجو کنید.</p>
+
+</main>
+</body>
+</html>

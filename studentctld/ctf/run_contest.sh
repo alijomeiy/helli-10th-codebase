@@ -14,8 +14,8 @@ echo "==> scattering flags into student homes"
 python3 ctf_scatter.py --manifest "$MANIFEST"
 
 echo "==> creating challenges & flags in CTFd"
-CTFD_TOKEN="$CTFD_TOKEN" python3 ctf_setup.py --url "$URL" \
-    --token "$CTFD_TOKEN" --manifest "$MANIFEST"
+python3 ctf_setup.py --url "$URL" --token "$CTFD_TOKEN" \
+    --manifest "$MANIFEST" --fresh
 
 echo "==> done. now take a pristine snapshot:"
 echo "    ./classroom.sh backup"
