@@ -35,16 +35,15 @@ class CTFd:
 
 def get_or_create_challenge(api, ch):
     for existing in api.get("/challenges"):
-        if existing["name"] == ch["name"]:
+        if existing["name"] == ch["title"]:
             return existing["id"], False
     data = api.post("/challenges", {
-        "name": ch["name"],
+        "name": ch["title"],
         "category": ch["category"],
         "description": ch["description"],
         "value": ch["points"],
         "type": "standard",
         "state": "visible",
-        "attribution": ch["title"],
     })
     return data["id"], True
 
