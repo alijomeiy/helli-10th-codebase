@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
-"""v4: data-URI Helli logo on homepage (left of nothing — centered),
-text-only navbar brand, tidy right-side nav items.
+"""v5: logo uploaded via CTFd files API (served from /assets), text-only
+navbar brand, tidy right-side nav items.
 
-Fixes vs v3:
-- ctf_logo config cleared (CTFd proxied the external URL through /files/
-  and broke the image). Logo now embedded as data-URI in the footer and
-  swapped into the homepage <img> by JS — zero external deps.
-- Navbar brand is plain text again; the ::after labels on icons removed
-  (they caused crowding); right nav items get clean inline-flex spacing.
+Fixes vs v4:
+- data-URI hit CTFd's 64KB config limit; logo now uploaded through the
+  official files API and referenced by its served URL.
+- Navbar brand is plain text; homepage <img> swapped to the uploaded logo.
 """
 import argparse
-import base64
-import os
-import tempfile
 
 import requests
 
@@ -25,7 +20,7 @@ def build_theme(logo_b64: str) -> str:
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
-<script>var HELLI_LOGO = "data:image/png;base64,{logo_b64}";</script>
+<script>var HELLI_LOGO = "{logo_url}";</script>
 <style>
   body, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, li,
   small, strong, em, button, .btn, .navbar-brand, .nav-link, .badge,
@@ -125,23 +120,31 @@ def build_theme(logo_b64: str) -> str:
 """
 
 
+def upload_logo(url, token, png_bytes):
+    """Upload logo via CTFd files API, return its served URL."""
+    h = {"Authorization": f"Token {token}"}
+    r = requests.post(f"{url}/api/v1/files",
+                      headers=h,
+                      files={"file": ("helli-logo.png", png_bytes, "image/png")},
+                      data={"type": "page", "location": "assets"},
+                      timeout=30)
+    if r.status_code != 200:
+        raise RuntimeError(f"logo upload failed: {r.status_code} {r.text[:120]}")
+    return r.json()["data"][0]["location"]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default="http://127.0.0.1:8000")
     ap.add_argument("--token", required=True)
-    ap.add_argument("--logo-cache", default="/tmp/helli_logo.b64")
     args = ap.parse_args()
 
-    if os.path.exists(args.logo_cache):
-        b64 = open(args.logo_cache).read().strip()
-    else:
-        b64 = base64.b64encode(
-            requests.get(LOGO_URL, timeout=30).content).decode()
-        with open(args.logo_cache, "w") as f:
-            f.write(b64)
-    print(f"logo: {len(b64)//1024}KB (base64)")
+    png = requests.get(LOGO_URL, timeout=30).content
+    print(f"logo png: {len(png)//1024}KB")
+    logo_url = upload_logo(args.url, args.token, png)
+    print("logo served at:", logo_url)
 
-    theme = build_theme(b64)
+    theme = build_theme(logo_url)
     h = {"Authorization": f"Token {args.token}",
          "Content-Type": "application/json"}
     for key, val in [("theme_footer", theme),
@@ -152,7 +155,7 @@ def main():
         print(f"patch {key}:", r.status_code)
 
     r = requests.get(f"{args.url}/", timeout=15)
-    print("data-uri logo embedded:", "data:image/png;base64" in r.text,
+    print("logo url in footer:", logo_url in r.text,
           "| name ok:", "پیدا کردن پرچم" in r.text)
 
 
