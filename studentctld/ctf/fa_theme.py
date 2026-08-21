@@ -15,7 +15,7 @@ LOGO_URL = "https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png"
 CTF_NAME = "پیدا کردن پرچم - گروه کامپیوتر دبیرستان حلی تهران"
 
 
-def build_theme(logo_b64: str) -> str:
+def build_theme(logo_url: str) -> str:
     return f"""
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet"
