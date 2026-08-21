@@ -130,7 +130,8 @@ def upload_logo(url, token, png_bytes):
                       timeout=30)
     if r.status_code != 200:
         raise RuntimeError(f"logo upload failed: {r.status_code} {r.text[:120]}")
-    return r.json()["data"][0]["location"]
+    loc = r.json()["data"][0]["location"]
+    return "/files/" + loc
 
 
 def main():
