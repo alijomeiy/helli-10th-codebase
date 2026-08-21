@@ -126,7 +126,7 @@ def upload_logo(url, token, png_bytes):
     r = requests.post(f"{url}/api/v1/files",
                       headers=h,
                       files={"file": ("helli-logo.png", png_bytes, "image/png")},
-                      data={"type": "page", "location": "assets"},
+                      data={"type": "page", "location": "assets/helli-logo.png"},
                       timeout=30)
     if r.status_code != 200:
         raise RuntimeError(f"logo upload failed: {r.status_code} {r.text[:120]}")
