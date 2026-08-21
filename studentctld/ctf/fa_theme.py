@@ -21,6 +21,7 @@ THEME = """
 <link rel="preconnect" href="https://www.helli.ir">
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<script>var HELLI_LOGO = "https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png";</script>
 <style>
   /* ---- font: body + text elements only (icons/code untouched) ---- */
   body, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, li,
@@ -111,6 +112,15 @@ THEME = """
     var main = document.querySelector('.jumbotron, main.container .row');
     (document.querySelectorAll('h3.text-center, h4.text-center') || []).forEach(function(h){
       if (/ctfd\\.io|Follow us on social|setup your CTF/i.test(h.textContent)) h.remove();
+    });
+    /* swap big homepage logo -> helli logo, centered */
+    (document.querySelectorAll('img.w-100.mx-auto.d-block, img[src*="logo.png"]') || []).forEach(function(img){
+      if (img.src.indexOf('helli.ir') === -1) {
+        img.src = HELLI_LOGO;
+        img.style.maxWidth = '360px';
+        img.style.padding = '24px';
+        img.style.paddingTop = '8vh';
+      }
     });
   }
   if (document.readyState === 'loading')
