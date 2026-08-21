@@ -2,7 +2,9 @@
 
 ## معماری
 
-- **CTFd** روی پورت `8000` اجرا می‌شود (داکر: CTFd + MariaDB + Redis — حدود ۱GB رم).
+- **CTFd** پشت nginx روی `https://ctf.helli-10th-computer.ir` اجرا می‌شود
+  (داکر: CTFd + MariaDB + Redis — حدود ۱GB رم). پورت 8000 فقط روی خود سرور
+  (loopback) در دسترس است و در فایروال بسته شده.
 - چالش‌ها **داخل حساب لینوکسی خود دانشجوها** پنهان شده‌اند؛ هر دانشجو پرچم
   یکتای خودش را دارد (`FLAG{username-xxxxxx}`) پس دور زدن با کپی‌کردن پرچم
   تیم دیگر ممکن نیست.
@@ -21,10 +23,11 @@ cp .env.example .env
 nano .env
 
 ./classroom.sh start          # بالا آمدن CTFd
-sudo ufw allow 8000/tcp comment 'ctf'
+# nginx: قالب ctf.conf.template در deploy/nginx/templates/ از قبل موجود است؛
+# بعد از هر بازسازی کانتینر nginx به‌صورت خودبار بارگذاری می‌شود.
 ```
 
-سپس در مرورگر `http://<server-ip>:8000` را باز کنید و ویزارد اولیه را کامل کنید:
+سپس در مرورگر `https://ctf.helli-10th-computer.ir` را باز کنید و ویزارد اولیه را کامل کنید:
 
 1. **Setup Mode**: `Teams Mode` را انتخاب کنید.
 2. کاربر مدیر (admin) بسازید و ایمیل/نام دلخواه بدهید.
@@ -52,7 +55,7 @@ sudo CTFD_TOKEN=<توکن> ./run_contest.sh
 | وضعیت | `./classroom.sh status` |
 | ریست کامل بین کلاس‌ها (پاک‌شدن تیم‌ها و حل‌ها) | `./classroom.sh reset` |
 
-جدول امتیازات: `http://<server-ip>:8000/scoreboard` (عمومی و زنده)
+جدول امتیازات: `https://ctf.helli-10th-computer.ir/scoreboard` (عمومی و زنده)
 
 ## دانشجوها چطور شرکت می‌کنند؟
 
