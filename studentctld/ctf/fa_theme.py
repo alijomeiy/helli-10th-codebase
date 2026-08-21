@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Inject Persian RTL + Vazirmatn font + UI translation overlay into CTFd.
+"""v3: Helli logo (centered), custom homepage, fixed navbar icons.
 
-Usage: python3 fa_theme.py --url http://127.0.0.1:8000 --token <admin token>
-Patches the official `theme_footer` config key; survives container restarts
-(stored in DB). Re-runnable.
-
-Design notes (v2):
-- Let dir="rtl" flip layout natively (flexbox/tables auto-flip) instead of
-  forcing text-align on cells — that fighting caused the "awkward" v1 look.
-- Vazirmatn only on text elements; leave icon fonts and code alone.
-- Only code-ish inputs stay LTR; everything else follows RTL.
-- Panel-matching dark-friendly rules kept minimal.
+- Logo: https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png
+  CTFd config key `ctf_logo` (URL) — used by theme where logo belongs,
+  plus homepage override below shows it big and centered.
+- Homepage: default "A cool CTF platform from ctfd.io..." junk replaced by
+  a clean Persian landing (config key `ctf_theme_config` JSON? no — CTFd
+  homepage comes from theme; we override the marketing block via footer
+  CSS/JS since the setup page shows only when setup is incomplete).
+- Navbar settings/profile/notification icons: core-beta uses plain text
+  links on small screens and awkward icons on some; we normalize with
+  spacing + hide redundant icon-only elements that overlap in RTL.
 """
 import argparse
 
@@ -18,6 +18,7 @@ import requests
 
 THEME = """
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://www.helli.ir">
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
 <style>
@@ -29,30 +30,50 @@ THEME = """
     font-family: 'Vazirmatn', Tahoma, 'Segoe UI', sans-serif;
   }
 
-  /* ---- RTL: let the browser mirror; only fix what it can't ---- */
+  /* ---- RTL ---- */
   html[dir="rtl"] body { direction: rtl; text-align: right; }
 
-  /* keep code/flags/technical content LTR and readable */
   code, pre, kbd, samp {
     direction: ltr; text-align: left; unicode-bidi: isolate;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
-  /* code-like form fields (flag submission, usernames, emails) */
   input[type="password"], input[type="email"], textarea {
     direction: ltr; text-align: left;
   }
-  input[type="text"] {
-    direction: ltr; text-align: left; unicode-bidi: plaintext;
-  }
+  input[type="text"] { direction: ltr; text-align: left; unicode-bidi: plaintext; }
 
-  /* dropdown menus open anchored correctly under RTL nav */
   .dropdown-menu { text-align: right; }
-
-  /* modals: keep dialog box sane, close button reachable */
   .modal-content { text-align: right; }
-
-  /* Vazirmatn renders slightly taller — avoid clipped headings */
   h1, h2, h3, .card-title { line-height: 1.6; }
+
+  /* ---- homepage logo: big + centered ---- */
+  img[src*="helli.ir"], .ctf-logo {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* CTFd core theme homepage logo block */
+  .main-img, img.w-100.mx-auto.d-block { margin: 0 auto; }
+
+  /* ---- navbar: brand logo small, right-aligned in RTL ---- */
+  .navbar-brand img { height: 40px; width: auto; }
+
+  /* ---- navbar right side: even spacing for profile/settings/notif icons ---- */
+  .navbar-nav.ml-md-auto { gap: 4px; }
+  .navbar-nav.ml-md-auto .nav-item { margin-left: 2px; margin-right: 2px; }
+  .navbar-nav.ml-md-auto .nav-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap; padding: .5rem .6rem;
+  }
+  /* icon-only links (bell / gear) get labels so they aren't cryptic blobs */
+  .navbar .fa-bell::after { content: 'اطلاع‌رسانی'; font-size: 13px; }
+  .navbar .fa-cog::after   { content: 'تنظیمات';   font-size: 13px; }
+  .navbar .fa-user::after  { content: 'پروفایل';  font-size: 13px; }
+  .navbar .fa-sign-out-alt::after { content: 'خروج'; font-size: 13px; }
+  @media (max-width: 768px) {
+    .navbar .fa-bell::after, .navbar .fa-cog::after,
+    .navbar .fa-user::after, .navbar .fa-sign-out-alt::after { display: none; }
+  }
 </style>
 <script>
 (function(){
@@ -86,19 +107,27 @@ THEME = """
     document.documentElement.setAttribute('lang','fa');
     var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     while (w.nextNode()) trNode(w.currentNode);
+    /* homepage cleanup: strip ctfd.io marketing block if present */
+    var main = document.querySelector('.jumbotron, main.container .row');
+    (document.querySelectorAll('h3.text-center, h4.text-center') || []).forEach(function(h){
+      if (/ctfd\\.io|Follow us on social|setup your CTF/i.test(h.textContent)) h.remove();
+    });
   }
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', run);
   else run();
-  /* debounce: one pass per burst of DOM changes, not one per mutation */
+  var pending2 = false;
   new MutationObserver(function(){
-    if (pending) return;
-    pending = true;
-    requestAnimationFrame(function(){ pending = false; run(); });
+    if (pending2) return;
+    pending2 = true;
+    requestAnimationFrame(function(){ pending2 = false; run(); });
   }).observe(document.body, {childList:true, subtree:true});
 })();
 </script>
 """
+
+LOGO_URL = "https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png"
+CTF_NAME = "پیدا کردن پرچم - گروه کامپیوتر دبیرستان حلی تهران"
 
 
 def main():
@@ -109,13 +138,20 @@ def main():
 
     h = {"Authorization": f"Token {args.token}",
          "Content-Type": "application/json"}
-    r = requests.patch(f"{args.url}/api/v1/configs", headers=h,
-                       json={"theme_footer": THEME}, timeout=15)
-    print("patch theme_footer:", r.status_code)
+
+    for key, val in [
+        ("theme_footer", THEME),
+        ("ctf_name", CTF_NAME),
+        ("ctf_logo", LOGO_URL),
+    ]:
+        r = requests.patch(f"{args.url}/api/v1/configs", headers=h,
+                           json={key: val}, timeout=15)
+        print(f"patch {key}:", r.status_code)
 
     r = requests.get(f"{args.url}/", timeout=15)
-    print("font link present:", "Vazirmatn-font-face.css" in r.text,
-          "| translations present:", "جدول امتیازات" in r.text)
+    print("logo:", LOGO_URL in r.text,
+          "| name:", "پیدا کردن پرچم" in r.text,
+          "| marketing removed by JS at runtime")
 
 
 if __name__ == "__main__":
