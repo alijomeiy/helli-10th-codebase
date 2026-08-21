@@ -65,6 +65,9 @@ sudo CTFD_TOKEN=<توکن> ./run_contest.sh
 
 ## نکات
 
+- **نکته‌ی مهم برای فراخوانی API با توکن**: CTFd فقط وقتی هدر
+  `Authorization: Token ...` را قبول می‌کند که درخواست هدر
+  `Content-Type: application/json` هم داشته باشد (حتی برای GET و DELETE).
 - چالش‌های «وب» نیاز دارد `public_html` دانشجو از وب در دسترس باشد
   (تنظیم nginx ساب‌دامین) یا حداقل با مرورگر فایل را باز کنند
   (`about.html` را می‌توان مستقیم هم باز کرد).
