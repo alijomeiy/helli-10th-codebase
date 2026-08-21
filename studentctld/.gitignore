@@ -52,3 +52,7 @@ desktop.ini
 
 # Let's Encrypt / certbot data (bind-mounted by docker-compose)
 certbot/
+
+# CTF runtime data
+ctf/manifest.json
+ctf/backups/

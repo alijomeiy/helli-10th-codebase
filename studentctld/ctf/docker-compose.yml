@@ -1,0 +1,59 @@
+services:
+  ctfd:
+    image: ctfd/ctfd:3.7.1
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: mysql+pymysql://ctfd:${DB_PASSWORD}@db/ctfd
+      REDIS_URL: redis://cache:6379/0
+      UPLOAD_FOLDER: /var/uploads
+      LOG_FOLDER: /var/logs
+      WORKERS: 4
+      FLASK_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    volumes:
+      - ctfd-logs:/var/logs
+      - ctfd-uploads:/var/uploads
+    networks:
+      - default
+      - internal
+
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ctfd
+      MARIADB_USER: ctfd
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - internal
+
+  cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - internal
+
+volumes:
+  db-data:
+  ctfd-logs:
+  ctfd-uploads:
+
+networks:
+  internal:
+    internal: true
