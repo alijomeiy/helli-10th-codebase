@@ -1,84 +1,72 @@
 #!/usr/bin/env python3
-"""v3: Helli logo (centered), custom homepage, fixed navbar icons.
+"""v4: data-URI Helli logo on homepage (left of nothing — centered),
+text-only navbar brand, tidy right-side nav items.
 
-- Logo: https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png
-  CTFd config key `ctf_logo` (URL) — used by theme where logo belongs,
-  plus homepage override below shows it big and centered.
-- Homepage: default "A cool CTF platform from ctfd.io..." junk replaced by
-  a clean Persian landing (config key `ctf_theme_config` JSON? no — CTFd
-  homepage comes from theme; we override the marketing block via footer
-  CSS/JS since the setup page shows only when setup is incomplete).
-- Navbar settings/profile/notification icons: core-beta uses plain text
-  links on small screens and awkward icons on some; we normalize with
-  spacing + hide redundant icon-only elements that overlap in RTL.
+Fixes vs v3:
+- ctf_logo config cleared (CTFd proxied the external URL through /files/
+  and broke the image). Logo now embedded as data-URI in the footer and
+  swapped into the homepage <img> by JS — zero external deps.
+- Navbar brand is plain text again; the ::after labels on icons removed
+  (they caused crowding); right nav items get clean inline-flex spacing.
 """
 import argparse
+import base64
+import os
+import tempfile
 
 import requests
 
-THEME = """
+LOGO_URL = "https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png"
+CTF_NAME = "پیدا کردن پرچم - گروه کامپیوتر دبیرستان حلی تهران"
+
+
+def build_theme(logo_b64: str) -> str:
+    return f"""
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="preconnect" href="https://www.helli.ir">
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
-<script>var HELLI_LOGO = "https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png";</script>
+<script>var HELLI_LOGO = "data:image/png;base64,{logo_b64}";</script>
 <style>
-  /* ---- font: body + text elements only (icons/code untouched) ---- */
   body, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, li,
   small, strong, em, button, .btn, .navbar-brand, .nav-link, .badge,
   .card-title, .modal-title, .modal-body, .form-check-label,
-  .dropdown-item, .alert, .text-muted {
+  .dropdown-item, .alert, .text-muted {{
     font-family: 'Vazirmatn', Tahoma, 'Segoe UI', sans-serif;
-  }
+  }}
 
-  /* ---- RTL ---- */
-  html[dir="rtl"] body { direction: rtl; text-align: right; }
+  html[dir="rtl"] body {{ direction: rtl; text-align: right; }}
 
-  code, pre, kbd, samp {
+  code, pre, kbd, samp {{
     direction: ltr; text-align: left; unicode-bidi: isolate;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  }
-  input[type="password"], input[type="email"], textarea {
+  }}
+  input[type="password"], input[type="email"], textarea {{
     direction: ltr; text-align: left;
-  }
-  input[type="text"] { direction: ltr; text-align: left; unicode-bidi: plaintext; }
+  }}
+  input[type="text"] {{ direction: ltr; text-align: left; unicode-bidi: plaintext; }}
 
-  .dropdown-menu { text-align: right; }
-  .modal-content { text-align: right; }
-  h1, h2, h3, .card-title { line-height: 1.6; }
+  .dropdown-menu {{ text-align: right; }}
+  .modal-content {{ text-align: right; }}
+  h1, h2, h3, .card-title {{ line-height: 1.6; }}
 
-  /* ---- homepage logo: big + centered ---- */
-  img[src*="helli.ir"], .ctf-logo {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  /* CTFd core theme homepage logo block */
-  .main-img, img.w-100.mx-auto.d-block { margin: 0 auto; }
+  /* ---- homepage logo (set by JS to data-URI): centered ---- */
+  img.helli-main-logo {{
+    display: block; margin: 0 auto;
+    max-width: 320px; width: 100%;
+    padding: 40px 0 10px;
+  }}
 
-  /* ---- navbar: brand logo small, right-aligned in RTL ---- */
-  .navbar-brand img { height: 40px; width: auto; }
-
-  /* ---- navbar right side: even spacing for profile/settings/notif icons ---- */
-  .navbar-nav.ml-md-auto { gap: 4px; }
-  .navbar-nav.ml-md-auto .nav-item { margin-left: 2px; margin-right: 2px; }
-  .navbar-nav.ml-md-auto .nav-link {
-    display: inline-flex; align-items: center; gap: 6px;
-    white-space: nowrap; padding: .5rem .6rem;
-  }
-  /* icon-only links (bell / gear) get labels so they aren't cryptic blobs */
-  .navbar .fa-bell::after { content: 'اطلاع‌رسانی'; font-size: 13px; }
-  .navbar .fa-cog::after   { content: 'تنظیمات';   font-size: 13px; }
-  .navbar .fa-user::after  { content: 'پروفایل';  font-size: 13px; }
-  .navbar .fa-sign-out-alt::after { content: 'خروج'; font-size: 13px; }
-  @media (max-width: 768px) {
-    .navbar .fa-bell::after, .navbar .fa-cog::after,
-    .navbar .fa-user::after, .navbar .fa-sign-out-alt::after { display: none; }
-  }
+  /* ---- navbar: text-only brand, clean spacing ---- */
+  .navbar-brand img {{ display: none; }}
+  .navbar-nav.ml-md-auto .nav-link {{
+    display: inline-flex; align-items: center; gap: 5px;
+    white-space: nowrap; padding: .45rem .55rem; line-height: 1.4;
+  }}
+  .navbar-nav.ml-md-auto {{ gap: 2px; }}
 </style>
 <script>
-(function(){
-  var TR = {
+(function(){{
+  var TR = {{
     'Challenges':'چالش‌ها','Scoreboard':'جدول امتیازات','Teams':'تیم‌ها','Users':'کاربران',
     'Login':'ورود','Register':'ثبت‌نام','Logout':'خروج','Profile':'پروفایل','Settings':'تنظیمات',
     'Submit':'ثبت پاسخ','Hint':'راهنما','Unlock Hint':'نمایش راهنما','Solved':'حل‌شده',
@@ -97,71 +85,75 @@ THEME = """
     'Current Password':'رمز فعلی','New Password':'رمز جدید','Delete':'حذف','Update':'به‌روزرسانی',
     'Cancel':'لغو','Close':'بستن','Loading':'در حال بارگذاری...','Error':'خطا',
     'Total':'مجموع','Hidden':'مخفی','Banned':'مسدود','Team Captain':'سرتیم'
-  };
-  var pending = false;
-  function trNode(n){
+  }};
+  function trNode(n){{
     var k = n.nodeValue.trim();
     if (TR[k]) n.nodeValue = n.nodeValue.replace(k, TR[k]);
-  }
-  function run(){
+  }}
+  function run(){{
     document.documentElement.setAttribute('dir','rtl');
     document.documentElement.setAttribute('lang','fa');
     var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     while (w.nextNode()) trNode(w.currentNode);
-    /* homepage cleanup: strip ctfd.io marketing block if present */
-    var main = document.querySelector('.jumbotron, main.container .row');
-    (document.querySelectorAll('h3.text-center, h4.text-center') || []).forEach(function(h){
+
+    /* homepage: strip marketing, swap logo */
+    (document.querySelectorAll('h3.text-center, h4.text-center') || []).forEach(function(h){{
       if (/ctfd\\.io|Follow us on social|setup your CTF/i.test(h.textContent)) h.remove();
-    });
-    /* swap big homepage logo -> helli logo, centered */
-    (document.querySelectorAll('img.w-100.mx-auto.d-block, img[src*="logo.png"]') || []).forEach(function(img){
-      if (img.src.indexOf('helli.ir') === -1) {
-        img.src = HELLI_LOGO;
-        img.style.maxWidth = '360px';
-        img.style.padding = '24px';
-        img.style.paddingTop = '8vh';
-      }
-    });
-  }
+    }});
+    (document.querySelectorAll('img.w-100.mx-auto.d-block, img[src*="logo.png"]') || []).forEach(function(img){{
+      img.src = HELLI_LOGO;
+      img.classList.add('helli-main-logo');
+      img.removeAttribute('style');
+      img.alt = 'لوگو';
+    }});
+    /* navbar brand: kill any broken /files/ proxy img (belt & braces) */
+    (document.querySelectorAll('.navbar-brand img') || []).forEach(function(img){{
+      img.style.display = 'none';
+    }});
+  }}
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', run);
   else run();
-  var pending2 = false;
-  new MutationObserver(function(){
-    if (pending2) return;
-    pending2 = true;
-    requestAnimationFrame(function(){ pending2 = false; run(); });
-  }).observe(document.body, {childList:true, subtree:true});
-})();
+  var pending = false;
+  new MutationObserver(function(){{
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(function(){{ pending = false; run(); }});
+  }}).observe(document.body, {{childList:true, subtree:true}});
+}})();
 </script>
 """
-
-LOGO_URL = "https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png"
-CTF_NAME = "پیدا کردن پرچم - گروه کامپیوتر دبیرستان حلی تهران"
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default="http://127.0.0.1:8000")
     ap.add_argument("--token", required=True)
+    ap.add_argument("--logo-cache", default="/tmp/helli_logo.b64")
     args = ap.parse_args()
 
+    if os.path.exists(args.logo_cache):
+        b64 = open(args.logo_cache).read().strip()
+    else:
+        b64 = base64.b64encode(
+            requests.get(LOGO_URL, timeout=30).content).decode()
+        with open(args.logo_cache, "w") as f:
+            f.write(b64)
+    print(f"logo: {len(b64)//1024}KB (base64)")
+
+    theme = build_theme(b64)
     h = {"Authorization": f"Token {args.token}",
          "Content-Type": "application/json"}
-
-    for key, val in [
-        ("theme_footer", THEME),
-        ("ctf_name", CTF_NAME),
-        ("ctf_logo", LOGO_URL),
-    ]:
+    for key, val in [("theme_footer", theme),
+                     ("ctf_name", CTF_NAME),
+                     ("ctf_logo", "")]:
         r = requests.patch(f"{args.url}/api/v1/configs", headers=h,
                            json={key: val}, timeout=15)
         print(f"patch {key}:", r.status_code)
 
     r = requests.get(f"{args.url}/", timeout=15)
-    print("logo:", LOGO_URL in r.text,
-          "| name:", "پیدا کردن پرچم" in r.text,
-          "| marketing removed by JS at runtime")
+    print("data-uri logo embedded:", "data:image/png;base64" in r.text,
+          "| name ok:", "پیدا کردن پرچم" in r.text)
 
 
 if __name__ == "__main__":
