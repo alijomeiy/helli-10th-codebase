@@ -4,33 +4,58 @@
 Usage: python3 fa_theme.py --url http://127.0.0.1:8000 --token <admin token>
 Patches the official `theme_footer` config key; survives container restarts
 (stored in DB). Re-runnable.
+
+Design notes (v2):
+- Let dir="rtl" flip layout natively (flexbox/tables auto-flip) instead of
+  forcing text-align on cells — that fighting caused the "awkward" v1 look.
+- Vazirmatn only on text elements; leave icon fonts and code alone.
+- Only code-ish inputs stay LTR; everything else follows RTL.
+- Panel-matching dark-friendly rules kept minimal.
 """
 import argparse
 
 import requests
 
 THEME = """
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
 <style>
-  body, .navbar, .modal, .btn, input, select, textarea {
-    font-family: 'Vazirmatn', Tahoma, 'Segoe UI', sans-serif !important;
+  /* ---- font: body + text elements only (icons/code untouched) ---- */
+  body, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, li,
+  small, strong, em, button, .btn, .navbar-brand, .nav-link, .badge,
+  .card-title, .modal-title, .modal-body, .form-check-label,
+  .dropdown-item, .alert, .text-muted {
+    font-family: 'Vazirmatn', Tahoma, 'Segoe UI', sans-serif;
   }
-  body { direction: rtl; text-align: right; }
-  /* keep technical content LTR */
-  code, pre, .flag-input, input[type="text"], input[type="password"],
-  input[type="email"], .form-control {
+
+  /* ---- RTL: let the browser mirror; only fix what it can't ---- */
+  html[dir="rtl"] body { direction: rtl; text-align: right; }
+
+  /* keep code/flags/technical content LTR and readable */
+  code, pre, kbd, samp {
+    direction: ltr; text-align: left; unicode-bidi: isolate;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  /* code-like form fields (flag submission, usernames, emails) */
+  input[type="password"], input[type="email"], textarea {
+    direction: ltr; text-align: left;
+  }
+  input[type="text"] {
     direction: ltr; text-align: left; unicode-bidi: plaintext;
   }
-  .navbar-nav { padding-right: 0; }
-  td, th { text-align: right; }
+
+  /* dropdown menus open anchored correctly under RTL nav */
+  .dropdown-menu { text-align: right; }
+
+  /* modals: keep dialog box sane, close button reachable */
+  .modal-content { text-align: right; }
+
+  /* Vazirmatn renders slightly taller — avoid clipped headings */
+  h1, h2, h3, .card-title { line-height: 1.6; }
 </style>
 <script>
 (function(){
-  // real RTL for the whole document
-  document.documentElement.setAttribute('dir', 'rtl');
-  document.documentElement.setAttribute('lang', 'fa');
-
   var TR = {
     'Challenges':'چالش‌ها','Scoreboard':'جدول امتیازات','Teams':'تیم‌ها','Users':'کاربران',
     'Login':'ورود','Register':'ثبت‌نام','Logout':'خروج','Profile':'پروفایل','Settings':'تنظیمات',
@@ -51,23 +76,26 @@ THEME = """
     'Cancel':'لغو','Close':'بستن','Loading':'در حال بارگذاری...','Error':'خطا',
     'Total':'مجموع','Hidden':'مخفی','Banned':'مسدود','Team Captain':'سرتیم'
   };
+  var pending = false;
   function trNode(n){
     var k = n.nodeValue.trim();
     if (TR[k]) n.nodeValue = n.nodeValue.replace(k, TR[k]);
   }
-  function walk(root){
-    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
-    while (w.nextNode()) trNode(w.currentNode);
-  }
   function run(){
     document.documentElement.setAttribute('dir','rtl');
-    walk(document.body);
+    document.documentElement.setAttribute('lang','fa');
+    var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    while (w.nextNode()) trNode(w.currentNode);
   }
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', run);
   else run();
-  new MutationObserver(function(){ run(); }).observe(
-    document.body, {childList:true, subtree:true, characterData:true});
+  /* debounce: one pass per burst of DOM changes, not one per mutation */
+  new MutationObserver(function(){
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(function(){ pending = false; run(); });
+  }).observe(document.body, {childList:true, subtree:true});
 })();
 </script>
 """
@@ -86,9 +114,8 @@ def main():
     print("patch theme_footer:", r.status_code)
 
     r = requests.get(f"{args.url}/", timeout=15)
-    ok_font = "Vazirmatn-font-face.css" in r.text
-    ok_tr = "جدول امتیازات" in r.text
-    print("font link present:", ok_font, "| translations present:", ok_tr)
+    print("font link present:", "Vazirmatn-font-face.css" in r.text,
+          "| translations present:", "جدول امتیازات" in r.text)
 
 
 if __name__ == "__main__":
