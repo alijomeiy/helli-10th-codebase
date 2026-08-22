@@ -79,7 +79,34 @@ def build_theme(logo_url: str) -> str:
     'Posted':'منتشرشده','Overall':'مجموع','General':'عمومی','Theme':'پوسته',
     'Current Password':'رمز فعلی','New Password':'رمز جدید','Delete':'حذف','Update':'به‌روزرسانی',
     'Cancel':'لغو','Close':'بستن','Loading':'در حال بارگذاری...','Error':'خطا',
-    'Total':'مجموع','Hidden':'مخفی','Banned':'مسدود','Team Captain':'سرتیم'
+    'Total':'مجموع','Hidden':'مخفی','Banned':'مسدود','Team Captain':'سرتیم',
+    /* --- buttons & popup texts --- */
+    'View':'مشاهده','View Challenge':'دیدن چالش','Submit Flag':'ثبت پرچم',
+    'Flag':'پرچم','Enter Flag':'پرچم را وارد کنید','Your flag':'پرچم شما',
+    'Unlock':'باز کردن','Locked':'قفل‌شده','Unlocked':'باز شد',
+    'Are you sure?':'مطمئنید؟','Confirm':'تأیید','Yes':'بله','No':'خیر',
+    'Max Attempts':'حداکثر تلاش','Attempts':'تلاش‌ها','Attempt':'تلاش',
+    'Incorrect. Please try again.':'نادرست است. دوباره تلاش کنید.',
+    'Correct!':'درست! آفرین','You solved the challenge!':'چالش را حل کردید!',
+    'Congratulations!':'آفرین! تبریک!',
+    'This challenge is unresolved by you':'شما هنوز این چالش را حل نکرده‌اید',
+    'Mark as solved':'علامت‌گذاری حل‌شده','Unmark':'برداشتن علامت',
+    'Hide solved challenges':'پنهان‌کردن چالش‌های حل‌شده',
+    'Show solved challenges':'نمایش چالش‌های حل‌شده',
+    'Search Challenges':'جستجوی چالش‌ها','Filter':'فیلتر','Reset':'بازنشانی',
+    'Clear':'پاک‌کردن','Copy':'کپی','Copied!':'کپی شد!',
+    'Home':'خانه','Back':'بازگشت','Menu':'منو',
+    'Welcome':'خوش آمدید','Welcome Back':'خوش برگشتید',
+    'Please log in to continue':'برای ادامه وارد شوید',
+    'Need an account?':'حساب ندارید؟','Register here':'اینجا ثبت‌نام کنید',
+    'Incorrect credentials':'اطلاعات ورود نادرست است',
+    'You have been logged out':'از حساب خارج شدید',
+    'Rate limited':'درخواست‌های شما زیاد است؛ کمی صبر کنید',
+    'Too many attempts':'تلاش‌های شما زیاد است',
+    'An error occurred':'خطایی رخ داد','Try again later':'بعداً دوباره تلاش کنید',
+    'Solve':'حل','Unsolve':'لغو حل','Solver':'حل‌کننده',
+    'Progress':'پیشرفت','Activity':'فعالیت',
+    'Top 10':'۱۰ نفر برتر','Me':'من','Graph':'نمودار','Distribution':'توزیع'
   }};
   function trNode(n){{
     var k = n.nodeValue.trim();
@@ -90,6 +117,24 @@ def build_theme(logo_url: str) -> str:
     document.documentElement.setAttribute('lang','fa');
     var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     while (w.nextNode()) trNode(w.currentNode);
+
+    /* translate placeholder attributes (form hints) */
+    var PH = {{
+      'Enter flag':'پرچم را وارد کنید','Flag':'پرچم','Username':'نام کاربری',
+      'Password':'رمز عبور','Email':'رایانامه','Search':'جستجو',
+      'User Name or Email':'نام کاربری یا رایانامه','Team Name':'نام تیم',
+      'New Password':'رمز جدید','Confirm Password':'تکرار رمز'
+    }};
+    (document.querySelectorAll('input[placeholder],textarea[placeholder]') || []).forEach(function(el){{
+      var p = el.getAttribute('placeholder');
+      if (PH[p]) el.setAttribute('placeholder', PH[p]);
+    }});
+
+    /* translate title attributes (tooltips) */
+    (document.querySelectorAll('[title]') || []).forEach(function(el){{
+      var t = el.getAttribute('title');
+      if (TR[t]) el.setAttribute('title', TR[t]);
+    }});
 
     /* homepage: strip marketing, swap logo */
     (document.querySelectorAll('h3.text-center, h4.text-center') || []).forEach(function(h){{
