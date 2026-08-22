@@ -167,3 +167,42 @@ th {
   direction: ltr;
   unicode-bidi: isolate
 }
+
+/* three-column regex table: pattern | matches | non-matches */
+table.regex-table td {
+  vertical-align: top;
+  white-space: normal;
+  min-width: 90px;
+}
+
+table.regex-table td:first-child {
+  white-space: nowrap;
+}
+
+table.regex-table code.ex {
+  display: inline-block;
+  margin-top: 4px;
+  color: #a5d6ff;
+}
+
+table.regex-table .col-ok {
+  border-left: 2px solid rgba(34, 197, 94, .35);
+}
+
+table.regex-table .col-no {
+  border-left: 2px solid rgba(239, 68, 68, .35);
+}
+
+table.regex-table .match,
+table.regex-table .nomatch {
+  padding: 2px 4px;
+  margin: 2px 0;
+  display: block;
+  text-align: left;
+  font-size: 13.5px;
+}
+
+table.regex-table .match .muted,
+table.regex-table .nomatch .muted {
+  font-size: 12px;
+}

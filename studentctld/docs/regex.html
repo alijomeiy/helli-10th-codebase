@@ -29,159 +29,75 @@
   </div>
 
   <h2>علامت‌های مهم</h2>
-  <p class="muted">برای هر الگو: <span class="match">✅ مثال‌هایی که مطابقت دارند</span> و
-  <span class="nomatch">❌ مثال‌هایی که مطابقت ندارند</span></p>
-  <table>
-    <thead><tr><th>علامت</th><th>معنی</th><th>مثال</th></tr></thead>
+  <p class="muted">در هر ردیف: الگو، مثال‌هایی که <span class="match">✅ مطابقت دارند</span> و
+  مثال‌هایی که <span class="nomatch">❌ مطابقت ندارند</span></p>
+  <table class="regex-table">
+    <thead><tr><th>الگو</th><th class="col-ok">مطابقت دارند ✅</th><th class="col-no">مطابقت ندارند ❌</th></tr></thead>
     <tbody>
       <tr>
-        <td><code>abc</code></td>
-        <td>متن دقیق</td>
-        <td><code>FLAG</code> فقط همین کلمه</td>
+        <td><code>abc</code><br><span class="muted">متن دقیق</span></td>
+        <td class="col-ok"><div class="match">FLAG</div><div class="match">err</div><div class="match">flag</div></td>
+        <td class="col-no"><div class="nomatch">Flag</div><div class="nomatch">FLAGX</div></td>
       </tr>
       <tr>
-        <td><code>.</code></td>
-        <td>هر کاراکتری (فقط یکی)</td>
-        <td>
-          الگو: <code>F.AG</code><br>
-          <span class="match">✅ FLAG</span> ·
-          <span class="match">✅ FXAG</span> ·
-          <span class="match">✅ F9AG</span> ·
-          <span class="nomatch">❌ FFAG</span> ·
-          <span class="nomatch">❌ FLAGX… (بیش از یک حرف وسط)</span>
-        </td>
+        <td><code>.</code><br><span class="muted">هر کاراکتری (فقط یکی)</span><br><code class="ex">F.AG</code></td>
+        <td class="col-ok"><div class="match">FLAG</div><div class="match">FXAG</div><div class="match">F9AG</div></td>
+        <td class="col-no"><div class="nomatch">FFAG</div><div class="nomatch">F12AG</div></td>
       </tr>
       <tr>
-        <td><code>[abc]</code></td>
-        <td>یکی از این حرف‌ها</td>
-        <td>
-          الگو: <code>b[ae]t</code><br>
-          <span class="match">✅ bat</span> ·
-          <span class="match">✅ bet</span> ·
-          <span class="match">✅ baton (شامل bat)</span> ·
-          <span class="nomatch">❌ bit</span> ·
-          <span class="nomatch">❌ bt</span>
-        </td>
+        <td><code>[abc]</code><br><span class="muted">یکی از این حرف‌ها</span><br><code class="ex">b[ae]t</code></td>
+        <td class="col-ok"><div class="match">bat</div><div class="match">bet</div><div class="match">baton</div></td>
+        <td class="col-no"><div class="nomatch">bit</div><div class="nomatch">bt</div></td>
       </tr>
       <tr>
-        <td><code>[a-z]</code></td>
-        <td>هر حرف کوچک انگلیسی</td>
-        <td>
-          الگو: <code>b[a-z]t</code><br>
-          <span class="match">✅ bat</span> ·
-          <span class="match">✅ but</span> ·
-          <span class="match">✅ bzt</span> ·
-          <span class="nomatch">❌ bAt (حرف بزرگ)</span> ·
-          <span class="nomatch">❌ b7t (رقم)</span>
-        </td>
+        <td><code>[a-z]</code><br><span class="muted">هر حرف کوچک انگلیسی</span><br><code class="ex">b[a-z]t</code></td>
+        <td class="col-ok"><div class="match">bat</div><div class="match">but</div><div class="match">bzt</div></td>
+        <td class="col-no"><div class="nomatch">bAt</div><div class="nomatch">b7t</div></td>
       </tr>
       <tr>
-        <td><code>[0-9]</code></td>
-        <td>یک رقم</td>
-        <td>
-          الگو: <code>b[0-9]t</code><br>
-          <span class="match">✅ b0t</span> ·
-          <span class="match">✅ b5t</span> ·
-          <span class="match">✅ b9t</span> ·
-          <span class="nomatch">❌ bat</span> ·
-          <span class="nomatch">❌ b12t (دو رقم)</span>
-        </td>
+        <td><code>[0-9]</code><br><span class="muted">یک رقم</span><br><code class="ex">b[0-9]t</code></td>
+        <td class="col-ok"><div class="match">b0t</div><div class="match">b5t</div><div class="match">b9t</div></td>
+        <td class="col-no"><div class="nomatch">bat</div><div class="nomatch">b12t</div></td>
       </tr>
       <tr>
-        <td><code>{2}</code></td>
-        <td>دقیقاً ۲ تای قبلی</td>
-        <td>
-          الگو: <code>[a-z]{3}</code> ← سه حرف کوچکِ پشت هم<br>
-          <span class="match">✅ cat</span> ·
-          <span class="match">✅ dog</span> ·
-          <span class="match">✅ honey (شامل hon)</span> ·
-          <span class="nomatch">❌ be (فقط ۲ حرف)</span> ·
-          <span class="nomatch">❌ C93 (حرف بزرگ و رقم)</span>
-        </td>
+        <td><code>{3}</code><br><span class="muted">دقیقاً ۳ تای قبلی</span><br><code class="ex">[a-z]{3}</code></td>
+        <td class="col-ok"><div class="match">cat</div><div class="match">dog</div><div class="match">honey <span class="muted">(شامل hon)</span></div></td>
+        <td class="col-no"><div class="nomatch">be</div><div class="nomatch">C93</div></td>
       </tr>
       <tr>
-        <td><code>{2,4}</code></td>
-        <td>۲ تا ۴ تای قبلی</td>
-        <td>
-          الگو: <code>b[0-9]{2,4}t</code><br>
-          <span class="match">✅ b12t</span> ·
-          <span class="match">✅ b123t</span> ·
-          <span class="match">✅ b1234t</span> ·
-          <span class="nomatch">❌ b1t (فقط یک رقم)</span> ·
-          <span class="nomatch">❌ bat (رقم ندارد)</span>
-        </td>
+        <td><code>{2,4}</code><br><span class="muted">۲ تا ۴ تای قبلی</span><br><code class="ex">b[0-9]{2,4}t</code></td>
+        <td class="col-ok"><div class="match">b12t</div><div class="match">b123t</div><div class="match">b1234t</div></td>
+        <td class="col-no"><div class="nomatch">b1t</div><div class="nomatch">bat</div></td>
       </tr>
       <tr>
-        <td><code>*</code></td>
-        <td>صفر یا بیشترِ قبلی</td>
-        <td>
-          الگو: <code>ab*</code><br>
-          <span class="match">✅ a (حتی بدون b!)</span> ·
-          <span class="match">✅ ab</span> ·
-          <span class="match">✅ abbbb</span> ·
-          <span class="nomatch">❌ b (a اجباری است)</span> ·
-          <span class="nomatch">❌ ac (c جزو الگو نیست)</span>
-        </td>
+        <td><code>*</code><br><span class="muted">صفر یا بیشترِ قبلی</span><br><code class="ex">ab*</code></td>
+        <td class="col-ok"><div class="match">a <span class="muted">(حتی بدون b!)</span></div><div class="match">ab</div><div class="match">abbbb</div></td>
+        <td class="col-no"><div class="nomatch">b</div><div class="nomatch">ac</div></td>
       </tr>
       <tr>
-        <td><code>+</code></td>
-        <td>یک یا بیشترِ قبلی</td>
-        <td>
-          الگو: <code>ab+</code><br>
-          <span class="match">✅ ab</span> ·
-          <span class="match">✅ abb</span> ·
-          <span class="match">✅ abbb</span> ·
-          <span class="nomatch">❌ a (b وجود ندارد — این فرق * و + است!)</span> ·
-          <span class="nomatch">❌ b</span>
-        </td>
+        <td><code>+</code><br><span class="muted">یک یا بیشترِ قبلی</span><br><code class="ex">ab+</code></td>
+        <td class="col-ok"><div class="match">ab</div><div class="match">abb</div><div class="match">abbb</div></td>
+        <td class="col-no"><div class="nomatch">a <span class="muted">(فرق * و +!)</span></div><div class="nomatch">b</div></td>
       </tr>
       <tr>
-        <td><code>^</code></td>
-        <td>ابتدای خط</td>
-        <td>
-          الگو: <code>^err</code> ← روی این خطوط:<br>
-          <span class="match">✅ err: disk full</span> ·
-          <span class="match">✅ error 42</span> ·
-          <span class="match">✅ err at 10:32</span> ·
-          <span class="nomatch">❌ 12:00 err restarted</span> ·
-          <span class="nomatch">❌ warning: err suppressed</span>
-        </td>
+        <td><code>^</code><br><span class="muted">ابتدای خط</span><br><code class="ex">^err</code></td>
+        <td class="col-ok"><div class="match">err: disk full</div><div class="match">error 42</div><div class="match">err at 10:32</div></td>
+        <td class="col-no"><div class="nomatch">12:00 err restarted</div><div class="nomatch">warning: err</div></td>
       </tr>
       <tr>
-        <td><code>$</code></td>
-        <td>انتهای خط</td>
-        <td>
-          الگو: <code>flag$</code><br>
-          <span class="match">✅ ok flag</span> ·
-          <span class="match">✅ the final flag</span> ·
-          <span class="match">✅ 10:32 flag</span> ·
-          <span class="nomatch">❌ flag is here (بعدش ادامه دارد)</span> ·
-          <span class="nomatch">❌ flags (آخرش s دارد)</span>
-        </td>
+        <td><code>$</code><br><span class="muted">انتهای خط</span><br><code class="ex">flag$</code></td>
+        <td class="col-ok"><div class="match">ok flag</div><div class="match">the final flag</div><div class="match">10:32 flag</div></td>
+        <td class="col-no"><div class="nomatch">flag is here</div><div class="nomatch">flags</div></td>
       </tr>
       <tr>
-        <td><code>|</code></td>
-        <td>یا</td>
-        <td>
-          الگو: <code>cat|dog</code><br>
-          <span class="match">✅ cat</span> ·
-          <span class="match">✅ dog</span> ·
-          <span class="match">✅ hotdog (شامل dog)</span> ·
-          <span class="nomatch">❌ cot</span> ·
-          <span class="nomatch">❌ Cat (حرف بزرگ — به‌صورت پیش‌فرض حساس به حروف)</span>
-        </td>
+        <td><code>|</code><br><span class="muted">یا</span><br><code class="ex">cat|dog</code></td>
+        <td class="col-ok"><div class="match">cat</div><div class="match">dog</div><div class="match">hotdog <span class="muted">(شامل dog)</span></div></td>
+        <td class="col-no"><div class="nomatch">cot</div><div class="nomatch">Cat <span class="muted">(حساس به حروف)</span></div></td>
       </tr>
       <tr>
-        <td><code>\{</code></td>
-        <td>خودِ کاراکتر { (خنثی‌کردن معنی ویژه)</td>
-        <td>
-          الگو: <code>FLAG\{</code><br>
-          <span class="match">✅ FLAG{ab-12}</span> ·
-          <span class="match">✅ FLAG{x}</span> ·
-          <span class="match">✅ =FLAG{0}=</span> ·
-          <span class="nomatch">❌ flag{ab} (حرف کوچک)</span> ·
-          <span class="nomatch">❌ FLAGXab… (بدون {)</span>
-        </td>
+        <td><code>\{</code><br><span class="muted">خودِ کاراکتر { </span><br><code class="ex">FLAG\{</code></td>
+        <td class="col-ok"><div class="match">FLAG{ab-12}</div><div class="match">FLAG{x}</div><div class="match">=FLAG{0}=</div></td>
+        <td class="col-no"><div class="nomatch">flag{ab}</div><div class="nomatch">FLAGXab</div></td>
       </tr>
     </tbody>
   </table>
