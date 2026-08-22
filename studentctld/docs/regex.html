@@ -35,9 +35,9 @@
     <thead><tr><th>الگو</th><th class="col-ok">مطابقت دارند ✅</th><th class="col-no">مطابقت ندارند ❌</th></tr></thead>
     <tbody>
       <tr>
-        <td><code>abc</code><br><span class="muted">متن دقیق</span></td>
-        <td class="col-ok"><div class="match">FLAG</div><div class="match">err</div><div class="match">flag</div></td>
-        <td class="col-no"><div class="nomatch">Flag</div><div class="nomatch">FLAGX</div></td>
+        <td><code>abc</code><br><span class="muted">متن دقیق، حرف‌به‌حرف</span></td>
+        <td class="col-ok"><div class="match">abc</div><div class="match">abcdef</div><div class="match">zabc</div></td>
+        <td class="col-no"><div class="nomatch">abd</div><div class="nomatch">ABC <span class="muted">(حرف بزرگ)</span></div></td>
       </tr>
       <tr>
         <td><code>.</code><br><span class="muted">هر کاراکتری (فقط یکی)</span><br><code class="ex">F.AG</code></td>
@@ -61,7 +61,7 @@
       </tr>
       <tr>
         <td><code>{3}</code><br><span class="muted">دقیقاً ۳ تای قبلی</span><br><code class="ex">[a-z]{3}</code></td>
-        <td class="col-ok"><div class="match">cat</div><div class="match">dog</div><div class="match">honey <span class="muted">(شامل hon)</span></div></td>
+        <td class="col-ok"><div class="match">cat</div><div class="match">dog</div><div class="match">run</div></td>
         <td class="col-no"><div class="nomatch">be</div><div class="nomatch">C93</div></td>
       </tr>
       <tr>
@@ -95,12 +95,18 @@
         <td class="col-no"><div class="nomatch">cot</div><div class="nomatch">Cat <span class="muted">(حساس به حروف)</span></div></td>
       </tr>
       <tr>
-        <td><code>\{</code><br><span class="muted">خودِ کاراکتر { </span><br><code class="ex">FLAG\{</code></td>
+        <td><code>\{</code><br><span class="muted">کاراکتر ویژه را عادی می‌کند</span><br><code class="ex">FLAG\{</code></td>
         <td class="col-ok"><div class="match">FLAG{ab-12}</div><div class="match">FLAG{x}</div><div class="match">=FLAG{0}=</div></td>
         <td class="col-no"><div class="nomatch">flag{ab}</div><div class="nomatch">FLAGXab</div></td>
       </tr>
     </tbody>
   </table>
+
+  <div class="card tip">
+    <strong>💡 نکته مهم:</strong> grep الگو را <strong>هر جای خط</strong> پیدا می‌کند، حتی داخل کلمه‌های
+    بلندتر. مثلاً الگوی <code>cat</code> روی کلمه‌ی <code>hotcat</code> هم مطابقت می‌کند چون
+    «cat» داخلش هست. پس اگر دنبال کلمه‌ی کامل و جدا هستید، از <code>^</code> و <code>$</code> کمک بگیرید.
+  </div>
 
   <h2>چطور با grep استفاده کنم؟</h2>
   <p>برای الگوهای ریجکسی، از <code>grep -E</code> استفاده کنید:</p>
