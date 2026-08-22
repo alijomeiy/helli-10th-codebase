@@ -11,16 +11,14 @@ import argparse
 
 import requests
 
-LOGO_URL = "https://www.helli.ir/portal/sites/all/themes/helli/image/Logo1.png"
 CTF_NAME = "پیدا کردن پرچم - گروه کامپیوتر دبیرستان حلی تهران"
 
 
-def build_theme(logo_url: str) -> str:
+def build_theme() -> str:
     return f"""
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
-<script>var HELLI_LOGO = "{logo_url}";</script>
 <style>
   body, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, li,
   small, strong, em, button, .btn, .navbar-brand, .nav-link, .badge,
@@ -44,15 +42,7 @@ def build_theme(logo_url: str) -> str:
   .modal-content {{ text-align: right; }}
   h1, h2, h3, .card-title {{ line-height: 1.6; }}
 
-  /* ---- homepage logo (set by JS to data-URI): centered ---- */
-  img.helli-main-logo {{
-    display: block; margin: 0 auto;
-    max-width: 320px; width: 100%;
-    padding: 40px 0 10px;
-  }}
-
-  /* ---- navbar: text-only brand, clean spacing ---- */
-  .navbar-brand img {{ display: none; }}
+  /* ---- navbar right side: even spacing ---- */
   .navbar-nav.ml-md-auto .nav-link {{
     display: inline-flex; align-items: center; gap: 5px;
     white-space: nowrap; padding: .45rem .55rem; line-height: 1.4;
@@ -136,19 +126,9 @@ def build_theme(logo_url: str) -> str:
       if (TR[t]) el.setAttribute('title', TR[t]);
     }});
 
-    /* homepage: strip marketing, swap logo */
+    /* homepage: strip ctfd.io marketing block only (logo untouched) */
     (document.querySelectorAll('h3.text-center, h4.text-center') || []).forEach(function(h){{
       if (/ctfd\\.io|Follow us on social|setup your CTF/i.test(h.textContent)) h.remove();
-    }});
-    (document.querySelectorAll('img.w-100.mx-auto.d-block, img[src*="logo.png"]') || []).forEach(function(img){{
-      img.src = HELLI_LOGO;
-      img.classList.add('helli-main-logo');
-      img.removeAttribute('style');
-      img.alt = 'لوگو';
-    }});
-    /* navbar brand: kill any broken /files/ proxy img (belt & braces) */
-    (document.querySelectorAll('.navbar-brand img') || []).forEach(function(img){{
-      img.style.display = 'none';
     }});
   }}
   if (document.readyState === 'loading')
@@ -165,44 +145,26 @@ def build_theme(logo_url: str) -> str:
 """
 
 
-def upload_logo(url, token, png_bytes):
-    """Upload logo via CTFd files API, return its served URL."""
-    h = {"Authorization": f"Token {token}"}
-    r = requests.post(f"{url}/api/v1/files",
-                      headers=h,
-                      files={"file": ("helli-logo.png", png_bytes, "image/png")},
-                      data={"type": "page", "location": "assets/helli-logo.png"},
-                      timeout=30)
-    if r.status_code != 200:
-        raise RuntimeError(f"logo upload failed: {r.status_code} {r.text[:120]}")
-    loc = r.json()["data"][0]["location"]
-    return "/files/" + loc
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default="http://127.0.0.1:8000")
     ap.add_argument("--token", required=True)
     args = ap.parse_args()
 
-    png = requests.get(LOGO_URL, timeout=30).content
-    print(f"logo png: {len(png)//1024}KB")
-    logo_url = upload_logo(args.url, args.token, png)
-    print("logo served at:", logo_url)
-
-    theme = build_theme(logo_url)
+    theme = build_theme()
     h = {"Authorization": f"Token {args.token}",
          "Content-Type": "application/json"}
     for key, val in [("theme_footer", theme),
                      ("ctf_name", CTF_NAME),
-                     # bare location — CTFd renders it as /files/<location>
-                     ("ctf_logo", "assets/helli-logo.png")]:
+                     # empty = CTFd default logo; manage it from the admin
+                     # panel (Admin > Config > Theme > Logo) if wanted
+                     ("ctf_logo", "")]:
         r = requests.patch(f"{args.url}/api/v1/configs", headers=h,
                            json={key: val}, timeout=15)
         print(f"patch {key}:", r.status_code)
 
     r = requests.get(f"{args.url}/", timeout=15)
-    print("logo url in footer:", logo_url in r.text,
+    print("default logo restored:", "logo.png" in r.text,
           "| name ok:", "پیدا کردن پرچم" in r.text)
 
 

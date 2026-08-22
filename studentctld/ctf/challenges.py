@@ -1,12 +1,11 @@
 CHALLENGES = [
-    # ---------------- mandatory: core classroom skills only ----------------
-    # descriptions NEVER say how to solve — only what/where. Hints (paid) may.
+    # ---------------- mandatory: simple & direct (what/where, never how) -----
     {
         "name": "m-welcome",
         "title": "خوش آمدید",
         "category": "اجباری",
         "points": 50,
-        "description": "پرچم اول، ساده‌تر از آن است که فکر می‌کنید. سراغ پوشه‌ی خانه‌ی خودتان بروید.",
+        "description": "فایل welcome.txt در پوشه‌ی خانه‌ی شما پرچم اول را نگه داشته است.",
         "hint": "فایل welcome.txt را با vim باز کنید: vim welcome.txt",
         "hint_cost": 10,
     },
@@ -15,7 +14,7 @@ CHALLENGES = [
         "title": "خواندن فایل طولانی",
         "category": "اجباری",
         "points": 75,
-        "description": "در سطح اول، فایلی خیلی طولانی منتظر شماست. پرچم تهِ آن پنهان شده.",
+        "description": "در level1 فایل README.txt خیلی طولانی است؛ پرچم در انتهای آن پنهان شده است.",
         "hint": "در vim با /FLAG جستجو کنید (n برای بعدی)، یا grep FLAG level1/README.txt",
         "hint_cost": 15,
     },
@@ -24,7 +23,7 @@ CHALLENGES = [
         "title": "کلاف سردرگم",
         "category": "اجباری",
         "points": 75,
-        "description": "در میان انبوهی از فایل‌های یکسان‌نما، فقط یکی حقیقت را می‌گوید.",
+        "description": "در پوشه‌ی level1/lost ده‌ها فایل یکسان‌نما هست؛ فقط یکی از آن‌ها پرچم را دارد.",
         "hint": "tree level1/lost بزنید و نام متفاوت را پیدا کنید.",
         "hint_cost": 15,
     },
@@ -33,7 +32,7 @@ CHALLENGES = [
         "title": "سوزن در انبار کاه",
         "category": "اجباری",
         "points": 100,
-        "description": "سرور هزاران اتفاق را ثبت کرده است. یکی از آن‌ها برای شما مهم است.",
+        "description": "فایل level2/server.log صدها خط گزارش دارد. خطی که پرچم در آن است را پیدا کنید.",
         "hint": "grep FLAG level2/server.log",
         "hint_cost": 20,
     },
@@ -42,7 +41,7 @@ CHALLENGES = [
         "title": "هزارتو",
         "category": "اجباری",
         "points": 100,
-        "description": "در عمقِ هزارتویی از پوشه‌ها، انتها در انتظار شماست.",
+        "description": "در level2/maze پوشه‌های تودرتو ساخته شده است. فایلی به نام end.flag را پیدا کنید.",
         "hint": "find level2/maze -name end.flag و بعد vim روی مسیر پیدا‌شده.",
         "hint_cost": 20,
     },
@@ -51,7 +50,7 @@ CHALLENGES = [
         "title": "ظاهر فریبنده",
         "category": "اجباری",
         "points": 125,
-        "description": "چیزی که می‌بینید، همیشه چیزی نیست که هست. به پسوند فایل‌ها اعتماد نکنید.",
+        "description": "فایل level2/photo.jpg آن چیزی نیست که به نظر می‌رسد!",
         "hint": "vim level2/photo.jpg — پسوند فایل همیشه حقیقت را نمی‌گوید.",
         "hint_cost": 25,
     },
@@ -60,8 +59,7 @@ CHALLENGES = [
         "title": "فایل نقطه‌دار",
         "category": "اجباری",
         "points": 100,
-        "description": "در سطح سوم چیزی پنهان شده که چشمِ معمولی آن را نمی‌بیند. "
-                       "کاربر قبلی ردپایی جا گذاشته است.",
+        "description": "در level3 فایلی پنهان شده که نامش با نقطه شروع می‌شود و در فهرستِ معمولی دیده نمی‌شود.",
         "hint": "find level3 -type f همه‌ی فایل‌ها را نشان می‌دهد (حتی مخفی‌ها)؛ بعد vim کنید.",
         "hint_cost": 20,
     },
@@ -70,8 +68,8 @@ CHALLENGES = [
         "title": "پرچم شکسته",
         "category": "اجباری",
         "points": 125,
-        "description": "پرچم شما در Pieces شکسته و پراکنده شده است. تکه‌ها را به هم برسانید و "
-                       "رشته‌ی کامل را در همان فایل ذخیره کنید. سپس همان رشته را اینجا ثبت کنید.",
+        "description": "در ctf/fixme.txt پرچم شما به ۴ تکه شکسته شده است. تکه‌ها را به ترتیب در یک خط "
+                       "به هم بچسبانید، فایل را ذخیره کنید و همان رشته‌ی کامل را ثبت کنید.",
         "hint": "در vim: با v روی حروف بروید تا انتخاب شود، y بزنید، روی مقصد بروید و p بزنید؛ آخرش :w",
         "hint_cost": 25,
     },
