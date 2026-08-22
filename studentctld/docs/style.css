@@ -154,3 +154,16 @@ th {
 .lesson .muted {
   font-size: 13px
 }
+
+/* regex lesson: match / non-match examples */
+.match {
+  color: #86efac;
+  direction: ltr;
+  unicode-bidi: isolate
+}
+
+.nomatch {
+  color: #fca5a5;
+  direction: ltr;
+  unicode-bidi: isolate
+}

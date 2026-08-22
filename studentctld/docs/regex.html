@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>آموزش کوتاه ریجکس</title>
+  <title>درباره Regex</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
@@ -14,13 +14,13 @@
 
   <p><a href="index.html">← بازگشت به فهرست آموزش‌ها</a></p>
 
-  <h1>🔎 آموزش کوتاه ریجکس (Regex)</h1>
+  <h1>🔎 درباره Regex</h1>
   <p class="muted">با چند علامت ساده، بین هزاران خط متن فقط چیزی را پیدا کنید که می‌خواهید.</p>
 
-  <h2>ریجکس چیست و به چه دردی می‌خورد؟</h2>
+  <h2>Regex چیست؟</h2>
   <div class="card">
-    <p><strong>ریجکس</strong> (عبارت باقاعده) یک زبان کوچک برای <strong>توصیف شکلِ متن</strong> است.
-    به‌جای اینکه بگویید «دنبال این کلمه بگرد»، می‌گویید «دنبال هر متنی بگرد که این شکلی است».</p>
+    <p><strong>Regex</strong> (regular expression - عبارت باقاعده) یک زبان کوچک برای <strong>توصیف الگوی متن</strong> است.
+    به‌جای «دنبال این کلمه بگرد»، «دنبال هر ترکیبی بگرد که از این الگو پیروی می‌کند و این شکلی است».</p>
     <ul>
       <li>مثلاً «هر چیزی که مثل شماره تلفن است» یا «هر پرچمی که دقیقاً دو حرف و دو رقم دارد».</li>
       <li>ابزار آشنا با آن کار می‌کند: <code>grep -E 'الگو' فایل</code></li>
@@ -29,6 +29,8 @@
   </div>
 
   <h2>علامت‌های مهم</h2>
+  <p class="muted">برای هر الگو: <span class="match">✅ مثال‌هایی که مطابقت دارند</span> و
+  <span class="nomatch">❌ مثال‌هایی که مطابقت ندارند</span></p>
   <table>
     <thead><tr><th>علامت</th><th>معنی</th><th>مثال</th></tr></thead>
     <tbody>
@@ -39,63 +41,147 @@
       </tr>
       <tr>
         <td><code>.</code></td>
-        <td>هر کاراکتری</td>
-        <td><code>F.AG</code> ← FLAG و FXAG و ...</td>
+        <td>هر کاراکتری (فقط یکی)</td>
+        <td>
+          الگو: <code>F.AG</code><br>
+          <span class="match">✅ FLAG</span> ·
+          <span class="match">✅ FXAG</span> ·
+          <span class="match">✅ F9AG</span> ·
+          <span class="nomatch">❌ FFAG</span> ·
+          <span class="nomatch">❌ FLAGX… (بیش از یک حرف وسط)</span>
+        </td>
       </tr>
       <tr>
         <td><code>[abc]</code></td>
         <td>یکی از این حرف‌ها</td>
-        <td><code>b[ae]t</code> ← bat یا bet</td>
+        <td>
+          الگو: <code>b[ae]t</code><br>
+          <span class="match">✅ bat</span> ·
+          <span class="match">✅ bet</span> ·
+          <span class="match">✅ baton (شامل bat)</span> ·
+          <span class="nomatch">❌ bit</span> ·
+          <span class="nomatch">❌ bt</span>
+        </td>
       </tr>
       <tr>
         <td><code>[a-z]</code></td>
         <td>هر حرف کوچک انگلیسی</td>
-        <td><code>b[a-z]t</code> ← هر bt با یک حرف وسط</td>
+        <td>
+          الگو: <code>b[a-z]t</code><br>
+          <span class="match">✅ bat</span> ·
+          <span class="match">✅ but</span> ·
+          <span class="match">✅ bzt</span> ·
+          <span class="nomatch">❌ bAt (حرف بزرگ)</span> ·
+          <span class="nomatch">❌ b7t (رقم)</span>
+        </td>
       </tr>
       <tr>
         <td><code>[0-9]</code></td>
         <td>یک رقم</td>
-        <td><code>b[0-9]t</code> ← b7t</td>
+        <td>
+          الگو: <code>b[0-9]t</code><br>
+          <span class="match">✅ b0t</span> ·
+          <span class="match">✅ b5t</span> ·
+          <span class="match">✅ b9t</span> ·
+          <span class="nomatch">❌ bat</span> ·
+          <span class="nomatch">❌ b12t (دو رقم)</span>
+        </td>
       </tr>
       <tr>
         <td><code>{2}</code></td>
         <td>دقیقاً ۲ تای قبلی</td>
-        <td><code>[a-z]{3}</code> ← سه حرف کوچک پشت هم</td>
+        <td>
+          الگو: <code>[a-z]{3}</code> ← سه حرف کوچکِ پشت هم<br>
+          <span class="match">✅ cat</span> ·
+          <span class="match">✅ dog</span> ·
+          <span class="match">✅ honey (شامل hon)</span> ·
+          <span class="nomatch">❌ be (فقط ۲ حرف)</span> ·
+          <span class="nomatch">❌ C93 (حرف بزرگ و رقم)</span>
+        </td>
       </tr>
       <tr>
         <td><code>{2,4}</code></td>
         <td>۲ تا ۴ تای قبلی</td>
-        <td><code>[0-9]{2,4}</code> ← 42 یا 123 یا 1234</td>
+        <td>
+          الگو: <code>b[0-9]{2,4}t</code><br>
+          <span class="match">✅ b12t</span> ·
+          <span class="match">✅ b123t</span> ·
+          <span class="match">✅ b1234t</span> ·
+          <span class="nomatch">❌ b1t (فقط یک رقم)</span> ·
+          <span class="nomatch">❌ bat (رقم ندارد)</span>
+        </td>
       </tr>
       <tr>
         <td><code>*</code></td>
         <td>صفر یا بیشترِ قبلی</td>
-        <td><code>ab*</code> ← a یا ab یا abbbb</td>
+        <td>
+          الگو: <code>ab*</code><br>
+          <span class="match">✅ a (حتی بدون b!)</span> ·
+          <span class="match">✅ ab</span> ·
+          <span class="match">✅ abbbb</span> ·
+          <span class="nomatch">❌ b (a اجباری است)</span> ·
+          <span class="nomatch">❌ ac (c جزو الگو نیست)</span>
+        </td>
       </tr>
       <tr>
         <td><code>+</code></td>
         <td>یک یا بیشترِ قبلی</td>
-        <td><code>ab+</code> ← ab یا abbb (حداقل یکی)</td>
+        <td>
+          الگو: <code>ab+</code><br>
+          <span class="match">✅ ab</span> ·
+          <span class="match">✅ abb</span> ·
+          <span class="match">✅ abbb</span> ·
+          <span class="nomatch">❌ a (b وجود ندارد — این فرق * و + است!)</span> ·
+          <span class="nomatch">❌ b</span>
+        </td>
       </tr>
       <tr>
         <td><code>^</code></td>
         <td>ابتدای خط</td>
-        <td><code>^err</code> ← خطی که با err شروع شود</td>
+        <td>
+          الگو: <code>^err</code> ← روی این خطوط:<br>
+          <span class="match">✅ err: disk full</span> ·
+          <span class="match">✅ error 42</span> ·
+          <span class="match">✅ err at 10:32</span> ·
+          <span class="nomatch">❌ 12:00 err restarted</span> ·
+          <span class="nomatch">❌ warning: err suppressed</span>
+        </td>
       </tr>
       <tr>
         <td><code>$</code></td>
         <td>انتهای خط</td>
-        <td><code>flag$</code> ← خطی که به flag ختم شود</td>
+        <td>
+          الگو: <code>flag$</code><br>
+          <span class="match">✅ ok flag</span> ·
+          <span class="match">✅ the final flag</span> ·
+          <span class="match">✅ 10:32 flag</span> ·
+          <span class="nomatch">❌ flag is here (بعدش ادامه دارد)</span> ·
+          <span class="nomatch">❌ flags (آخرش s دارد)</span>
+        </td>
       </tr>
       <tr>
         <td><code>|</code></td>
         <td>یا</td>
-        <td><code>cat|dog</code> ← cat یا dog</td>
+        <td>
+          الگو: <code>cat|dog</code><br>
+          <span class="match">✅ cat</span> ·
+          <span class="match">✅ dog</span> ·
+          <span class="match">✅ hotdog (شامل dog)</span> ·
+          <span class="nomatch">❌ cot</span> ·
+          <span class="nomatch">❌ Cat (حرف بزرگ — به‌صورت پیش‌فرض حساس به حروف)</span>
+        </td>
       </tr>
       <tr>
         <td><code>\{</code></td>
         <td>خودِ کاراکتر { (خنثی‌کردن معنی ویژه)</td>
-        <td><code>FLAG\{</code> ← دقیقاً FLAG{</td>
+        <td>
+          الگو: <code>FLAG\{</code><br>
+          <span class="match">✅ FLAG{ab-12}</span> ·
+          <span class="match">✅ FLAG{x}</span> ·
+          <span class="match">✅ =FLAG{0}=</span> ·
+          <span class="nomatch">❌ flag{ab} (حرف کوچک)</span> ·
+          <span class="nomatch">❌ FLAGXab… (بدون {)</span>
+        </td>
       </tr>
     </tbody>
   </table>
