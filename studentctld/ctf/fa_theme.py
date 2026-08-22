@@ -195,7 +195,8 @@ def main():
          "Content-Type": "application/json"}
     for key, val in [("theme_footer", theme),
                      ("ctf_name", CTF_NAME),
-                     ("ctf_logo", "")]:
+                     # bare location — CTFd renders it as /files/<location>
+                     ("ctf_logo", "assets/helli-logo.png")]:
         r = requests.patch(f"{args.url}/api/v1/configs", headers=h,
                            json={key: val}, timeout=15)
         print(f"patch {key}:", r.status_code)

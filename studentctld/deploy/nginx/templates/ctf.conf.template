@@ -38,5 +38,12 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_connect_timeout 10s;
         proxy_read_timeout 60s;
+
+        # serve the Helli logo instead of CTFd's default on the homepage
+        # (server-side rewrite — works regardless of browser JS/cache)
+        sub_filter_once off;
+        sub_filter_types text/html;
+        sub_filter '/themes/core/static/img/logo.png' '/files/assets/helli-logo.png';
+        sub_filter '/files//files/' '/files/';
     }
 }

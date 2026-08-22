@@ -61,23 +61,23 @@ def w(path, text):
 
 def scatter_m_welcome(home, flag):
     w(f"{home}/welcome.txt",
-      "به مسابقه‌ی «پیدا کردن پرچم» خوش آمدید!\n"
-      "این اولین و ساده‌ترین پرچم شماست:\n" + flag + "\n")
+      "Welcome to the Flag Hunt!\n"
+      "Here is your first and easiest flag:\n" + flag + "\n")
 
 
 def scatter_m_readme(home, flag):
     lines = [
-        "دفترچه‌ی راهنمای سرور کلاس",
-        "==========================",
+        "Server Handbook - Classroom Edition",
+        "==================================",
         "",
-        "این فایل برای تمرینِ خواندنِ متن‌های طولانی درست شده است.",
+        "This file exists to practice reading long files.",
     ]
-    lines += [f"بخش {i}: توضیحات عمومی و تکراری درباره‌ی کار با سرور. " * 2
+    lines += [f"Section {i}: general and repetitive notes about working with the server. " * 2
               for i in range(1, 33)]
     lines += [
         "",
-        "پایان دفترچه. جایزه‌ی صبر و حوصله‌ی شما:",
-        f"پرچم: {flag}",
+        "End of handbook. Your patience reward:",
+        f"FLAG: {flag}",
     ]
     w(f"{home}/level1/README.txt", "\n".join(lines) + "\n")
 
@@ -86,9 +86,9 @@ def scatter_m_manyfiles(home, flag):
     d = f"{home}/level1/lost"
     os.makedirs(d, exist_ok=True)
     for i in range(1, 61):
-        w(f"{d}/f{i:03d}.txt", "این فایل هیچ چیزی برای گفتن ندارد.\n" * 3)
+        w(f"{d}/f{i:03d}.txt", "This file has nothing to say.\n" * 3)
     w(f"{d}/note-{random.randint(1000, 9999)}.txt",
-      "امروز روزِ شمایست!\n" + flag + "\n")
+      "Today is your lucky day!\n" + flag + "\n")
 
 
 def scatter_m_grep(home, flag):
@@ -125,11 +125,12 @@ def scatter_m_maze(home, flag):
 
 
 def scatter_m_fakeext(home, flag):
+    # deliberate Persian spice: reading mixed RTL/LTR content in vim is part
+    # of the challenge (mandatory but flavor text only)
     w(f"{home}/level2/photo.jpg",
       "٪تصویر-۱.۴ هیچ شکلی اینجا نیست؛ فقط متن است.\n"
       "پسوندِ فایل همیشه نوعِ واقعی‌اش را نشان نمی‌دهد.\n"
       f"{flag}\n")
-
 
 def scatter_m_dots(home, flag):
     cmds = ["ls", "cd /var/log", "vim notes.txt", "grep ERROR app.log",
@@ -146,14 +147,14 @@ def scatter_m_vimedit(home, flag):
     pieces = [flag[:cuts[0]], flag[cuts[0]:cuts[1]],
               flag[cuts[1]:cuts[2]], flag[cuts[2]:]]
     w(f"{home}/ctf/fixme.txt",
-      "پرچم شما به ۴ تکه شکسته شده است!\n"
-      "تکه‌ها را به همان ترتیبِ شماره‌ها، در یک خط پشت سر هم بچسبانید\n"
-      "و با :w ذخیره کنید. سپس همان رشته‌ی کامل را در سایت ثبت کنید.\n"
+      "Your flag has been broken into 4 pieces!\n"
+      "Reassemble the pieces in numbered order into a single line,\n"
+      "save with :w, then submit that exact full string on the site.\n"
       "----------------------------------------\n"
-      f"تکه ۱:\n{pieces[0]}\n"
-      f"تکه ۲:\n{pieces[1]}\n"
-      f"تکه ۳:\n{pieces[2]}\n"
-      f"تکه ۴:\n{pieces[3]}\n"
+      f"Piece 1:\n{pieces[0]}\n"
+      f"Piece 2:\n{pieces[1]}\n"
+      f"Piece 3:\n{pieces[2]}\n"
+      f"Piece 4:\n{pieces[3]}\n"
       "----------------------------------------\n")
 
 
@@ -169,8 +170,9 @@ def scatter_o2_archive(home, flag):
     d = f"{home}/level3"
     os.makedirs(d, exist_ok=True)
     with tempfile.TemporaryDirectory() as td:
+        # Persian spice kept: optional challenge reward line
         w(os.path.join(td, "flag.txt"), "آفرین که بسته را باز کردید!\n" + flag + "\n")
-        w(os.path.join(td, "README.txt"), "این هم یک فایل اضافه برای گمراه کردن!\n")
+        w(os.path.join(td, "README.txt"), "Just a decoy file to confuse you!\n")
         with tarfile.open(f"{d}/backup.tar.gz", "w:gz") as tf:
             tf.add(os.path.join(td, "flag.txt"), arcname="flag.txt")
             tf.add(os.path.join(td, "README.txt"), arcname="README.txt")
@@ -195,11 +197,13 @@ def scatter_o3_regex_class(home, flag):
         lambda: f"FLAG{{{rand_letters(2).upper()}}}-{rand_digits(2)}}}",  # uppercase
         lambda: f"FLAG{{{rand_letters(2)}_{rand_digits(2)}}}",        # underscore
     ]
-    body = ["در این فایل فقط یک خط شکلِ درستِ FLAG{aa-dd} را دارد؛ بقیه تله‌اند.\n"]
+    body = ["Only ONE line in this file has the correct shape FLAG{aa-dd}; the rest are traps.\n"]
     for _ in range(45):
         body.append(rnd.choice(decoy_builders)() + "\n")
     two_l = rand_letters(2)
     two_d = rand_digits(2)
+    # Persian spice kept: the real-flag carrier line (regex still matches the
+    # FLAG{xx-dd} part; Persian text around it adds terminal difficulty)
     body.append(f"پرچمِ واقعی این است: FLAG{{{two_l}-{two_d}}} => {flag}\n")
     rnd.shuffle(body[1:])
     w(f"{home}/ctf/regex/decoys.txt", "".join(body))
@@ -232,7 +236,6 @@ ABOUT_PAGE = """<!DOCTYPE html>
 </body>
 </html>
 """
-
 
 def scatter_o5_web_source(home, flag):
     ph = f"{home}/public_html"
