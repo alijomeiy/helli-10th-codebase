@@ -42,6 +42,10 @@ def build_theme() -> str:
   .modal-content {{ text-align: right; }}
   h1, h2, h3, .card-title {{ line-height: 1.6; }}
 
+  /* ---- homepage: remove big CTFd logo + ctfd.io marketing block ---- */
+  img.w-100.mx-auto.d-block[src*="logo"] {{ display: none; }}
+  .navbar-brand img {{ display: none; }}
+
   /* ---- navbar right side: even spacing ---- */
   .navbar-nav.ml-md-auto .nav-link {{
     display: inline-flex; align-items: center; gap: 5px;
@@ -126,9 +130,14 @@ def build_theme() -> str:
       if (TR[t]) el.setAttribute('title', TR[t]);
     }});
 
-    /* homepage: strip ctfd.io marketing block only (logo untouched) */
-    (document.querySelectorAll('h3.text-center, h4.text-center') || []).forEach(function(h){{
-      if (/ctfd\\.io|Follow us on social|setup your CTF/i.test(h.textContent)) h.remove();
+    /* homepage: remove the ctfd.io marketing block + setup link —
+       walk from <p> text up to the heading that wraps it */
+    (document.querySelectorAll('p, a') || []).forEach(function(el){{
+      var t = el.textContent || '';
+      if (/A cool CTF platform|Follow us on social|to login and setup your CTF/i.test(t)) {{
+        var kill = el.closest('h3, h4, .row, .col-md-6') || el.parentElement;
+        if (kill) kill.remove();
+      }}
     }});
   }}
   if (document.readyState === 'loading')
