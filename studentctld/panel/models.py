@@ -20,6 +20,12 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), default="")
     pw_hash = db.Column(db.String(255), default="")           # panel login password
 
+    # grading hub: super admin sees everything, plain admins (teachers)
+    # see only the students assigned to them
+    is_super = db.Column(db.Boolean, default=False, nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    student_no = db.Column(db.String(32), default="", index=True)
+
     # Linux account metadata (set when approved)
     status = db.Column(db.String(16), default=STATUS_PENDING, nullable=False, index=True)
     uid = db.Column(db.Integer, nullable=True)
@@ -101,3 +107,31 @@ class TaskAttempt(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (db.UniqueConstraint("task_id", "user_id"),)
+
+
+class Activity(db.Model):
+    """A gradable class event: quiz (manual scores) or ctf (auto-synced)."""
+    __tablename__ = "activities"
+    id = db.Column(db.Integer, primary_key=True)
+    kind = db.Column(db.String(16), nullable=False, index=True)   # quiz | ctf
+    title = db.Column(db.String(120), nullable=False)
+    held_on = db.Column(db.Date, nullable=True)
+    max_score = db.Column(db.Float, default=20.0, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Score(db.Model):
+    __tablename__ = "scores"
+    id = db.Column(db.Integer, primary_key=True)
+    activity_id = db.Column(db.Integer, db.ForeignKey("activities.id"),
+                            nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"),
+                        nullable=False, index=True)
+    score = db.Column(db.Float, default=0.0, nullable=False)
+    detail = db.Column(db.Text, default="")      # free note or JSON (ctf solves)
+    updated_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint("activity_id", "user_id"),)

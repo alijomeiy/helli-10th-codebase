@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}دفتر فعالیت{% endblock %}
+{% block content %}
+<h1>دفتر فعالیت کلاس</h1>
+<p class="muted">
+  {% if is_super %}نمای کل (مدیر ارشد){% else %}نمای دانشجوهای خودتان{% endif %}
+  — {{ my_students }} دانشجو، {{ activities|length }} فعالیت.
+</p>
+
+<div class="actions" style="margin:14px 0;flex-wrap:wrap">
+  <form method="post" action="{{ url_for('hub.ctf_sync') }}">
+    <button type="submit">همگام‌سازی نتایج CTF</button>
+  </form>
+  <a href="{{ url_for('hub.export') }}"><button type="button" class="ok">دریافت اکسل کل نتایج</button></a>
+  {% if is_super %}
+  <a href="{{ url_for('hub.teachers_page') }}"><button type="button" class="warn">مدیریت معلم‌ها و تخصیص دانشجو</button></a>
+  {% endif %}
+</div>
+
+<h2>ساخت کوییز جدید</h2>
+<form class="form inline" method="post" action="{{ url_for('hub.quiz_new') }}">
+  <label>عنوان
+    <input name="title" required placeholder="کوییز هفته اول">
+  </label>
+  <label>تاریخ
+    <input name="held_on" type="date">
+  </label>
+  <label>بارم
+    <input name="max_score" value="20" style="max-width:90px">
+  </label>
+  <button type="submit">بساز</button>
+</form>
+
+<h2>فعالیت‌ها</h2>
+<div class="table-scroll">
+<table>
+  <tr><th>عنوان</th><th>نوع</th><th>تاریخ</th><th>بارم</th>
+      <th>شرکت‌کننده</th><th>میانگین</th><th>میانگین ٪</th><th>عملیات</th></tr>
+  {% for a in activities %}
+  <tr>
+    <td>{{ a.title }}</td>
+    <td>{{ 'مسابقه' if a.kind == 'ctf' else 'کوییز' }}</td>
+    <td>{{ a.held_on }}</td>
+    <td>{{ a.max }}</td>
+    <td>{{ a.count }}</td>
+    <td>{{ a.avg }}</td>
+    <td>{{ a.avg_pct }}٪</td>
+    <td class="actions">
+      {% if a.kind == 'quiz' %}
+      <a href="{{ url_for('hub.quiz_view', quiz_id=a.id) }}"><button type="button" class="ok">نمره‌دهی</button></a>
+      <a href="{{ url_for('hub.quiz_template', quiz_id=a.id) }}"><button type="button" class="warn">قالب اکسل</button></a>
+      <form method="post" action="{{ url_for('hub.quiz_delete', quiz_id=a.id) }}"
+            onsubmit="return confirm('کوییز و همه نمره‌هایش حذف شود؟')">
+        <button type="submit" class="danger">حذف</button>
+      </form>
+      {% else %}
+      <span class="muted">خودکار</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  {% if not activities %}<tr><td colspan="8" class="muted">هنوز فعالیتی نیست؛ اولین کوییز را بسازید یا CTF را همگام کنید.</td></tr>{% endif %}
+</table>
+</div>
+
+{% if activities %}
+<h2>میانگین کلاس در هر فعالیت</h2>
+<div class="chart-box"><canvas id="avgChart"></canvas></div>
+{% endif %}
+
+<h2>کارنامه دانشجوها</h2>
+<div class="table-scroll">
+<table>
+  <tr><th>#</th><th>دانشجو</th><th>نام خانوادگی/نام</th>
+      {% if is_super %}<th>معلم</th>{% endif %}
+      <th>CTF</th><th>مجموع</th><th>درصد کل</th></tr>
+  {% for t in totals %}
+  <tr>
+    <td class="muted">{{ loop.index }}</td>
+    <td><code>{{ t.s.username }}</code></td>
+    <td>{{ t.s.full_name }}</td>
+    {% if is_super %}<td>{{ t.teacher }}</td>{% endif %}
+    <td>{{ t.ctf }}</td>
+    <td>{{ t.sum }}</td>
+    <td>{{ t.pct }}٪</td>
+  </tr>
+  {% endfor %}
+  {% if not totals %}<tr><td colspan="7" class="muted">دانشجویی به شما تخصیص نیافته است.</td></tr>{% endif %}
+</table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const acts = {{ acts_json | safe }};
+if (acts.length) {
+  new Chart(document.getElementById('avgChart'), {
+    type: 'bar',
+    data: {
+      labels: acts.map(a => a.title),
+      datasets: [
+        { label: 'میانگین ٪', data: acts.map(a => a.avg_pct),
+          backgroundColor: acts.map(a => a.kind === 'ctf' ? '#3b82f6' : '#22c55e') },
+        { label: 'تعداد شرکت‌کننده', data: acts.map(a => a.count),
+          type: 'line', yAxisID: 'y2', borderColor: '#f59e0b',
+          backgroundColor: '#f59e0b' }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { min: 0, max: 100, position: 'right', title: { display: true, text: '٪' } },
+        y2: { min: 0, position: 'left', grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

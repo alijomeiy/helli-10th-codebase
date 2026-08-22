@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}مدیریت معلم‌ها{% endblock %}
+{% block content %}
+<h1>مدیریت معلم‌ها و تخصیص دانشجوها</h1>
+<a href="{{ url_for('hub.hub_home') }}"><button type="button">بازگشت به دفتر</button></a>
+
+<h2>افزودن معلم</h2>
+<form class="form inline" method="post">
+  <input type="hidden" name="action" value="create">
+  <label>نام کاربری<input name="username" required placeholder="teacher1"></label>
+  <label>نام کامل<input name="full_name" placeholder="استاد …"></label>
+  <label>رمز عبور (حداقل ۸)<input name="password" type="password" required minlength="8"></label>
+  <button type="submit">بساز</button>
+</form>
+
+<h2>معلم‌ها</h2>
+<div class="table-scroll">
+<table>
+  <tr><th>نام کاربری</th><th>نام</th><th>سطح</th><th>تعداد دانشجو</th></tr>
+  {% for t in teachers %}
+  <tr>
+    <td><code>{{ t.username }}</code></td>
+    <td>{{ t.full_name }}</td>
+    <td>{{ 'مدیر ارشد' if t.is_super else 'معلم' }}</td>
+    <td>{{ counts[t.id] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+
+<h2>تخصیص دانشجو به معلم + شماره دانش‌آموزی</h2>
+<form method="post">
+  <input type="hidden" name="action" value="assign">
+  <div class="table-scroll">
+  <table>
+    <tr><th>نام کاربری</th><th>نام</th>
+        <th style="min-width:120px">شماره دانش‌آموزی</th>
+        <th style="min-width:160px">معلم</th></tr>
+    {% for st in students %}
+    <tr>
+      <td><code>{{ st.username }}</code></td>
+      <td>{{ st.full_name }}</td>
+      <td><input name="no_{{ st.id }}" value="{{ st.student_no or '' }}"
+                 placeholder="مثلاً ۴۰۱۲۳۴"></td>
+      <td>
+        <select name="teacher_{{ st.id }}" style="width:100%">
+          <option value="">— بدون معلم —</option>
+          {% for t in teachers if not t.is_super %}
+          <option value="{{ t.id }}" {% if st.teacher_id == t.id %}selected{% endif %}>
+            {{ t.full_name or t.username }}
+          </option>
+          {% endfor %}
+        </select>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  <p><button type="submit" class="ok">ذخیره تخصیص‌ها</button></p>
+</form>
+
+<h2>تخصیص گروهی</h2>
+<p class="muted">هر خط: «نام‌کاربری‌دانشجو, نام‌کاربری‌معلم» — مثال:</p>
+<pre dir="ltr">ali01, teacher1
+sara99, teacher2</pre>
+<form method="post">
+  <input type="hidden" name="action" value="bulk">
+  <label>لیست تخصیص
+    <textarea name="bulk" rows="6" dir="ltr"></textarea>
+  </label>
+  <p><button type="submit">اعمال</button></p>
+</form>
+{% endblock %}

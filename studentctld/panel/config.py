@@ -38,3 +38,7 @@ class Config:
     # Seed admin (created on first run; change the password immediately)
     SEED_ADMIN_USER = os.environ.get("STUDENTCTL_ADMIN_USER", "admin")
     SEED_ADMIN_PASS = os.environ.get("STUDENTCTL_ADMIN_PASS", "changeme123")
+
+    # Grading hub -> CTFd (public URL + admin API token for score sync)
+    CTFD_URL = os.environ.get("CTFD_URL", "")
+    CTFD_TOKEN = os.environ.get("CTFD_TOKEN", "")

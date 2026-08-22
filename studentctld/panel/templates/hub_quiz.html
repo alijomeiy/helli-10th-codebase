@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}نمره‌دهی {{ a.title }}{% endblock %}
+{% block content %}
+<h1>نمره‌دهی «{{ a.title }}»</h1>
+<p class="muted">بارم: {{ a.max_score }} — تاریخ: {{ a.held_on.strftime('%Y-%m-%d') if a.held_on else '—' }}</p>
+
+<div class="actions" style="margin:14px 0;flex-wrap:wrap">
+  <a href="{{ url_for('hub.hub_home') }}"><button type="button">بازگشت به دفتر</button></a>
+  <a href="{{ url_for('hub.quiz_template', quiz_id=a.id) }}"><button type="button" class="warn">دریافت قالب اکسل</button></a>
+</div>
+
+<h2>ورود/ویرایش مستقیم نمره‌ها</h2>
+<form method="post">
+  <div class="table-scroll">
+  <table>
+    <tr><th>نام کاربری</th><th>نام</th><th>شماره دانش‌آموزی</th>
+        <th style="min-width:90px">نمره (از {{ a.max_score }})</th>
+        <th style="min-width:180px">توضیح</th></tr>
+    {% for st in students %}
+    {% set sc = scores.get(st.id) %}
+    <tr>
+      <td><code>{{ st.username }}</code></td>
+      <td>{{ st.full_name }}</td>
+      <td class="muted">{{ st.student_no or '—' }}</td>
+      <td><input name="score_{{ st.id }}" value="{{ sc.score if sc else '' }}"
+                 inputmode="decimal" style="min-width:70px"
+                 placeholder="مثلاً 3 یا 3/5"></td>
+      <td><input name="note_{{ st.id }}" value="{{ sc.detail if sc else '' }}"
+                 placeholder="اختیاری"></td>
+    </tr>
+    {% endfor %}
+    {% if not students %}<tr><td colspan="5" class="muted">دانشجویی به شما تخصیص نیافته است.</td></tr>{% endif %}
+  </table>
+  </div>
+  <p><button type="submit" class="ok">ذخیره همه نمره‌ها</button></p>
+</form>
+
+<h2>بارگذاری از فایل اکسل</h2>
+<p class="muted">قالب را دانلود کنید، ستون «نمره» را پر کنید (خوانده می‌شود: 3، 3.5، «3/5»، «3 از 5») و همین‌جا بارگذاری کنید. نمره‌های موجود بازنویسی می‌شوند.</p>
+<form class="form inline" method="post" enctype="multipart/form-data"
+      action="{{ url_for('hub.quiz_upload', quiz_id=a.id) }}">
+  <label>فایل xlsx
+    <input type="file" name="xlsx" accept=".xlsx" required>
+  </label>
+  <button type="submit">بارگذاری</button>
+</form>
+{% endblock %}

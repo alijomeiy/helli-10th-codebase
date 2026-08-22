@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}کارنامه من{% endblock %}
+{% block content %}
+<h1>کارنامه من</h1>
+<p class="muted">نمایش نتایج کوییزها و مسابقه‌ی پرچم‌یابی — فقط برای خودتان.</p>
+
+<div class="cards">
+  <div class="card">
+    <h3>درصد کل</h3>
+    <div style="font-size:34px;font-weight:700">
+      {{ overall_pct }}٪
+    </div>
+    <p class="muted" style="margin:0">{{ total_text }}</p>
+  </div>
+  <div class="card">
+    <h3>چالش‌های حل‌شده</h3>
+    <div style="font-size:34px;font-weight:700">{{ solved }} / {{ chal_count }}</div>
+    <p class="muted" style="margin:0">از مسابقه‌ی پرچم‌یابی</p>
+  </div>
+</div>
+
+<h2>نمودار پیشرفت</h2>
+<div class="chart-box"><canvas id="barChart"></canvas></div>
+{% if timeline %}
+<h2>روند حل چالش‌ها</h2>
+<div class="chart-box"><canvas id="lineChart"></canvas></div>
+{% endif %}
+
+<h2>جزئیات نمره‌ها</h2>
+<div class="table-scroll">
+<table>
+  <tr><th>فعالیت</th><th>نوع</th><th>تاریخ</th><th>نمره</th><th>توضیح</th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.title }}</td>
+    <td>{{ 'مسابقه' if r.kind == 'ctf' else 'کوییز' }}</td>
+    <td>{{ r.held_on }}</td>
+    <td>{{ r.score }}</td>
+    <td style="white-space:normal">{{ r.note }}</td>
+  </tr>
+  {% endfor %}
+  {% if not rows %}<tr><td colspan="5" class="muted">هنوز فعالیتی ثبت نشده است.</td></tr>{% endif %}
+</table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const bars = {{ bars_json | safe }};
+const timeline = {{ timeline_json | safe }};
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: bars.map(b => b.title),
+    datasets: [{
+      label: 'درصد',
+      data: bars.map(b => b.pct),
+      backgroundColor: bars.map(b => b.kind === 'ctf' ? '#3b82f6' : '#22c55e')
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+    plugins: { legend: { display: false } }
+  }
+});
+
+if (timeline.length) {
+  let acc = 0;
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: timeline.map(t => t.date + ' — ' + t.name),
+      datasets: [{
+        label: 'امتیاز تجمعی',
+        data: timeline.map(t => (acc += t.points, acc)),
+        borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.15)',
+        fill: true, tension: .3
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+}
+</script>
+{% endblock %}

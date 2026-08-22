@@ -19,6 +19,8 @@ from models import (
     STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED, STATUS_DISABLED,
 )
 import tasks as task_mgr
+import activities as hub
+from activities import hub_bp, my_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -400,6 +402,8 @@ def reset_task(task_name):
 
 
 app.register_blueprint(admin_bp)
+app.register_blueprint(hub_bp)
+app.register_blueprint(my_bp)
 
 
 # ---------- init / CLI --------------------------------------------------------
@@ -415,6 +419,39 @@ def ensure_admin():
               f"(password from STUDENTCTL_ADMIN_PASS). CHANGE IT NOW.")
 
 
+def migrate_sqlite():
+    """create_all() won't add columns to existing tables — do it by hand.
+
+    Idempotent: checks PRAGMA table_info first. Promotes existing admins to
+    super exactly once (the single admin that existed before the hub).
+    """
+    from sqlalchemy import text
+    adds = {
+        "teacher_id": "ALTER TABLE users ADD COLUMN teacher_id INTEGER "
+                      "REFERENCES users(id)",
+        "student_no": "ALTER TABLE users ADD COLUMN student_no VARCHAR(32) "
+                      "DEFAULT ''",
+        "is_super": "ALTER TABLE users ADD COLUMN is_super BOOLEAN NOT NULL "
+                    "DEFAULT 0",
+    }
+    try:
+        with db.engine.connect() as conn:
+            user_cols = {r[1] for r in
+                         conn.execute(text("PRAGMA table_info(users)"))}
+            for name, ddl in adds.items():
+                if name not in user_cols:
+                    conn.execute(text(ddl))
+                    conn.commit()
+                    print(f"[studentctl] migrated: users.{name} added")
+    except Exception:
+        return  # table not there yet; create_all will make it fresh
+    if not User.query.filter_by(role="admin", is_super=True).first():
+        for a in User.query.filter_by(role="admin").all():
+            a.is_super = True
+        db.session.commit()
+        print("[studentctl] migrated: existing admin promoted to super")
+
+
 @app.before_request
 def _first_run():
     # Cheap one-time init guard using an attribute.
@@ -427,6 +464,7 @@ def _first_run():
             pass
         with app.app_context():
             db.create_all()
+            migrate_sqlite()   # BEFORE any ORM query on users
             ensure_admin()
         app._db_ready = True
 

@@ -15,6 +15,11 @@
     <div class="spacer"></div>
     {% if current_user.is_authenticated %}
       <span class="muted">{{ current_user.username }}</span>
+      {% if current_user.role == 'student' %}
+        <a href="{{ url_for('my.my_activity') }}">کارنامه من</a>
+      {% else %}
+        <a href="{{ url_for('hub.hub_home') }}">دفتر فعالیت</a>
+      {% endif %}
       <a href="{{ url_for('leaderboard') }}">تابلوی امتیازات</a>
       <a href="{{ url_for('logout') }}">خروج</a>
     {% else %}
