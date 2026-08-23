@@ -95,7 +95,7 @@ ufw --force reset >/dev/null
 ufw allow 22/tcp comment 'ssh'
 ufw allow 80/tcp comment 'http (panel)'
 ufw allow 443/tcp comment 'https (panel)'
-ufw allow 10000:10100/tcp comment 'student services'
+ufw allow 10000:10199/tcp comment 'student services'
 ufw --force enable
 
 echo "==> Config directory"

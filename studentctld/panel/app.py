@@ -96,6 +96,34 @@ def log_event(username, action, detail=""):
     db.session.commit()
 
 
+def ctfd_provision(username, password):
+    """Create the matching CTFd account (same creds as the Linux account).
+
+    Same convention as ctf/sync_users.py. Best-effort: returns True/False,
+    None when CTFd isn't configured (approval proceeds regardless).
+    """
+    import requests
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    if not url or not token:
+        return None
+    try:
+        h = {"Authorization": f"Token {token}",
+             "Content-Type": "application/json"}
+        r = requests.post(f"{url}/api/v1/users", headers=h, timeout=15, json={
+            "name": username,
+            "email": f"{username}@students.helli-10th-computer.ir",
+            "password": password,
+            "type": "user",
+            "verified": True,
+            "hidden": False,
+            "banned": False,
+        })
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
 # ---------- public pages ------------------------------------------------------
 
 @app.route("/")
@@ -287,7 +315,15 @@ def approve(uid):
     db.session.commit()
     sync_server()
     log_event(u.username, "provision", f"uid={new_uid} port={port}")
-    flash(f"حساب {u.username} تأیید شد. رمز SSH او در پنل کاربری‌اش نمایش داده می‌شود.", "ok")
+    ctfd = ctfd_provision(u.username, pw)
+    if ctfd:
+        log_event(u.username, "ctf_account", "created via CTFd API")
+        flash(f"حساب {u.username} تأیید شد (لینوکس + CTF). رمز SSH او در پنل کاربری‌اش نمایش داده می‌شود.", "ok")
+    elif ctfd is False:
+        log_event(u.username, "ctf_account", "FAILED (check CTFD_URL/CTFD_TOKEN)")
+        flash(f"حساب {u.username} تأیید شد؛ اما ساخت حساب CTF ناموفق بود — با «sync_users.py» بعداً بسازید.", "error")
+    else:
+        flash(f"حساب {u.username} تأیید شد. رمز SSH او در پنل کاربری‌اش نمایش داده می‌شود.", "ok")
     return redirect(url_for("admin.admin_index"))
 
 

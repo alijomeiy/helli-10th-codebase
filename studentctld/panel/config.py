@@ -29,11 +29,11 @@ class Config:
     DEFAULT_MAX_CONCURRENT = int(os.environ.get("STUDENTCTL_MAX_CONCURRENT", "30"))
     DEFAULT_IDLE_TIMEOUT = int(os.environ.get("STUDENTCTL_IDLE_TIMEOUT", "1800"))
 
-    # UID / port allocation ranges (must match server firewall: 10000-10100)
-    UID_START = 2000
-    UID_END = 2099
+    # UID / port allocation ranges (must match server firewall: 10000-10199)
+    UID_START = int(os.environ.get("STUDENTCTL_UID_START", "2000"))
+    UID_END = int(os.environ.get("STUDENTCTL_UID_END", "2199"))
     PORT_BASE = 10000          # port = PORT_BASE + (uid - UID_START)
-    PORT_END = 10099
+    PORT_END = 10199
 
     # Seed admin (created on first run; change the password immediately)
     SEED_ADMIN_USER = os.environ.get("STUDENTCTL_ADMIN_USER", "admin")
