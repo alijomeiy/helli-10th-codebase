@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش apt</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>📦 آموزش apt — نصب نرم‌افزار در لینوکس</h1>
+    <p class="muted">در لینوکس نصب برنامه از «دانلود و next-next» راحتر است: یک دستور، تمام.</p>
+
+    <div class="card">
+      <h3>apt چیست؟</h3>
+      <p>apt مدیریت بسته‌ی اوبونتو است: از مخزن‌های (repository) معتبر، برنامه‌ها
+         را با همه‌ی پیش‌نیازهایش دانلود، نصب و به‌روز می‌کند. مخزن شما همان
+         مخزنِ سرور است (آینه‌ی ایرانی، سریع).</p>
+      <p>دسترسی نصب فقط برای root است — یعنی روی سرورِ مشترک نمی‌توانید، اما در
+         <a href="mybox.html">آزمایشگاه خودتان</a> که root هستید آزادید.</p>
+    </div>
+
+    <h2>دستورهای پایه</h2>
+    <table>
+      <thead><tr><th>دستور</th><th>کار</th></tr></thead>
+      <tbody>
+        <tr><td><code dir="ltr">apt update</code></td><td>فهرست بسته‌ها را تازه می‌کند (قبل از هر نصب!) — چیزی نصب نمی‌کند</td></tr>
+        <tr><td><code dir="ltr">apt install pkg</code></td><td>نصب بسته (مثلاً <code dir="ltr">apt install tree</code>)</td></tr>
+        <tr><td><code dir="ltr">apt remove pkg</code></td><td>حذف بسته (فایل‌های تنظیم می‌ماند)</td></tr>
+        <tr><td><code dir="ltr">apt purge pkg</code></td><td>حذف کامل + تنظیمات</td></tr>
+        <tr><td><code dir="ltr">apt search word</code></td><td>جستجوی نام بسته</td></tr>
+        <tr><td><code dir="ltr">apt show pkg</code></td><td>اطلاعات بسته: نسخه، حجم، توضیح</td></tr>
+        <tr><td><code dir="ltr">apt upgrade</code></td><td>به‌روزرسانی همه‌ی بسته‌های نصب‌شده</td></tr>
+      </tbody>
+    </table>
+    <div class="card tip">
+      <strong>قانون طلایی:</strong> اول <code dir="ltr">apt update</code>، بعد
+      <code dir="ltr">apt install</code>. اگر update نزنید ممکن است بسته پیدا
+      نشود یا نسخه‌ی قدیمی نصب شود.
+    </div>
+
+    <h2>پس از نصب: بسته کجا رفت؟</h2>
+<pre dir="ltr">dpkg -L tree          # فهرست همه‌ی فایل‌هایی که بسته‌ی tree گذاشت
+dpkg -S /usr/bin/vim  # کدام بسته این فایل را گذاشته؟</pre>
+    <p class="muted">این دو دستور برای چالش‌های «بسته‌ی مرموز» به دردتان می‌خورد...</p>
+
+    <h2>نصب از فایل deb محلی</h2>
+    <p>گاهی بسته را به‌صورت فایل <code dir="ltr">.deb</code> دارید (بدون مخزن):</p>
+<pre dir="ltr">apt install ./kit.deb     # با apt (پیش‌نیازها هم حل می‌شود)
+dpkg -i kit.deb           # یا با dpkg</pre>
+
+    <h2>ترفندهای کاربردی</h2>
+<pre dir="ltr">apt list --installed | grep -i json   # بسته‌های نصب‌شده‌ی مرتبط
+apt install tree jq htop              # چند بسته با هم
+apt install -y tree                   # بدون پرسیدن yes/no (برای اسکریپت)</pre>
+
+    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
+    <ol>
+      <li>تفاوت <code dir="ltr">apt update</code> و <code dir="ltr">apt upgrade</code> چیست؟</li>
+      <li>چه دستوری نشان می‌دهد بسته‌ی <code dir="ltr">jq</code> وجود دارد و توضیحش چیست، بدون نصب؟</li>
+      <li>ابزار <code dir="ltr">tree</code> را نصب کنید و ببینید فایل‌هایش کجا نصب شده‌اند.</li>
+      <li>بسته‌ای را که در تمرین ۳ نصب کردید، کامل (با تنظیمات) حذف کنید.</li>
+      <li>چرا <code dir="ltr">apt install</code> روی سرور مشترک برای شما خطای دسترسی می‌دهد ولی در mybox کار می‌کند؟</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p>update فقط فهرست/مخزن را تازه می‌کند؛ upgrade خودِ بسته‌های نصب‌شده را به نسخه‌ی جدید می‌آورد.</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">apt show jq</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">apt install tree && dpkg -L tree</p></details>
+    <details><summary>پاسخ ۴</summary><p dir="ltr">apt purge tree</p></details>
+    <details><summary>پاسخ ۵</summary><p>چون فقط root اجازه‌ی نصب دارد؛ روی سرور کاربر عادی‌اید ولی در mybox root هستید.</p></details>
+
+    <p class="muted">حالا در CTF، چالش‌های دسته‌ی «آسان» را باز کنید — به همین‌ها وابسته‌اند.</p>
+  </main>
+</body>
+
+</html>

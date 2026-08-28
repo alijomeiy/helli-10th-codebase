@@ -249,4 +249,110 @@ CHALLENGES = [
         "hint": "docker load -i /root/flag.tar  سپس  docker run flagbox:1",
         "hint_cost": 50,
     },
+
+    # ---------------- tiered mixed set: easy / hard / very hard --------------
+    # «آسان» — apt + box basics (pairs with docs/mybox.html and docs/apt.html)
+    {
+        "name": "e1-kit",
+        "title": "بسته‌ی مرموز",
+        "category": "آسان",
+        "points": 150,
+        "description": "در آزمایشگاه (mybox) یک بسته‌ی آماده برای شما گذاشته‌ایم: "
+                       "/opt/lab/kit.deb — نصبش کنید و ببینید داخلش چه است. "
+                       "درس apt: docs.helli-10th-computer.ir/apt.html",
+        "hint": "apt install /opt/lab/kit.deb  (یا dpkg -i) — بعد فایل را که در /usr/share گذاشت پیدا و بخوانید: dpkg -L flagpkg",
+        "hint_cost": 25,
+    },
+    {
+        "name": "e2-forest",
+        "title": "جنگل درخت‌ها",
+        "category": "آسان",
+        "points": 150,
+        "description": "در /opt/lab/e2 هزارتویی از پوشه‌ها ساخته شده. ابزارِ مناسب "
+                       "نصب کنید تا یک‌نگاهی تهِ جنگل را ببینید؛ پرچم در عمیق‌ترین برگ است.",
+        "hint": "apt install tree  بعد  tree /opt/lab/e2 — فایل انتهایی عمیق‌ترین مسیر",
+        "hint_cost": 25,
+    },
+    {
+        "name": "e3-json",
+        "title": "داده‌ی رمزی",
+        "category": "آسان",
+        "points": 150,
+        "description": "فایل /opt/lab/data.json یک راز دارد؛ اما خودش را ساده لوحانه "
+                       "لو نمی‌دهد. ابزارِ پرس‌وجوی JSON را نصب کنید و «secret» را "
+                       "کدگشایی کنید (راهنمایی: base64).",
+        "hint": "apt install jq  بعد  jq -r .secret /opt/lab/data.json | base64 -d",
+        "hint_cost": 25,
+    },
+
+    # «سخت» — mixed host + box skills
+    {
+        "name": "h1-lead",
+        "title": "کارآگاه",
+        "category": "سخت",
+        "points": 300,
+        "description": "در خانه‌ی میزبان شما (روی سرور، نه آزمایشگاه) پوشه‌ی level5 "
+                       "یک سرنخ بسته‌بندی‌شده دارد. آن را باز کنید؛ بقیه‌ی ماجرا در "
+                       "گزارشِ ساعت ۰۳:۰۰ آزمایشگاه شماست. پرچم = نیمه‌ی اول + نیمه‌ی دوم.",
+        "hint": "میزبان: tar xzf level5/lead.tar.gz → نیمه‌ی اول. آزمایشگاه: mybox → grep '03:00' /var/log/lab.log → نیمه‌ی دوم. بچسبانید!",
+        "hint_cost": 50,
+    },
+    {
+        "name": "h2-tarhunt",
+        "title": "گنج پنهان در بایگانی",
+        "category": "سخت",
+        "points": 250,
+        "description": "در آزمایشگاه، /opt/lab/backup.tar.gz یک بایگانی شلوغ است. "
+                       "چند فایل «گنج‌نما» دارد؛ فقط یکی پرچم واقعی دارد — و اسمش "
+                       "با نقطه شروع می‌شود.",
+        "hint": "cd /opt/lab && tar xzf backup.tar.gz -C /tmp/h2 && find /tmp/h2 -name '.treasure*' → هرکدام را cat کنید؛ FLAG واقعی را پیدا کنید",
+        "hint_cost": 40,
+    },
+    {
+        "name": "h3-shift",
+        "title": "شیفت شب",
+        "category": "سخت",
+        "points": 300,
+        "description": "در آزمایشگاه هر دقیقه کاری انجام می‌شود که خروجی‌اش را در "
+                       "/tmp می‌گذارد. متنِ خروجی عجیب است... انگار حروفش را جابه‌جا "
+                       "کرده‌اند. (راهنمایی: هر حرف ۱۳ پله جلوتر.)",
+        "hint": "cat /etc/crontab → job را ببین؛ یک دقیقه صبر کن یا دستی اجرا کن؛ بعد decode با: tr 'A-Za-z' 'N-ZA-Mn-za-m' < /tmp/out.txt",
+        "hint_cost": 50,
+    },
+
+    # «بسیار سخت» — deep mixed, container-flavored
+    {
+        "name": "v1-oldsite",
+        "title": "سایت قدیمی",
+        "category": "بسیار سخت",
+        "points": 400,
+        "description": "وب‌اپ خاموشی در آزمایشگاه شماست (/opt/lab/old-web) و بایگانی‌ای "
+                       "در خانه‌ی میزبان (level5/old-site.tar.gz). سایتِ قدیمی دو نیمه‌ی "
+                       "پرچم شما را بین خودش و بایگانی تقسیم کرده. پرچم = نیمه‌ها به هم.",
+        "hint": "میزبان: tar xzf level5/old-site.tar.gz → کامنت HTML. آزمایشگاه: python3 /opt/lab/old-web/web.py &  بعد  curl localhost:9999. دو نیمه را بچسبانید.",
+        "hint_cost": 60,
+    },
+    {
+        "name": "v2-layers",
+        "title": "لایه‌های مدفون",
+        "category": "بسیار سخت",
+        "points": 400,
+        "description": "در آزمایشگاه، /root/buried.tar تصویری داکری است که یک راز را "
+                       "داشته و بعد آن را پاک کرده! اجرایش کنید تا قانع شوید چیزی "
+                       "نمی‌گوید. اما... لایه‌ها دروغ نمی‌گویند.",
+        "hint": "docker load -i /root/buried.tar → docker run flagbox:2 (چیزی نمی‌دهد) → خودِ تصویر را save کنید: docker save flagbox:2 -o /tmp/x.tar → tar xf → در لایه‌ها بگردید (flag حذف‌شده در لایه‌ی قبلی است)",
+        "hint_cost": 60,
+    },
+    {
+        "name": "v3-ghost",
+        "title": "پاسخ‌گوی شب",
+        "category": "بسیار سخت",
+        "points": 400,
+        "description": "در آزمایشگاه شما خدمتکاری پنهان است: اسکریپتی که خودش را "
+                       "خوب جا خوش کرده و پورتِ خودش را هم لو نمی‌دهد... تقریباً. "
+                       "کاربر lab یک بار به او سر زده است. پیدایش کنید، روشنش کنید، "
+                       "و پورتِ واقعی‌اش را پیدا کنید.",
+        "hint": "find / -name '*.py' -path '*lab*' 2>/dev/null → اجرا با: python3 <مسیر> &  بعد: apt install iproute2 && ss -tlnp → curl localhost:<پورت>",
+        "hint_cost": 60,
+    },
 ]

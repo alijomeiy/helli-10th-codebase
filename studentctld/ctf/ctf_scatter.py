@@ -285,9 +285,65 @@ def scatter_p3_brothers(home, flag):
 
 
 def scatter_r_stub(home, flag):
-    """r-series flags live inside each student's box — scattered separately
-    by box_scatter.py. Recorded here so the manifest stays complete."""
+    """Box-side artifacts (r/e/h/v without a host half) are scattered
+    separately by box_scatter.py."""
     pass
+
+
+# ---------------- mixed host<->box challenges: HOST halves -------------------
+
+def _half1(flag):
+    return flag[:len(flag) // 2]
+
+
+def scatter_h1_lead(home, flag):
+    """h1 'کارآگاه' host half: a tarball with the lead + part1 of the flag.
+    The other half waits in the box's 03:00 log line."""
+    d = f"{home}/level5"
+    os.makedirs(d, exist_ok=True)
+    with tempfile.TemporaryDirectory() as td:
+        w(os.path.join(td, "witness.txt"),
+          "Case file - read carefully.\n"
+          "The first half of the flag is here:\n"
+          + _half1(flag) + "\n"
+          "The second half lives in the lab's night log,\n"
+          "in the line stamped exactly at 03:00.\n")
+        with tarfile.open(f"{d}/lead.tar.gz", "w:gz") as tf:
+            tf.add(os.path.join(td, "witness.txt"), arcname="witness.txt")
+
+
+OLD_SITE_PAGE = """<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><title>سایت قدیمی ما</title></head>
+<body>
+<h1>به آرشیو سایت قدیمی خوش آمدید</h1>
+<p>این سایت دیگر به‌روز نمی‌شود؛ خاطرات اینجا می‌مانند.</p>
+<!-- بایگانی‌ها: {p1} -->
+</body>
+</html>
+"""
+
+
+def scatter_v1_oldsite(home, flag):
+    """v1 'سایت قدیمی' host half: archive with part1 in an HTML comment.
+    Part2 is served by the dormant web app inside the box."""
+    d = f"{home}/level5"
+    os.makedirs(d, exist_ok=True)
+    with tempfile.TemporaryDirectory() as td:
+        w(os.path.join(td, "index.html"),
+          OLD_SITE_PAGE.format(p1=_half1(flag)))
+        with tarfile.open(f"{d}/old-site.tar.gz", "w:gz") as tf:
+            tf.add(os.path.join(td, "index.html"), arcname="index.html")
+
+
+# per-challenge home dirs that a (re)scatter may wipe
+WIPE_DIRS = {
+    "h1-lead": "level5",
+    "v1-oldsite": "level5",
+    "p1-locked": "level4",
+    "p2-sealed": "level4",
+    "p3-brothers": "level4",
+}
 
 
 SCATTERERS = {
@@ -316,6 +372,15 @@ SCATTERERS = {
     "r6-history": scatter_r_stub,
     "r7-ports": scatter_r_stub,
     "r8-dind": scatter_r_stub,
+    "e1-kit": scatter_r_stub,
+    "e2-forest": scatter_r_stub,
+    "e3-json": scatter_r_stub,
+    "h1-lead": scatter_h1_lead,
+    "h2-tarhunt": scatter_r_stub,
+    "h3-shift": scatter_r_stub,
+    "v1-oldsite": scatter_v1_oldsite,
+    "v2-layers": scatter_r_stub,
+    "v3-ghost": scatter_r_stub,
 }
 
 
@@ -362,9 +427,12 @@ def main():
         raise SystemExit("no students found")
 
     # dirs wiped before scattering: full pass clears everything; --only
-    # (currently the level4 permissions set) clears just what it owns
-    wipe = ("level1", "level2", "level3", "level4", ".level1", "ctf") \
-        if not merge else ("level4",)
+    # wipes just the home dirs owned by the selected challenges
+    if merge:
+        wipe = tuple(sorted({WIPE_DIRS[n] for n in only if n in WIPE_DIRS}))
+    else:
+        wipe = ("level1", "level2", "level3", "level4", "level5",
+                ".level1", "ctf")
     known = {s["username"] for s in manifest["students"]}
 
     for username, uid in students:
