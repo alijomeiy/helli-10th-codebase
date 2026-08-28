@@ -4,14 +4,20 @@
 # Build (on the VM):  docker build -t studentbox:1 -f docker/studentbox.Dockerfile docker/
 FROM ubuntu:latest
 
-# --- same apt mirror the VM itself uses (Iranian mirror, suite resolute = 26.04)
+# --- same apt mirror the VM itself uses (Iranian mirror, suite resolute = 26.04).
+# Bootstrap over http first (the base image has no ca-certificates yet; apt
+# GPG signatures keep http safe), then switch to the exact https config.
 RUN rm -f /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list && \
     printf '%s\n' \
-      'deb https://repo.abrha.net/ubuntu resolute main restricted universe multiverse' \
-      'deb https://repo.abrha.net/ubuntu resolute-updates main restricted universe multiverse' \
-      'deb https://repo.abrha.net/ubuntu resolute-security main restricted universe multiverse' \
-      'deb https://repo.abrha.net/ubuntu resolute-backports main restricted universe multiverse' \
-      > /etc/apt/sources.list
+      'deb http://repo.abrha.net/ubuntu resolute main restricted universe multiverse' \
+      'deb http://repo.abrha.net/ubuntu resolute-updates main restricted universe multiverse' \
+      'deb http://repo.abrha.net/ubuntu resolute-security main restricted universe multiverse' \
+      'deb http://repo.abrha.net/ubuntu resolute-backports main restricted universe multiverse' \
+      > /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates && \
+    sed 's|http://|https://|' /etc/apt/sources.list > /etc/apt/sources.list.tmp && \
+    mv /etc/apt/sources.list.tmp /etc/apt/sources.list
 
 ENV DEBIAN_FRONTEND=noninteractive TZ=Asia/Tehran
 RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
