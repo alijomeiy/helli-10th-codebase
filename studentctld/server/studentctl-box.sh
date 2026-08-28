@@ -38,6 +38,7 @@ cmd_create(){
   docker create -it --name "$b" --label studentctl=box \
     --memory "$MEM" --cpus "$CPUS" --pids-limit "$PIDS" \
     --security-opt seccomp=unconfined \
+    --security-opt apparmor=unconfined \
     --stop-timeout 30 "$IMAGE" >/dev/null && echo "created $b"
 }
 
