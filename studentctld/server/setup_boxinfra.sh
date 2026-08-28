@@ -19,7 +19,7 @@ cat >/etc/sudoers.d/studentctl-box <<'EOF'
 studentctl ALL=(root) NOPASSWD: /usr/local/sbin/studentctl-box
 EOF
 cat >/etc/sudoers.d/mybox <<'EOF'
-%labstudents ALL=(root) NOPASSWD: /usr/local/bin/mybox
+%labstudents ALL=(root) NOPASSWD: /usr/local/sbin/studentctl-box enter
 EOF
 chmod 440 /etc/sudoers.d/studentctl-box /etc/sudoers.d/mybox
 visudo -c >/dev/null && echo "   sudoers OK"

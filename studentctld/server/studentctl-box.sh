@@ -30,6 +30,12 @@ exists(){ docker inspect "$(bname "$1")" >/dev/null 2>&1; }
 running(){ [ "$(docker inspect -f '{{.State.Running}}' "$(bname "$1")" 2>/dev/null)" = "true" ]; }
 awake_count(){ docker ps -q --filter label=studentctl=box | wc -l; }
 
+# students reach this script ONLY via the sudoers rule for 'enter';
+# if invoked under sudo with any other command, refuse hard.
+if [ -n "${SUDO_USER:-}" ] && [ "${1:-}" != "enter" ]; then
+  echo "not allowed"; exit 1
+fi
+
 cmd_create(){
   local u=${1:-} b
   ok_user "$u" || { echo "bad username"; exit 1; }
@@ -120,7 +126,8 @@ cmd_autostop(){
   local b active n
   for b in $(docker ps --filter label=studentctl=box --format '{{.Names}}'); do
     # active = processes beyond the box's own background set (PID1 sleep + cron)
-    active=$(docker top "$b" -o comm 2>/dev/null | tail -n +2 | grep -cvE '^(sleep|cron|CRON|sh)$')
+    active=$(docker top "$b" -o pid,comm 2>/dev/null | tail -n +2 |
+             awk '{print $2}' | grep -cvE '^(sleep|cron|CRON|sh)$')
     [ -n "$active" ] || active=0
     if [ "$active" -eq 0 ]; then
       n=$(( $(cat "$IDLE_DIR/$b" 2>/dev/null || echo 0) + 1 ))
