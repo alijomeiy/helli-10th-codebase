@@ -21,6 +21,30 @@
     <div><span>پورت سرویس</span><code>{{ current_user.port }}</code></div>
   </div>
 
+  <h2>آزمایشگاه شخصی شما (mybox)</h2>
+  <p>
+    یک لینوکس کامل و خصوصی که در آن <strong>root</strong> هستید: می‌توانید نصب
+    نرم‌افزار (<code dir="ltr">apt</code>)، کاربر بسازید، سرویس اجرا کنید و حتی
+    کانتینرهای خودتان را با دستور <code dir="ltr">docker</code> بالا بیاورید.
+  </p>
+  <div class="creds">
+    <div>
+      <span>وضعیت آزمایشگاه</span>
+      {% if box and box.running %}بیدار {% if box.mem %}({{ box.mem }}){% endif %}
+      {% elif box and box.exists %}خوابیده (با ورود، بیدار می‌شود)
+      {% else %}هنوز ساخته نشده — با اولین ورود ساخته می‌شود{% endif %}
+    </div>
+    <div>
+      <span>ورود به آزمایشگاه</span>
+      بعد از اتصال SSH، دستور <code>mybox</code> را بزنید
+    </div>
+  </div>
+  <p class="muted">آزمایشگاه بعد از حدود ۳۰ دقیقه بی‌کاری خودش خوابید تا منابع سرور آزاد بماند؛ کارهای شما محفوظ می‌ماند.</p>
+  <form method="post" action="{{ url_for('box_reset_mine') }}"
+        onsubmit="return confirm('همه‌چیز داخل آزمایشگاه پاک می‌شود و از نو ساخته می‌شود. مطمئنید؟')">
+    <button type="submit" class="danger">بازنشانی آزمایشگاه</button>
+  </form>
+
   <h2>نحوه اتصال</h2>
   <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p {{ config.SSH_PORT_PUBLIC }}</pre>
   <p class="muted">سپس یک سرویس روی پورت خودتان اجرا کنید، مثلاً:</p>

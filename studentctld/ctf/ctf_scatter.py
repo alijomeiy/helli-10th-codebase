@@ -253,6 +253,43 @@ def scatter_o6_web_robots(home, flag):
       f"<p>{flag}</p>\n</body>\n</html>\n")
 
 
+# ---------------- permissions scatterers (host side, pairs with the lesson) --
+
+def scatter_p1_locked(home, flag):
+    """Flag file mode 000, owned by the student — owning it is the key."""
+    p = f"{home}/level4/flag.txt"
+    w(p, "This file is locked with chmod 000.\n"
+         "Its owner can always change the lock...\n" + flag + "\n")
+    os.chmod(p, 0o000)
+
+
+def scatter_p2_sealed(home, flag):
+    """Directory mode 000 — x on a directory means 'enter'."""
+    d = f"{home}/level4/box"
+    os.makedirs(d, exist_ok=True)
+    w(os.path.join(d, "prize.txt"), "You unlocked the box!\n" + flag + "\n")
+    os.chmod(d, 0o000)
+
+
+def scatter_p3_brothers(home, flag):
+    """Three look-alike files; only the one with owner-r is readable."""
+    d = f"{home}/level4/brothers"
+    os.makedirs(d, exist_ok=True)
+    decoy = "Nothing for you here.\n"
+    w(os.path.join(d, "adam.txt"), decoy)
+    w(os.path.join(d, "brot.txt"), "The readable brother speaks:\n" + flag + "\n")
+    w(os.path.join(d, "cyrus.txt"), decoy)
+    os.chmod(os.path.join(d, "adam.txt"), 0o000)
+    os.chmod(os.path.join(d, "brot.txt"), 0o400)
+    os.chmod(os.path.join(d, "cyrus.txt"), 0o000)
+
+
+def scatter_r_stub(home, flag):
+    """r-series flags live inside each student's box — scattered separately
+    by box_scatter.py. Recorded here so the manifest stays complete."""
+    pass
+
+
 SCATTERERS = {
     "m-welcome": scatter_m_welcome,
     "m-readme": scatter_m_readme,
@@ -268,6 +305,17 @@ SCATTERERS = {
     "o4-regex-anchor": scatter_o4_regex_anchor,
     "o5-web-source": scatter_o5_web_source,
     "o6-web-robots": scatter_o6_web_robots,
+    "p1-locked": scatter_p1_locked,
+    "p2-sealed": scatter_p2_sealed,
+    "p3-brothers": scatter_p3_brothers,
+    "r1-roothome": scatter_r_stub,
+    "r2-labuser": scatter_r_stub,
+    "r3-nightlog": scatter_r_stub,
+    "r4-web": scatter_r_stub,
+    "r5-cron": scatter_r_stub,
+    "r6-history": scatter_r_stub,
+    "r7-ports": scatter_r_stub,
+    "r8-dind": scatter_r_stub,
 }
 
 
@@ -299,7 +347,7 @@ def main():
             continue
         # wipe previous contest artifacts (keep student's own files:
         # public_html/index.html and anything outside these paths)
-        for sub in ("level1", "level2", "level3", ".level1", "ctf"):
+        for sub in ("level1", "level2", "level3", "level4", ".level1", "ctf"):
             shutil.rmtree(os.path.join(home, sub), ignore_errors=True)
         for junk in (f"{home}/welcome.txt",
                      f"{home}/public_html/about.html",
@@ -314,7 +362,8 @@ def main():
             flag = make_flag(username)
             SCATTERERS[ch["name"]](home, flag)
             manifest["flags"][ch["name"]][username] = flag
-        for sub in ("level1", "level2", "level3", ".level1", "public_html", "ctf"):
+        for sub in ("level1", "level2", "level3", "level4", ".level1",
+                    "public_html", "ctf"):
             p = os.path.join(home, sub)
             if os.path.isdir(p):
                 chown_tree(p, uid)

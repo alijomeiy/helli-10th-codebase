@@ -30,4 +30,9 @@ cat >>"/home/${U}/.bashrc" <<EOF
 EOF
 chown "$U:$U" "/home/${U}/.bashrc"
 
+# Grant the lab (`mybox`) privilege: add to labstudents if the group exists.
+if getent group labstudents >/dev/null 2>&1; then
+    usermod -aG labstudents "$U" || true
+fi
+
 echo "provisioned $U uid=$UID_N port=$PORT"

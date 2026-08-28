@@ -13,6 +13,9 @@ MANIFEST="${1:-manifest.json}"
 echo "==> scattering flags into student homes"
 python3 ctf_scatter.py --manifest "$MANIFEST"
 
+echo "==> scattering root-lab flags into student boxes"
+python3 box_scatter.py --manifest "$MANIFEST"
+
 echo "==> creating challenges & flags in CTFd"
 python3 ctf_setup.py --url "$URL" --token "$CTFD_TOKEN" \
     --manifest "$MANIFEST" --fresh

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش دسترسی‌ها (Permissions)</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>🔐 آموزش دسترسی‌ها</h1>
+    <p class="muted">روی سرورِ مشترک، هر فایل یک قفل دارد: چه کسی می‌تواند بخواند، بنویسد، اجرا کند؟</p>
+
+    <div class="card">
+      <h3>چرا اصلاً دسترسی‌ها وجود دارند؟</h3>
+      <p>سرور شما یک خانه‌ی مشترک است: ده‌ها کاربر روی همین یک سیستم حساب دارند.
+         دسترسی‌ها تضمین می‌کنند که رازهای شما مال شما بماند و کسی جز مدیر سیستم
+         (root) به همه‌چیز دسترسی داشته باشد.</p>
+      <p>هر فایل سه‌تاییِ دسترسی دارد برای سه گروه: <strong>مالک</strong> (owner)،
+         <strong>گروه</strong> (group) و <strong>بقیه</strong> (others).</p>
+    </div>
+
+    <h2>خواندن خروجی ls -l</h2>
+<pre dir="ltr">-rw-r----- 1 ali students  4096 Aug 28 10:30 secret.txt
+│├──┤├──┤├──┤   │        │
+│ │   │   └── others: r--      (فقط خواندن)
+│ │   └────── group:  r--      (فقط خواندن)  → توجه: این نمونه r-- است
+│ └────────── owner:  rw-      (خواندن + نوشتن)
+└──────────── نوع: - فایل، d پوشه</pre>
+    <p>هر سه‌تایی فقط سه حرف است: <code dir="ltr">r</code> خواندن،
+       <code dir="ltr">w</code> نوشتن، <code dir="ltr">x</code> اجرا/ورود —
+       و خط تیره یعنی «این یکی را ندارد».</p>
+
+    <h2>rwx برای فایل و پوشه فرق دارد!</h2>
+    <table>
+      <thead><tr><th>حرف</th><th>روی فایل</th><th>روی پوشه</th></tr></thead>
+      <tbody>
+        <tr><td><code dir="ltr">r</code></td><td>خواندن محتوا (cat)</td><td>دیدن لیست نام‌ها (ls)</td></tr>
+        <tr><td><code dir="ltr">w</code></td><td>تغییر محتوا (vim و ذخیره)</td><td>ساخت/حذف فایل داخل آن (touch, rm)</td></tr>
+        <tr><td><code dir="ltr">x</code></td><td>اجرا کردن (./script)</td><td>ورود به آن (cd) و رسیدن به فایل‌هایش</td></tr>
+      </tbody>
+    </table>
+    <div class="card tip">
+      <strong>نکته‌ی طلایی:</strong> پوشه‌ای با <code dir="ltr">--x</code> را نمی‌توانید
+      <code>ls</code> کنید، اما اگر نام دقیق فایل داخلش را بدانید می‌توانید
+      <code>cat</code> کنید! پوشه‌ی <code dir="ltr">r--</code> را لیست می‌کنید ولی
+      واردش نمی‌شوید.
+    </div>
+
+    <h2>chmod عددی: سه رقم، هر رقم از ۰ تا ۷</h2>
+    <p>هر حرف یک عدد است: <code dir="ltr">r=4</code>، <code dir="ltr">w=2</code>،
+       <code dir="ltr">x=1</code> — و هر سه‌تایی جمعِ آن‌ها:</p>
+    <table>
+      <thead><tr><th>عدد</th><th>معنی</th><th>مثال استفاده</th></tr></thead>
+      <tbody>
+        <tr><td><code dir="ltr">7</code></td><td>rwx (۴+۲+۱)</td><td>اسکریپت‌های خودتان: <code dir="ltr">chmod 700 setup.sh</code></td></tr>
+        <tr><td><code dir="ltr">6</code></td><td>rw- (۴+۲)</td><td>فایل متنی معمولی</td></tr>
+        <tr><td><code dir="ltr">5</code></td><td>r-x (۴+۱)</td><td>خواندنی + قابل ورود</td></tr>
+        <tr><td><code dir="ltr">4</code></td><td>r-- (فقط خواندن)</td><td>چیزهای مهم که نباید تغییر کنند</td></tr>
+        <tr><td><code dir="ltr">0</code></td><td>هیچ چیزی!</td><td>قفل کامل — نه خواندن، نه نوشتن، نه ورود</td></tr>
+      </tbody>
+    </table>
+    <p>معروف‌ترین ترکیب‌ها:</p>
+<pre dir="ltr">chmod 644 file.txt   # شما: rw-  بقیه: r--      (فایل معمولی)
+chmod 600 secret.txt # شما: rw-  بقیه: هیچ      (راز شخصی)
+chmod 755 script.sh  # شما: rwx  بقیه: rx       (اسکریپت عمومی)
+chmod 000 locked.txt # قفل کامل</pre>
+
+    <h2>chmod نمادین: فقط یک بخش را عوض کن</h2>
+<pre dir="ltr">chmod u+x run.sh     # به مالک x اضافه کن
+chmod go-r notes.txt # از گروه و بقیه r را بگیر
+chmod a=r file.txt   # همه دقیقاً فقط r داشته باشند  (a = همه)</pre>
+    <p><code dir="ltr">u</code> مالک، <code dir="ltr">g</code> گروه،
+       <code dir="ltr">o</code> بقیه، <code dir="ltr">a</code> همه؛
+       <code dir="ltr">+</code> اضافه، <code dir="ltr">-</code> گرفتن،
+       <code dir="ltr">=</code> دقیقاً تنظیم کن.</p>
+
+    <h2>chown: تغییر مالک</h2>
+<pre dir="ltr">chown lab file.txt        # مالک becomes lab
+chown lab:students f.txt  # مالک و گروه با هم</pre>
+    <p class="muted">فقط root می‌تواند مالک را به کس دیگری بدهد — در آزمایشگاه
+       (mybox) که root هستید آزادید؛ روی سرور مشترک فقط مدیر.</p>
+
+    <div class="card tip">
+      <strong>چه کسی اجازه‌ی chmod دارد؟</strong> مالکِ فایل! لازم نیست فایل
+      قابل‌خواندن باشد که دسترسی‌اش را عوض کنید — فقط باید مالکش باشید.
+      یعنی حتی یک فایل <code dir="ltr">000</code> هم اگر مال شماست، با
+      <code dir="ltr">chmod 644</code> باز می‌شود.
+    </div>
+
+    <h2>تمرین</h2>
+    <ol>
+      <li>خروجی <code dir="ltr">-rwxr---—</code> را به عدد تبدیل کنید.</li>
+      <li>چه دستوری فایل <code>note.txt</code> را فقط برای مالک قابل‌خواندن می‌کند (۶۰۰)؟</li>
+      <li>پوشه‌ی <code>box</code> با <code dir="ltr">chmod 000</code> قفل شده؛ با چه دستوری فقط برای خودتان قابل‌ورود می‌شود؟</li>
+      <li>فرق <code dir="ltr">chmod 644</code> و <code dir="ltr">chmod 600</code> روی فایل چیست و کدام برای «راز شخصی» درست است؟</li>
+      <li>در خروجی <code>ls -l</code> چه چیزی جای <code dir="ltr">d</code> ابتدای خط می‌نشیند و یعنی چه؟</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p dir="ltr">740</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">chmod 600 note.txt</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">chmod u+x box  (یا chmod 700 box)</p></details>
+    <details><summary>پاسخ ۴</summary><p>۶۰۰ چون بقیه هیچ دسترسی‌ای ندارند؛ ۶44 هنوز بقیه را قادر به خواندن می‌کند.</p></details>
+    <details><summary>پاسخ ۵</summary><p dir="ltr">d یعنی directory (پوشه)؛ - یعنی فایل معمولی.</p></details>
+
+    <p class="muted">حالا سراغ چالش‌های «اختیاری» درباره‌ی همین مطلب بروید —
+       در پوشه‌ی <code>level4</code> خانه‌ی خودتان.</p>
+  </main>
+</body>
+
+</html>

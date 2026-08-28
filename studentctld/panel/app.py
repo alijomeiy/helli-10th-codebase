@@ -13,6 +13,7 @@ from flask_login import (
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import server_api
+from server_api import box_create, box_remove, box_reset, box_status, box_stop
 from config import Config
 from models import (
     db, User, Setting, LoginLog, Task, TaskAttempt,
@@ -223,10 +224,32 @@ def dashboard():
     except Exception:
         capacity = None
 
+    # lab box status (best effort)
+    box = None
+    try:
+        box = box_status(current_user.username)
+    except Exception:
+        box = None
+
     return render_template(
         "dashboard.html",
-        pending=False, rejected=False, capacity=capacity,
+        pending=False, rejected=False, capacity=capacity, box=box,
     )
+
+
+@app.route("/box/reset", methods=["POST"])
+@login_required
+def box_reset_mine():
+    """Student self-service: wipe and recreate their own lab box."""
+    if current_user.role != "student" or current_user.status != STATUS_APPROVED:
+        abort(403)
+    try:
+        box_reset(current_user.username)
+        log_event(current_user.username, "box_reset", "self-service")
+        flash("آزمایشگاه شما از نو ساخته شد؛ همه‌چیز تازه است.", "ok")
+    except Exception as e:
+        flash(f"بازنشانی آزمایشگاه ناموفق بود: {e}", "error")
+    return redirect(url_for("dashboard"))
 
 
 # ---------- admin blueprint ---------------------------------------------------
@@ -315,10 +338,18 @@ def approve(uid):
     db.session.commit()
     sync_server()
     log_event(u.username, "provision", f"uid={new_uid} port={port}")
+
+    # lab box (best-effort — approval proceeds even if this fails)
+    try:
+        box_create(u.username)
+        log_event(u.username, "box", "created")
+    except Exception as e:
+        log_event(u.username, "box", f"create failed: {e}")
+
     ctfd = ctfd_provision(u.username, pw)
     if ctfd:
         log_event(u.username, "ctf_account", "created via CTFd API")
-        flash(f"حساب {u.username} تأیید شد (لینوکس + CTF). رمز SSH او در پنل کاربری‌اش نمایش داده می‌شود.", "ok")
+        flash(f"حساب {u.username} تأیید شد (لینوکس + آزمایشگاه + CTF). رمز SSH او در پنل کاربری‌اش نمایش داده می‌شود.", "ok")
     elif ctfd is False:
         log_event(u.username, "ctf_account", "FAILED (check CTFD_URL/CTFD_TOKEN)")
         flash(f"حساب {u.username} تأیید شد؛ اما ساخت حساب CTF ناموفق بود — با «sync_users.py» بعداً بسازید.", "error")
@@ -351,6 +382,10 @@ def disable(uid):
     u.status = STATUS_DISABLED
     db.session.commit()
     sync_server()
+    try:
+        box_stop(u.username)          # put the lab to sleep too
+    except Exception:
+        pass
     log_event(u.username, "disable")
     flash(f"دسترسی {u.username} غیرفعال شد.", "ok")
     return redirect(url_for("admin.admin_index"))
@@ -369,6 +404,10 @@ def enable(uid):
     u.status = STATUS_APPROVED
     db.session.commit()
     sync_server()
+    try:
+        box_create(u.username)        # ensure the lab exists after re-enable
+    except Exception:
+        pass
     log_event(u.username, "enable")
     flash(f"دسترسی {u.username} دوباره فعال شد.", "ok")
     return redirect(url_for("admin.admin_index"))
@@ -387,6 +426,10 @@ def delete(uid):
     db.session.delete(u)
     db.session.commit()
     sync_server()
+    try:
+        box_remove(uname)             # lab goes with the account
+    except Exception:
+        pass
     log_event(uname, "delete")
     flash(f"{uname} از همه‌جا حذف شد.", "ok")
     return redirect(url_for("admin.admin_index"))

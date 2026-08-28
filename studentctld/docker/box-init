@@ -1,0 +1,6 @@
+#!/bin/sh
+# box-init — PID 1 inside every student box.
+# Brings up cron (needed by the cron lesson/challenge), then idles forever.
+# Students enter with `docker exec` (via mybox), never via this process.
+service cron start >/dev/null 2>&1 || cron >/dev/null 2>&1 || true
+exec sleep infinity

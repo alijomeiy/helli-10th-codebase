@@ -39,6 +39,8 @@ case "$cmd" in
         'exec mysql -uroot -p"$MARIADB_ROOT_PASSWORD" ctfd'
     docker compose start ctfd
     echo "CTF reset to pristine state (all teams/solves wiped)"
+    echo "note: boxes were NOT touched; re-scatter them with:"
+    echo "      sudo python3 box_scatter.py --manifest manifest.json"
     ;;
   *)
     echo "usage: $0 {start|stop|status|backup|reset}"
