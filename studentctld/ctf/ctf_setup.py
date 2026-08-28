@@ -66,9 +66,11 @@ def register_flags(api, challenge_id, flags):
 
 
 def add_hint(api, challenge_id, content, cost):
-    for h in api.get("/hints", challenge_id=challenge_id):
-        if h["content"] == content:
-            return False
+    hints = api.get("/hints", challenge_id=challenge_id)
+    if hints:
+        # the challenge already has hints (API returns different shapes per
+        # version) — never duplicate; live-edit hints from the panel instead
+        return False
     api.post("/hints", {
         "challenge_id": challenge_id,
         "content": content,
