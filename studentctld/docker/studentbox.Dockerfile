@@ -42,6 +42,10 @@ RUN mkdir -p /etc/containers && printf '%s\n' \
       'cgroup_manager = "disabled"' \
       'events_logger = "file"' \
       > /etc/containers/containers.conf && \
+    printf '%s\n' \
+      '[network]' \
+      'default_rootless_network_cmd = "pasta"' \
+      >> /etc/containers/containers.conf && \
     touch /etc/containers/nodocker
 
 # PID 1: bring up cron, then idle (boxes are entered via `docker exec`)
