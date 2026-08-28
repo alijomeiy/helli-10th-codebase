@@ -1,0 +1,17 @@
+#!/bin/bash
+# docker-wrapper — inside every student box.
+# `docker`/`podman` (podman under the hood) with in-box safe defaults:
+# pasta userspace networking for run/create (bridge needs ro /proc/sys).
+# cgroups are already disabled via /etc/containers/containers.conf.
+args=("$@")
+sub=""; si=0
+for i in "${!args[@]}"; do
+  case "${args[i]}" in
+    -*) continue ;;
+    *)  sub="${args[i]}"; si=$i; break ;;
+  esac
+done
+if [ "$sub" = "run" ] || [ "$sub" = "create" ]; then
+  exec /usr/bin/podman "${args[@]:0:si+1}" --network=pasta "${args[@]:si+1}"
+fi
+exec /usr/bin/podman "${args[@]}"

@@ -39,6 +39,7 @@ cmd_create(){
     --memory "$MEM" --cpus "$CPUS" --pids-limit "$PIDS" \
     --security-opt seccomp=unconfined \
     --security-opt apparmor=unconfined \
+    --security-opt systempaths=unconfined \
     --device /dev/fuse --device /dev/net/tun \
     --stop-timeout 30 "$IMAGE" >/dev/null && echo "created $b"
 }

@@ -34,19 +34,20 @@ RUN echo 'root:100000:65536'  >> /etc/subuid && echo 'root:100000:65536'  >> /et
 # the `lab` user — used by the users/su lessons
 RUN useradd -m -s /bin/bash lab && echo 'lab:lab12345' | chpasswd
 
-# podman defaults for running INSIDE a container: no systemd, file events,
-# no cgroup management (/sys/fs/cgroup is read-only in the box — the box's
-# own docker caps are the real resource wall), silence the docker-CLI notice
+# podman defaults for running INSIDE a container: no cgroups of its own
+# (ro /sys/fs/cgroup in the box — the box's docker caps are the real wall),
+# file events, pasta userspace networking as default. The `docker`/`podman`
+# wrappers inject --network=pasta for run/create so plain commands just work.
 RUN mkdir -p /etc/containers && printf '%s\n' \
       '[containers]' \
-      'cgroup_manager = "disabled"' \
+      'cgroup_manager = "cgroupfs"' \
+      'cgroups = "disabled"' \
       'events_logger = "file"' \
       > /etc/containers/containers.conf && \
-    printf '%s\n' \
-      '[network]' \
-      'default_rootless_network_cmd = "pasta"' \
-      >> /etc/containers/containers.conf && \
     touch /etc/containers/nodocker
+COPY docker-wrapper /usr/local/bin/docker
+COPY docker-wrapper /usr/local/bin/podman
+RUN chmod 755 /usr/local/bin/docker /usr/local/bin/podman
 
 # PID 1: bring up cron, then idle (boxes are entered via `docker exec`)
 COPY box-init /usr/local/bin/box-init
