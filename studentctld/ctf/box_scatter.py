@@ -23,11 +23,13 @@ import string
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 
 from challenges import CHALLENGES
 
 CONFIG_PATH = "/etc/studentctl/config.json"
 BOXCTL = "/usr/local/sbin/studentctl-box"
+WORKERS = 4          # parallel boxes during scatter/reset
 
 R_NAMES = [c["name"] for c in CHALLENGES if re.match(r"^r\d-", c["name"])]
 
@@ -176,6 +178,8 @@ chmod 755 /opt/lab/servers/run.sh
 
 
 # ---------------- r8: the flagbox image (docker load challenge) ---------------
+# The busybox FROM layer is cached after the first build, so per-student
+# builds are config-only and fast. docker save output is ~2MB.
 
 def make_flagbox_tar(u, flag, tmpdir):
     """Build flagbox:1 on the host (FROM busybox, prints the flag when run),
@@ -191,7 +195,7 @@ def make_flagbox_tar(u, flag, tmpdir):
     return tar
 
 
-def scatter_one(u, manifest, tmpdir):
+def scatter_one(u, manifest, tmpdir, lock, results):
     box = f"box-{u}"
     # flag reuse: if this student already has r-flags in the manifest (and
     # they are registered in CTFd), keep them so re-scattering never
@@ -215,8 +219,10 @@ def scatter_one(u, manifest, tmpdir):
 
     sh([BOXCTL, "stop", u])
 
-    for name in R_NAMES:
-        manifest["flags"].setdefault(name, {})[u] = flag
+    with lock:
+        for name in R_NAMES:
+            manifest["flags"].setdefault(name, {})[u] = flag
+        results[u] = True
 
 
 def main():
@@ -242,15 +248,21 @@ def main():
         if not students:
             raise SystemExit(f"student not found: {args.one}")
 
+    import threading
+    lock = threading.Lock()
+    results = {}
     n_ok = 0
     with tempfile.TemporaryDirectory() as tmpdir:
-        for username, uid in students:
-            try:
-                scatter_one(username, manifest, tmpdir)
-                n_ok += 1
-                print(f"  OK {username}")
-            except Exception as e:
-                print(f"  FAIL {username}: {str(e)[:200]}", file=sys.stderr)
+        with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+            futures = {ex.submit(scatter_one, username, manifest, tmpdir,
+                                 lock, results): username
+                       for username, uid in students}
+            for fu, username in futures.items():
+                try:
+                    fu.result()
+                except Exception as e:
+                    print(f"  FAIL {username}: {str(e)[:200]}", file=sys.stderr)
+        n_ok = len(results)
 
     known = {s["username"] for s in manifest["students"]}
     for username, uid in students:

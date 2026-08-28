@@ -76,7 +76,7 @@ cmd_enter(){
 cmd_stop(){
   local u=${1:-}
   ok_user "$u" || exit 1
-  if running "$u"; then docker stop "$(bname "$u")" >/dev/null; fi
+  if running "$u"; then docker stop -t 2 "$(bname "$u")" >/dev/null; fi
   rm -f "$IDLE_DIR/$(bname "$u")"
   echo "stopped $(bname "$u")"
 }
@@ -145,7 +145,7 @@ cmd_autostop(){
 cmd_stopall(){
   local b
   for b in $(docker ps -q --filter label=studentctl=box); do
-    docker stop "$b" >/dev/null
+    docker stop -t 2 "$b" >/dev/null
   done
   echo "$(date -Is) stopall: done" >> "$LOG"
   echo "all boxes stopped"
