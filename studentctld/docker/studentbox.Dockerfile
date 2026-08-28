@@ -34,12 +34,14 @@ RUN echo 'root:100000:65536'  >> /etc/subuid && echo 'root:100000:65536'  >> /et
 # the `lab` user — used by the users/su lessons
 RUN useradd -m -s /bin/bash lab && echo 'lab:lab12345' | chpasswd
 
-# podman defaults for running INSIDE a container: no systemd, file events
+# podman defaults for running INSIDE a container: no systemd, file events,
+# and silence the "Emulate Docker CLI" notice
 RUN mkdir -p /etc/containers && printf '%s\n' \
       '[containers]' \
       'cgroup_manager = "cgroupfs"' \
       'events_logger = "file"' \
-      > /etc/containers/containers.conf
+      > /etc/containers/containers.conf && \
+    touch /etc/containers/nodocker
 
 # PID 1: bring up cron, then idle (boxes are entered via `docker exec`)
 COPY box-init /usr/local/bin/box-init

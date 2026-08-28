@@ -37,6 +37,7 @@ cmd_create(){
   exists "$u" && { echo "$b exists"; return 0; }
   docker create -it --name "$b" --label studentctl=box \
     --memory "$MEM" --cpus "$CPUS" --pids-limit "$PIDS" \
+    --security-opt seccomp=unconfined \
     --stop-timeout 30 "$IMAGE" >/dev/null && echo "created $b"
 }
 
