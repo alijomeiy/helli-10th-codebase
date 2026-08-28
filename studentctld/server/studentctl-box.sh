@@ -41,7 +41,7 @@ cmd_create(){
   ok_user "$u" || { echo "bad username"; exit 1; }
   b=$(bname "$u")
   exists "$u" && { echo "$b exists"; return 0; }
-  docker create -it --name "$b" --label studentctl=box \
+  docker create -it --name "$b" --hostname "$b" --label studentctl=box \
     --memory "$MEM" --cpus "$CPUS" --pids-limit "$PIDS" \
     --security-opt seccomp=unconfined \
     --security-opt apparmor=unconfined \

@@ -330,44 +330,70 @@ def chown_tree(path, uid):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", default="manifest.json")
+    ap.add_argument("--only", default="",
+                    help="comma-separated challenge names; MERGES into the "
+                         "existing manifest instead of overwriting it "
+                         "(safe add-only mode for live contests)")
     args = ap.parse_args()
 
     if os.geteuid() != 0:
         raise SystemExit("run as root: sudo python3 ctf_scatter.py")
 
+    only = [s.strip() for s in args.only.split(",") if s.strip()]
+    chals = [c for c in CHALLENGES if not only or c["name"] in only]
+    unknown = only and [n for n in only
+                        if n not in {c["name"] for c in CHALLENGES}]
+    if unknown:
+        raise SystemExit(f"unknown challenges: {unknown}")
+
+    merge = bool(only)
+    if merge and os.path.exists(args.manifest):
+        with open(args.manifest, encoding="utf-8") as f:
+            manifest = json.load(f)
+        manifest.setdefault("students", [])
+        manifest.setdefault("flags", {})
+    else:
+        manifest = {"students": [], "flags": {c["name"]: {} for c in CHALLENGES}}
+    for c in chals:
+        manifest["flags"].setdefault(c["name"], {})
+
     students = load_students()
     if not students:
         raise SystemExit("no students found")
 
-    manifest = {"students": [], "flags": {c["name"]: {} for c in CHALLENGES}}
+    # dirs wiped before scattering: full pass clears everything; --only
+    # (currently the level4 permissions set) clears just what it owns
+    wipe = ("level1", "level2", "level3", "level4", ".level1", "ctf") \
+        if not merge else ("level4",)
+    known = {s["username"] for s in manifest["students"]}
+
     for username, uid in students:
         home = f"/home/{username}"
         if not os.path.isdir(home):
             print(f"  SKIP {username} (no home)")
             continue
-        # wipe previous contest artifacts (keep student's own files:
-        # public_html/index.html and anything outside these paths)
-        for sub in ("level1", "level2", "level3", "level4", ".level1", "ctf"):
+        for sub in wipe:
             shutil.rmtree(os.path.join(home, sub), ignore_errors=True)
-        for junk in (f"{home}/welcome.txt",
-                     f"{home}/public_html/about.html",
-                     f"{home}/public_html/robots.txt",
-                     f"{home}/public_html/hidden"):
-            if os.path.isdir(junk):
-                shutil.rmtree(junk, ignore_errors=True)
-            elif os.path.exists(junk):
-                os.remove(junk)
-        manifest["students"].append({"username": username, "uid": uid})
-        for ch in CHALLENGES:
+        if not merge:
+            for junk in (f"{home}/welcome.txt",
+                         f"{home}/public_html/about.html",
+                         f"{home}/public_html/robots.txt",
+                         f"{home}/public_html/hidden"):
+                if os.path.isdir(junk):
+                    shutil.rmtree(junk, ignore_errors=True)
+                elif os.path.exists(junk):
+                    os.remove(junk)
+        if username not in known:
+            manifest["students"].append({"username": username, "uid": uid})
+            known.add(username)
+        for ch in chals:
             flag = make_flag(username)
             SCATTERERS[ch["name"]](home, flag)
             manifest["flags"][ch["name"]][username] = flag
-        for sub in ("level1", "level2", "level3", "level4", ".level1",
-                    "public_html", "ctf"):
+        for sub in wipe + (".level1", "public_html", "ctf"):
             p = os.path.join(home, sub)
             if os.path.isdir(p):
                 chown_tree(p, uid)
-        # welcome.txt sits in home root
         wp = os.path.join(home, "welcome.txt")
         if os.path.exists(wp):
             os.chown(wp, uid, -1)
@@ -375,8 +401,8 @@ def main():
 
     with open(args.manifest, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)
-    print(f"scattered {len(manifest['students'])} students x "
-          f"{len(CHALLENGES)} challenges -> {args.manifest}")
+    print(f"scattered {len(students)} students x {len(chals)} challenges "
+          f"({'merge' if merge else 'full'}) -> {args.manifest}")
 
 
 if __name__ == "__main__":
