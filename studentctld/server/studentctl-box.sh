@@ -15,7 +15,7 @@
 #   disk           append a disk report to the log (cron, nightly)
 set -u
 
-IMAGE=studentbox:1
+IMAGE=studentbox:2
 MEM=384m
 CPUS=0.5
 PIDS=128
