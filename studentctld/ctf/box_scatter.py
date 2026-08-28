@@ -193,7 +193,12 @@ def make_flagbox_tar(u, flag, tmpdir):
 
 def scatter_one(u, manifest, tmpdir):
     box = f"box-{u}"
-    flag = make_flag(u)
+    # flag reuse: if this student already has r-flags in the manifest (and
+    # they are registered in CTFd), keep them so re-scattering never
+    # invalidates registered flags
+    flag = manifest["flags"].get("r1-roothome", {}).get(u)
+    if not flag:
+        flag = make_flag(u)
 
     if not box_exists(u):
         sh([BOXCTL, "create", u])

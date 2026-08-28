@@ -1,6 +1,8 @@
-# studentbox:1 — per-student Linux lab image.
+# studentbox:1 — per-student Linux lab image (LEAN).
 # The student is root inside his box; podman (with a `docker` command shim)
 # is preinstalled so each student can pull/run/deploy his own containers.
+# Teaching tools (vim, curl, tree, python3, ...) are deliberately NOT here —
+# students install what they need with apt. That is the lesson.
 # Build (on the VM):  docker build -t studentbox:1 -f docker/studentbox.Dockerfile docker/
 FROM ubuntu:latest
 
@@ -20,11 +22,11 @@ RUN rm -f /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list && \
 ENV DEBIAN_FRONTEND=noninteractive TZ=Asia/Tehran
 RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
 
-# teaching tools + podman + the `docker` command shim (podman-docker)
+# lean by design: only what the BOX SYSTEM needs. Base ubuntu already has
+# grep, find, coreutils, su, and bash — everything else is apt install.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        vim curl wget less file tree procps psmisc iproute2 cron sudo \
-        ca-certificates tzdata bash-completion \
-        podman podman-docker uidmap fuse-overlayfs passt slirp4netns \
+        cron sudo ca-certificates tzdata \
+        podman podman-docker uidmap fuse-overlayfs passt \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # subuid/subgid ranges so rootless podman works for root and for the lab user
@@ -36,8 +38,8 @@ RUN useradd -m -s /bin/bash lab && echo 'lab:lab12345' | chpasswd
 
 # podman defaults for running INSIDE a container: no cgroups of its own
 # (ro /sys/fs/cgroup in the box — the box's docker caps are the real wall),
-# file events, pasta userspace networking as default. The `docker`/`podman`
-# wrappers inject --network=pasta for run/create so plain commands just work.
+# file events. The `docker`/`podman` wrappers (below) inject --network=pasta
+# for run/create so plain commands just work.
 RUN mkdir -p /etc/containers && printf '%s\n' \
       '[containers]' \
       'cgroup_manager = "cgroupfs"' \
@@ -45,17 +47,18 @@ RUN mkdir -p /etc/containers && printf '%s\n' \
       'events_logger = "file"' \
       > /etc/containers/containers.conf && \
     touch /etc/containers/nodocker
-COPY docker-wrapper /usr/local/bin/docker
-COPY docker-wrapper /usr/local/bin/podman
-RUN chmod 755 /usr/local/bin/docker /usr/local/bin/podman
 
 # PID 1: bring up cron, then idle (boxes are entered via `docker exec`)
 COPY box-init /usr/local/bin/box-init
-RUN chmod 755 /usr/local/bin/box-init && \
+COPY docker-wrapper /usr/local/bin/docker
+COPY docker-wrapper /usr/local/bin/podman
+RUN chmod 755 /usr/local/bin/box-init /usr/local/bin/docker /usr/local/bin/podman && \
     printf '%s\n' \
       '== آزمایشگاه لینوکس شما ==' \
       'شما root این سیستم هستید.' \
-      'دستور docker (podman) برای کشیدن و اجرای کانتینرها در دسترس است.' \
+      'ابزارها نصب نیستند — خودتان نصب کنید (تمرین!):' \
+      '  apt update && apt install vim tree curl python3 iproute2' \
+      'دستور docker (podman) برای کانتینرها آماده است.' \
       '' > /etc/motd
 
 CMD ["/usr/local/bin/box-init"]

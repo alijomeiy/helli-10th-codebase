@@ -207,7 +207,7 @@ CHALLENGES = [
         "points": 225,
         "description": "در /opt/labweb یک وب‌سرور کوچک خواب است. بیدارش کنید و "
                        "از همان داخل آزمایشگاه به آن سر بزنید.",
-        "hint": "python3 /opt/labweb/web.py &  سپس  curl localhost:8080",
+        "hint": "apt install python3 را اول نصب کنید؛ بعد: python3 /opt/labweb/web.py &  و در پایان  curl localhost:8080",
         "hint_cost": 45,
     },
     {
@@ -236,7 +236,7 @@ CHALLENGES = [
         "points": 250,
         "description": "اسکریپتی در /opt/lab/servers چهار در پشت‌سرِهم باز می‌کند. "
                        "پرچم فقط پشت یکی از آن‌هاست — کدام در؟",
-        "hint": "bash /opt/lab/servers/run.sh  سپس  ss -tlnp  و بعد curl localhost:9001 تا 9004",
+        "hint": "apt install iproute2  بعد  bash /opt/lab/servers/run.sh  سپس  ss -tlnp  و در آخر curl localhost:9001 تا 9004",
         "hint_cost": 50,
     },
     {
