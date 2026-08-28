@@ -35,10 +35,11 @@ RUN echo 'root:100000:65536'  >> /etc/subuid && echo 'root:100000:65536'  >> /et
 RUN useradd -m -s /bin/bash lab && echo 'lab:lab12345' | chpasswd
 
 # podman defaults for running INSIDE a container: no systemd, file events,
-# and silence the "Emulate Docker CLI" notice
+# no cgroup management (/sys/fs/cgroup is read-only in the box — the box's
+# own docker caps are the real resource wall), silence the docker-CLI notice
 RUN mkdir -p /etc/containers && printf '%s\n' \
       '[containers]' \
-      'cgroup_manager = "cgroupfs"' \
+      'cgroup_manager = "disabled"' \
       'events_logger = "file"' \
       > /etc/containers/containers.conf && \
     touch /etc/containers/nodocker
