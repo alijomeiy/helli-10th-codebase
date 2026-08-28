@@ -20,9 +20,17 @@ studentctl ALL=(root) NOPASSWD: /usr/local/sbin/studentctl-box
 EOF
 cat >/etc/sudoers.d/mybox <<'EOF'
 %labstudents ALL=(root) NOPASSWD: /usr/local/sbin/studentctl-box enter
+%#2149 ALL=(root) NOPASSWD: /usr/local/sbin/studentctl-box enter
 EOF
 chmod 440 /etc/sudoers.d/studentctl-box /etc/sudoers.d/mybox
 visudo -c >/dev/null && echo "   sudoers OK"
+
+echo "==> bulk-add existing student accounts (uid>=2000, /home/*) to labstudents"
+n=0
+for u in $(awk -F: '$3 >= 2000 && $6 ~ /^\/home\// {print $1}' /etc/passwd); do
+  id -nG "$u" | grep -qw labstudents || { usermod -aG labstudents "$u" && n=$((n+1)); }
+done
+echo "   newly added: $n (total: $(getent group labstudents | cut -d: -f4 | tr ',' '\n' | grep -c .))"
 
 echo "==> cron: idle autostop / nightly stopall / nightly disk report"
 cat >/etc/cron.d/studentctl-boxes <<'EOF'
