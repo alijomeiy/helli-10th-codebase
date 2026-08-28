@@ -4,20 +4,18 @@
 # Build (on the VM):  docker build -t studentbox:1 -f docker/studentbox.Dockerfile docker/
 FROM ubuntu:latest
 
-# --- same apt mirror the VM itself uses (Iranian mirror, suite resolute = 26.04).
-# Bootstrap over http first (the base image has no ca-certificates yet; apt
-# GPG signatures keep http safe), then switch to the exact https config.
+# --- same apt mirror + same trust config the VM itself uses:
+# repo.abrha.net with /etc/apt/apt.conf.d/99-disable-ssl-verify
+# (copied from the host, which relies on apt GPG signature verification)
 RUN rm -f /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list && \
     printf '%s\n' \
-      'deb http://repo.abrha.net/ubuntu resolute main restricted universe multiverse' \
-      'deb http://repo.abrha.net/ubuntu resolute-updates main restricted universe multiverse' \
-      'deb http://repo.abrha.net/ubuntu resolute-security main restricted universe multiverse' \
-      'deb http://repo.abrha.net/ubuntu resolute-backports main restricted universe multiverse' \
+      'deb https://repo.abrha.net/ubuntu resolute main restricted universe multiverse' \
+      'deb https://repo.abrha.net/ubuntu resolute-updates main restricted universe multiverse' \
+      'deb https://repo.abrha.net/ubuntu resolute-security main restricted universe multiverse' \
+      'deb https://repo.abrha.net/ubuntu resolute-backports main restricted universe multiverse' \
       > /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates && \
-    sed 's|http://|https://|' /etc/apt/sources.list > /etc/apt/sources.list.tmp && \
-    mv /etc/apt/sources.list.tmp /etc/apt/sources.list
+    printf 'Acquire::https::Verify-Peer "false";\n' \
+      > /etc/apt/apt.conf.d/99-disable-ssl-verify
 
 ENV DEBIAN_FRONTEND=noninteractive TZ=Asia/Tehran
 RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
