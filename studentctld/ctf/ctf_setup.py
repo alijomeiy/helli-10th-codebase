@@ -10,7 +10,7 @@ import json
 
 import requests
 
-from challenges import CHALLENGES
+from challenges import CHALLENGES, numbered_titles
 
 
 class CTFd:
@@ -34,17 +34,19 @@ class CTFd:
         return r.json()["data"]
 
 
-def get_or_create_challenge(api, ch):
-    for existing in api.get("/challenges"):
-        if existing["name"] == ch["title"]:
+def get_or_create_challenge(api, ch, display_name):
+    # view=admin so hidden (draft) challenges are seen too — otherwise
+    # re-runs would create duplicates of every draft
+    for existing in api.get("/challenges", view="admin"):
+        if existing["name"] == display_name:
             return existing["id"], False
     data = api.post("/challenges", {
-        "name": ch["title"],
+        "name": display_name,
         "category": ch["category"],
         "description": ch["description"],
         "value": ch["points"],
         "type": "standard",
-        "state": "visible",
+        "state": "hidden" if ch.get("draft") else "visible",
     })
     return data["id"], True
 
@@ -93,23 +95,25 @@ def main():
         manifest = json.load(f)
 
     api = CTFd(args.url, args.token)
+    titles = numbered_titles()
 
     if args.fresh:
         n = 0
-        for ch in api.get("/challenges"):
+        for ch in api.get("/challenges", view="admin"):
             requests.delete(f"{api.url}/api/v1/challenges/{ch['id']}",
                             headers=api.s.headers, timeout=15)
             n += 1
         print(f"  fresh: deleted {n} old challenges")
 
     for ch in CHALLENGES:
-        cid, created = get_or_create_challenge(api, ch)
+        cid, created = get_or_create_challenge(api, ch, titles[ch["name"]])
         flags = list(manifest["flags"].get(ch["name"], {}).values())
         added = register_flags(api, cid, flags)
         hinted = add_hint(api, cid, ch["hint"], ch["hint_cost"])
         state = "created" if created else "exists"
+        tag = " (draft)" if ch.get("draft") else ""
         print(f"  {ch['name']:14s} {state:8s} +{added} flags"
-              + ("  +hint" if hinted else ""))
+              + ("  +hint" if hinted else "") + tag)
 
     print("done.")
 
