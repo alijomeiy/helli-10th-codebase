@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>داکر ۱۰۱ داخل آزمایشگاه</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>🐳 داکر ۱۰۱ داخل آزمایشگاه</h1>
+    <p class="muted">کانتینر = یک برنامه با همه‌ی وسایلش، بسته‌بندی‌شده. حالا خودت بساز!</p>
+
+    <div class="card">
+      <h3>داستان از زبان خودتان</h3>
+      <p>شما داخل آزمایشگاهتان (<a href="mybox.html">mybox</a>) هستید — که خودش
+         یک کانتینر است. حالا داکر داخلش نصب است: یعنی می‌توانید کانتینرِ
+         داخل کانتینر بسازید! مفاهیم اصلی:</p>
+      <ul>
+        <li><strong>تصویر (image):</strong> قالبِ از پیش ساخته — مثل سیدی نصب</li>
+        <li><strong>کانتینر (container):</strong> یک نمونه‌ی «روشن‌شده» از تصویر</li>
+        <li><strong>ریجستری:</strong> فروشگاه تصویرها — <code dir="ltr">docker pull</code> از آنجا می‌کشد</li>
+      </ul>
+    </div>
+
+    <h2>اولین کانتینر</h2>
+<pre dir="ltr">docker run hello-world     # معروف‌ترین تست دنیا
+docker run -it busybox     # یک لینوکس مینیاتوری! (i=interactive, t=terminal)
+exit                       # خروج = کانتینر می‌ایستد</pre>
+    <p>busybox یک لینوکسِ خیلی کوچک است — برای تمرین بی‌نظیر است.</p>
+
+    <h2>لایف‌سایکل: چهار فعل</h2>
+<pre dir="ltr">docker ps -a        # همه‌ی کانتینرها (حتی خاموش‌ها) — بدون -a فقط روشن‌ها
+docker run -d --name web nginx          # -d=پس‌زمینه، --name=اسم گذاشتن
+docker logs web     # خروجی/لاگ کانتینر
+docker exec -it web bash                # ورود به داخل کانتینرِ در حال اجرا
+docker stop web     # خاموش
+docker rm web       # پاک کردن کانتینر خاموش
+docker rmi nginx    # پاک کردن تصویر</pre>
+
+    <h2>پورت و حجم</h2>
+<pre dir="ltr">docker run -d -p 8080:80 --name myweb nginx
+curl localhost:8080      # سایت nginx — از پورت ۸۰۸۰ داخلِ box شما!</pre>
+    <p class="muted"><code dir="ltr">-p 8080:80</code> یعنی: پورت ۸۰ کانتینر را روی
+       پورت ۸۰۸۰ آزمایشگاهم باز کن. و برای نگه‌داشتن فایل‌ها بین کانتینرها:
+       <code dir="ltr">-v /opt/lab/www:/usr/share/nginx/html</code> (پوشه‌ی من → داخل کانتینر).</p>
+
+    <h2>تصویر خودت بساز: Dockerfile</h2>
+    <p>یک فایل به نام <code dir="ltr">Dockerfile</code> بسازید:</p>
+<pre dir="ltr">FROM busybox
+CMD ["echo", "Az khabit midam!"]</pre>
+    <p>بعد:</p>
+<pre dir="ltr">docker build -t myfirst:1 .    # نقطه = این پوشه
+docker run myfirst:1           # خروجی: Az khabit midam!</pre>
+
+    <h2>لایه‌ها: راز تصویرها</h2>
+    <p>هر خط Dockerfile یک <strong>لایه</strong> می‌سازد. لایه‌ها مثل حلقه‌های
+       پیاز روی هم می‌روند و — نکته‌ی مهم — <strong>حذف در لایه‌ی بعدی، چیزی را
+       از لایه‌های قبلی پاک نمی‌کند!</strong> این دلیل است که تصویرها با
+       <code dir="ltr">docker save</code> که به tar تبدیل می‌شوند، گاهی رازهای
+       «حذف‌شده» را هنوز دارند. تاریخچه را ببینید:</p>
+<pre dir="ltr">docker history myfirst:1</pre>
+
+    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
+    <ol>
+      <li>با busybox یک فایل در کانتینر بسازید: <code dir="ltr">docker run -it busybox</code> بعد داخلش <code dir="ltr">echo hi > /tmp/x</code> — بعد exit و دوباره run کنید؛ فایل هست؟ چرا؟</li>
+      <li>nginx را با -p 8080:80 بالا بیاورید و با curl امتحان کنید.</li>
+      <li>با docker exec وارد کانتینر nginx شوید و صفحه‌ی پیش‌فرض را عوض کنید (فایل index.html).</li>
+      <li>Dockerfile بسازید که تصویری با نام <code dir="ltr">greet:1</code> بسازد و اسم شما را چاپ کند.</li>
+      <li>چرا <code dir="ltr">docker rm</code> برای کانتینر روشن خطا می‌دهد؟</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p>نه — هر run یک کانتینر تازه از تصویر می‌سازد؛ تغییرات کانتینر قبلی با آن کانتینر ماند (تا rm شود).</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">docker run -d -p 8080:80 nginx → curl localhost:8080</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">docker exec -it web bash → echo Salam > /usr/share/nginx/html/index.html</p></details>
+    <details><summary>پاسخ ۴</summary><p dir="ltr">FROM busybox / CMD ["echo", "Ali"] → docker build -t greet:1 .</p></details>
+    <details><summary>پاسخ ۵</summary><p>اول باید stop شود (فرایند زنده دارد)؛ با -f می‌شود اجبار کرد.</p></details>
+
+    <h2>چالش‌های مرتبط</h2>
+    <p>«داکر داخل داکر»، «لایه‌های مدفون» و چالش‌های تصویرمحور با همین چند فعل حل می‌شوند.</p>
+  </main>
+</body>
+
+</html>

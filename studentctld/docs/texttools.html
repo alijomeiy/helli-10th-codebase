@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش پردازش متن</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>✂️ آموزش پردازش متن</h1>
+    <p class="muted">در لینوکس «فایل متنی» پادشاه است — لاگ، تنظیمات، داده؛ همه متن‌اند.</p>
+
+    <div class="card">
+      <h3>دیدن، بریدن، شمردن</h3>
+      <p>سه کار همیشگی: محتوایی را <strong>ببینید</strong> (cat/head/tail)،
+         بخشی از آن را <strong>ببرید</strong> (cut/tr/grep) و
+         <strong>بشمارید</strong> (wc/sort/uniq). ابزارهای این درس همگی جزو سیستم پایه‌اند.</p>
+    </div>
+
+    <h2>دیدن فایل</h2>
+<pre dir="ltr">cat file.txt             # همه‌ی فایل
+head -20 file.txt        # ۲۰ خط اول
+tail -30 file.txt        # ۳۰ خط آخر
+tail -f /var/log/syslog  # انتهای زنده‌ی لاگ (با Ctrl+C قطع کنید)
+less big.txt             # ورق‌زدن در فایل بزرگ (q = خروج، / = جستجو)</pre>
+
+    <h2>wc: شمردن</h2>
+<pre dir="ltr">wc -l file.txt           # چند خط؟
+wc -w file.txt           # چند کلمه؟
+grep ERROR server.log | wc -l   # چند خط خطا؟</pre>
+
+    <h2>sort و uniq: زوج معروف</h2>
+<pre dir="ltr">sort names.txt                 # مرتب‌سازی الفبایی
+sort -n numbers.txt            # مرتب‌سازی عددی
+sort ips.txt | uniq -c | sort -rn   # پرتکرارترین IP ها — دستور معروف شمارش!</pre>
+    <p>نکته: <code dir="ltr">uniq</code> فقط «خط‌های همسایه» را یکی می‌کند —
+       پس همیشه قبلش <code dir="ltr">sort</code> بزنید. <code dir="ltr">uniq -c</code>
+       کنار هر خط تعداد تکرار می‌گذارد و <code dir="ltr">sort -rn</code> عددی نزولی مرتب می‌کند.</p>
+
+    <h2>cut: برش ستونی</h2>
+<pre dir="ltr">cut -d: -f1 /etc/passwd        # فقط ستون اول (نام کاربرها)، جداکننده «:»
+cut -d, -f2 data.csv           # ستون دوم یک CSV
+cut -c1-10 file.txt            # کاراکترهای ۱ تا ۱۰ هر خط</pre>
+
+    <h2>tr: تبدیل حروف</h2>
+<pre dir="ltr">echo hello | tr a-z A-Z        # HELLO
+echo "a b  c" | tr -s ' '      # فاصله‌های تکراری را یکی می‌کند
+echo 'Uryyb' | tr 'A-Za-z' 'N-ZA-Mn-za-m'   # رمزگشایی ROT13!</pre>
+
+    <h2>diff: مقایسه</h2>
+<pre dir="ltr">diff old.conf new.conf         # چه فرقی دارد؟
+diff -u old.conf new.conf      # خروجی خواناتر (فرمت patch)</pre>
+
+    <h2>زنجیره‌ی واقعی: تحلیل یک لاگ</h2>
+<pre dir="ltr">grep ERROR /var/log/app.log | cut -d' ' -f5 | sort | uniq -c | sort -rn | head</pre>
+    <p>خطاهای لاگ را بگیر ← ستون ماژول را ببر ← مرتب کن ← بشمار ← پرتکرارترین‌ها.
+       همین یک خط، کارِ یک روز تحلیل‌گر است!</p>
+
+    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
+    <ol>
+      <li>۱۰ کاربرِ اول <code dir="ltr">/etc/passwd</code> را فقط با نام‌شان نشان دهید.</li>
+      <li>پرتکرارترین «کلمه‌ی اول» در <code dir="ltr">/var/log/syslog</code> یا هر لاگ موجود را پیدا کنید.</li>
+      <li>متن <code dir="ltr">Uryyb Jbeyq</code> را با tr رمزگشایی کنید.</li>
+      <li>تعداد خط‌های فایل <code dir="ltr">/etc/services</code> را بشمارید.</li>
+      <li>تفاوت خروجی <code dir="ltr">wc -l f.txt</code> و <code dir="ltr">wc -l < f.txt</code> چیست؟</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p dir="ltr">head -10 /etc/passwd | cut -d: -f1</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">awk-بدون: cut -d' ' -f1 /var/log/syslog | sort | uniq -c | sort -rn | head -1</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">echo 'Uryyb Jbeyq' | tr 'A-Za-z' 'N-ZA-Mn-za-m'  →  Hello World</p></details>
+    <details><summary>پاسخ ۴</summary><p dir="ltr">wc -l /etc/services</p></details>
+    <details><summary>پاسخ ۵</summary><p>اولی نام فایل را هم نشان می‌دهد (چون آرگومان است)، دومی فقط عدد (چون از stdin می‌خواند).</p></details>
+
+    <h2>چالش‌های مرتبط</h2>
+    <p>«گزارش شبانه»، «ردپای تاریخچه»، «داده‌ی رمزی» و «شیفت شب» با همین ابزارها حل می‌شوند.</p>
+  </main>
+</body>
+
+</html>

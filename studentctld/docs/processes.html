@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش فرایندها و زمان‌بندی</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>⚙️ آموزش فرایندها و زمان‌بندی</h1>
+    <p class="muted">هر برنامه‌ی در حال اجرا یک «فرایند» است — یاد بگیرید ببینیدشان، بکشیدشان و زمان‌بندی‌شان کنید.</p>
+
+    <div class="card">
+      <h3>فرایند چیست؟</h3>
+      <p>هر برنامه‌ی در حال اجرا یک شماره یکتا دارد: <strong>PID</strong>. کرنل همه‌ی
+         فرایندها را در <code dir="ltr">/proc</code> نگه می‌دارد — هر پوشه‌ی عددی،
+         یک فرایند زنده است. فرایندها سلسله‌مراتب دارند: هر فرایندی «پدر» دارد.</p>
+    </div>
+
+    <h2>دیدن فرایندها</h2>
+<pre dir="ltr">ps aux                  # همه‌ی فرایندهای سیستم (a=all, u=جزئیات, x=بدون ترمینال)
+ps aux | grep python    # فقط پایتون‌ها
+top                     # نمایش زنده + مصرف رم/CPU (q = خروج)
+cat /proc/1/cmdline     # PID یک همیشه اولین فرایندِ سیستم است</pre>
+    <p class="muted">ستون‌های مهم ps: <strong>PID</strong> شماره، <strong>%MEM</strong> رم،
+       <strong>COMMAND</strong> خود دستور. در آزمایشگاهِ شما PID 1 همان box-init است —
+       یعنی «init» سیستم شماست؛ اینجا systemd نداریم.</p>
+
+    <h2>کشتن فرایند</h2>
+<pre dir="ltr">kill 1234               # درخواست مهربان (SIGTERM) — «لطفا ببند»
+kill -9 1234            # زور (SIGKILL) — آخرین راه‌حل
+killall sleep           # با نام بکش
+pkill -f myscript.sh    # هر فرایندی که خط فرمانش این الگو را دارد</pre>
+
+    <h2>پس‌زمینه: &amp; و nohup</h2>
+<pre dir="ltr">python3 web.py &        # در پس‌زمینه اجرا شود (ترمینال آزاد بماند)
+jobs                    # فرایندهای پس‌زمینه‌ی همین ترمینال
+fg %1                   # برگرداندن به پیش‌زمینه
+nohup python3 web.py &  # حتی با بستن ترمینال زنده بماند</pre>
+    <p class="muted">نکته‌ی آزمایشگاه: با خوابیدن باکس، فرایندها می‌خوابند اما وقتی
+       برگردید با <code dir="ltr">mybox</code> همه سر جایشان است. اما اگر باکس
+       «بازنشانی» شود، از نو می‌شوند — برای کارهای دائمی از cron استفاده کنید.</p>
+
+    <h2>cron: زمان‌بند لینوکس</h2>
+    <p>cron سرویسی است که هر دقیقه بیدار می‌شود و چک می‌کند «کارِ این دقیقه چیست؟».
+       در آزمایشگاه شما cron فعال است.</p>
+<pre dir="ltr">cat /etc/crontab        # جدول اصلی زمان‌بندی سیستم
+ls /etc/cron.d/         # جدول‌های اضافی</pre>
+    <p>ساختار هر خط: <code dir="ltr">دقیقه ساعت روزِماه ماه روزِهفته کاربر دستور</code></p>
+<pre dir="ltr"># m  h  dom mon dow  user  command
+*/2 *  *   *   *   root  /opt/lab/task.sh        # هر ۲ دقیقه
+0 3  *   *   *   root  /opt/lab/night.sh         # هر روز ساعت ۰۳:۰۰
+@reboot                     root  /opt/lab/start.sh     # موقع بالا آمدن</pre>
+    <div class="card tip">
+      <strong>نکته:</strong> بعد از ویرایش cron نیازی به restart نیست — هر دقیقه
+      دوباره می‌خواند. برای دیدن نتیجه‌ی <code dir="ltr">*/2</code> حداکثر ۲ دقیقه
+      صبر کنید یا اسکریپت را دستی اجرا کنید.
+    </div>
+
+    <h2>systemd کجاست؟</h2>
+    <p>روی سرورهای واقعی مدیر سرویس‌ها <code dir="ltr">systemctl</code> است
+       (<code dir="ltr">systemctl status nginx</code>). اما کانتینر آزمایشگاه شما
+       systemd ندارد — چون کانتینر «یک کارِ ساده» است نه یک ماشین کامل.
+       هرجا سرویس خواستید، با cron/@reboot یا nohup خودتان بالا بیاورید.</p>
+
+    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
+    <ol>
+      <li>PID فرایندی را پیدا کنید که اسمش sleep است و بکشیدش.</li>
+      <li>یک <code dir="ltr">sleep 1000</code> در پس‌زمینه اجرا کنید، با jobs ببینید، بعد با kill بکشیدش.</li>
+      <li>در <code dir="ltr">/etc/crontab</code> کاری اضافه کنید که هر دقیقه تاریخ را در <code dir="ltr">/tmp/tick.txt</code> اضافه کند؛ ۲ دقیقه بعد نتیجه را ببینید.</li>
+      <li>همان کار را با @reboot هم ست کنید و باکس را از پنل ریست کنید تا ببینید کار می‌کند.</li>
+      <li>چرا kill -9 را «آخرین راه» می‌دانند؟</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p dir="ltr">ps aux | grep sleep → kill &lt;PID&gt;</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">sleep 1000 & → jobs → kill %1</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">* * * * * root date >> /tmp/tick.txt (به /etc/crontab اضافه کنید)</p></details>
+    <details><summary>پاسخ ۴</summary><p dir="ltr">@reboot root date >> /tmp/boot.txt</p></details>
+    <details><summary>پاسخ ۵</summary><p>چون به فرایند فرصتِ ذخیره/بستن فایل‌ها را نمی‌دهد و وسط کار قطعش می‌کند.</p></details>
+
+    <h2>چالش‌های مرتبط</h2>
+    <p>«کارِ هر دقیقه»، «شیفت شب»، «پاسخ‌گوی شب» و چالش‌های سرویس‌محور با همین‌ها حل می‌شوند.</p>
+  </main>
+</body>
+
+</html>

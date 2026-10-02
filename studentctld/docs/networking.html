@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش شبکه</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>🌐 آموزش شبکه</h1>
+    <p class="muted">آدرس‌ها، پورت‌ها و حرف‌زدن با سرویس‌ها — از داخل آزمایشگاه خودتان.</p>
+
+    <div class="card">
+      <h3>IP و پورت: آدرس و شماره‌ی در</h3>
+      <p>هر ماشین در شبکه یک <strong>IP</strong> دارد (آدرس ساختمان). روی هر ماشین
+         <strong>پورت‌ها</strong> شماره‌های ۱ تا ۶۵۵۳۵ هستند (واحدهای ساختمان)؛
+         هر سرویس (وب، ssh، ...) گوشِ یکی از این پورت‌ها است.
+         <code dir="ltr">localhost / 127.0.0.1</code> یعنی «خودم» — تلفن داخلی ساختمان.</p>
+      <p>ابزارهای این درس در آزمایشگاهِ لخت نصب نیستند — اول نصب‌شان کنید
+         (این هم بخشی از تمرین است):</p>
+<pre dir="ltr">apt update && apt install iproute2 curl</pre>
+    </div>
+
+    <h2>آدرس من چیست؟</h2>
+<pre dir="ltr">ip a                    # کارت‌های شبکه + IP ها (eth0 معمولا کارت اصلی است)
+ip r                    # مسیرها؛ با gateway پیش‌فرض</pre>
+
+    <h2>چه پورت‌هایی باز است؟</h2>
+<pre dir="ltr">ss -tlnp                # همه‌ی پورت‌های Listen + فرایند صاحبشان
+ss -tlnp | grep :80     # فقط پورت ۸۰
+# t=tcp  l=listening  n=عددی  p=process</pre>
+    <p>این مهم‌ترین دستور کارآگاهی شبکه است: هر سرویس پنهانی، اینجا خودش را لو می‌دهد —
+       مگر اینکه فقط روی localhost گوش بدهد!</p>
+
+    <h2>curl: حرف زدن با سرویس‌ها</h2>
+<pre dir="ltr">curl http://localhost:8080          # بگیر و نشان بده
+curl -s http://example.com          # بی‌حرف (silent)
+curl -i http://localhost:9999       # هدرهای پاسخ را هم نشان بده
+curl -H "X-Token: abc123" http://localhost:8080   # با هدر سفارشی
+curl -o page.html http://x.ir       # در فایل ذخیره کن</pre>
+
+    <h2>پورت‌ها را زنده دیدن</h2>
+    <p>وقتی سرویسی را بالا می‌آورید (مثلاً <code dir="ltr">python3 -m http.server 8080</code>)
+       می‌توانید با ss ببینید که واقعا گوش می‌دهد و با curl امتحانش کنید:</p>
+<pre dir="ltr">python3 -m http.server 8080 &
+ss -tlnp | grep 8080
+curl http://localhost:8080</pre>
+
+    <h2>کارت شبکه آزمایشگاه شما</h2>
+    <p>آزمایشگاه شما شبکه‌ی خصوصی خودش را دارد (به آن شبکه‌ی پل‌شده می‌گویند):
+       از داخل می‌توانید به اینترنت برسید (apt کار می‌کند) اما دنیای بیرون نمی‌تواند
+       مستقیم به پورت‌های شما وصل شود — یعنی فضای تمرین امن دارید.</p>
+    <div class="card tip">
+      <strong>نکته:</strong> <code dir="ltr">ping</code> در کانتینر ممکن است کار نکند
+      (نیاز به مجوز خاص دارد) — نگران نشوید؛ با <code dir="ltr">curl</code> و
+      <code dir="ltr">ss</code> همه‌ی کارهای این درس انجام می‌شود.
+    </div>
+
+    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
+    <ol>
+      <li>IP کارت شبکه‌ی آزمایشگاه را پیدا کنید.</li>
+      <li>قبل از نصب iproute2 دستور ss را بزنید — پیام خطا چیست و چرا؟</li>
+      <li>یک وب‌سرور ساده روی پورت ۸۰۸۰ بالا بیاورید و با curl جوابش را ببینید.</li>
+      <li>با ss ثابت کنید سرویس تمرین ۳ روی ۸۰۸۰ گوش می‌دهد، بعد بکشیدش.</li>
+      <li>به سایت مستندات کلاس با curl -s سر بزنید و عنوان صفحه را بگیرید.</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p dir="ltr">ip a → به دنبال inet در eth0 بگردید (مثلاً 10.0.2.100)</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">bash: ss: command not found — چون iproute2 نصب نیست؛ در اوبونتوی لخت همه‌چیز از اول نصب نیست.</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">python3 -m http.server 8080 & (python3 را اگر ندارید: apt install python3) بعد: curl localhost:8080</p></details>
+    <details><summary>پاسخ ۴</summary><p dir="ltr">ss -tlnp | grep 8080 → kill %1</p></details>
+    <details><summary>پاسخ ۵</summary><p dir="ltr">curl -s https://docs.helli-10th-computer.ir/ | grep -o '&lt;title&gt;.*&lt;/title&gt;'</p></details>
+
+    <h2>چالش‌های مرتبط</h2>
+    <p>«سرویس وب»، «چهار درِ بسته»، «سایت قدیمی» و «پاسخ‌گوی شب» دقیقا با ss و curl حل می‌شوند.</p>
+  </main>
+</body>
+
+</html>

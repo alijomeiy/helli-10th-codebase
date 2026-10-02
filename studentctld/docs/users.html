@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش کاربران و گروه‌ها</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>👥 آموزش کاربران و گروه‌ها</h1>
+    <p class="muted">لینوکس از روز اول چندکاربره است — همه‌چیز به «چه کسی» وصل است.</p>
+
+    <div class="card">
+      <h3>هویت در لینوکس</h3>
+      <p>هر کاربر یک <strong>UID</strong> عددی دارد (root همیشه 0). هر کاربر عضو
+         یک یا چند <strong>گروه</strong> است (هر گروه هم GID دارد). ترکیب
+         «کاربر + گروه‌ها» مشخص می‌کند چه چیزی را مجازید (ببینید
+         <a href="permissions.html">درس دسترسی‌ها</a>).</p>
+    </div>
+
+    <h2>من کی‌ام؟</h2>
+<pre dir="ltr">whoami          # نام کاربری فعلی
+id              # نام + UID + همه‌ی گروه‌ها
+groups          # فقط گروه‌ها</pre>
+    <p>در آزمایشگاه، دسترسی root می‌گیرید و با <code dir="ltr">su</code> می‌توانید
+       «شخص دیگری» شوید:</p>
+<pre dir="ltr">su lab          # سوئیچ به کاربر lab (رمزش را بدانید)
+su - lab        # با محیط کامل (home و متغیرها) — خط تیره راست واقعی است
+whoami          # حالا: lab</pre>
+
+    <h2>دفتر کاربران: /etc/passwd</h2>
+<pre dir="ltr">cat /etc/passwd
+# lab:x:1001:1001:Lab User,,,:/home/lab:/bin/bash
+#  ↑   ↑  ↑    ↑       ↑          ↑          ↑
+# نام رمز UID GID   GECOS       home       شل</pre>
+    <table>
+      <thead><tr><th>ستون</th><th>معنی</th></tr></thead>
+      <tbody>
+        <tr><td>نام</td><td>نام کاربری</td></tr>
+        <tr><td>x</td><td>رمز در فایل جدا (/etc/shadow) است</td></tr>
+        <tr><td>UID</td><td>شماره‌ی یکتا — 0 یعنی root!</td></tr>
+        <tr><td>GID</td><td>گروه اصلی</td></tr>
+        <tr><td>GECOS</td><td>توضیح آزاد (نام واقعی، تلفن، ...) — اینجا گاهی رازها پنهان می‌شوند!</td></tr>
+        <tr><td>home</td><td>پوشه‌ی خانه</td></tr>
+        <tr><td>شل</td><td>/bin/false یعنی این کاربر نمی‌تواند لاگین کند</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">هش رمزها در <code dir="ltr">/etc/shadow</code> است که فقط root
+       می‌خواندش — به شکل <code dir="ltr">$6$Salt$Hash...</code>. یکی‌طرفه است:
+       از روی هش نمی‌شود رمز را «خواند»، فقط حدس‌ها را می‌شود چک کرد.</p>
+
+    <h2>ساختن کاربر</h2>
+<pre dir="ltr">useradd -m -s /bin/bash ali     # ساخت با -m یعنی خانه بساز
+passwd ali                      # گذاشتن/تغییر رمز
+usermod -aG docker ali          # اضافه به گروه (a=append حتما با G)
+userdel -r ali                  # حذف با خانه (-r)</pre>
+    <div class="card tip">
+      <strong>چرا aG نه فقط G؟</strong> <code dir="ltr">usermod -G x ali</code> کاربر را
+      از همه‌ی گروه‌های قبلی خارج و فقط در x می‌گذارد! با <code dir="ltr">-aG</code>
+      «اضافه» می‌کنید. کلاسیک‌ترین اشتباه مدیرهای تازه‌کار.
+    </div>
+
+    <h2>sudo در یک خط</h2>
+    <p><code dir="ltr">sudo</code> یعنی «این یک دستور را با اختیارات دیگری اجرا کن».
+       اجازه‌ها در <code dir="ltr">/etc/sudoers</code> و <code dir="ltr">/etc/sudoers.d/</code>
+       است. قاعده‌ی طلایی امنیت: کار با کمترین اختیارِ لازم — root فقط وقتی که واقعا لازم است.</p>
+
+    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
+    <ol>
+      <li>UID خودتان و گروه‌هایتان را با یک دستور نشان دهید.</li>
+      <li>کاربری به نام <code dir="ltr">tester</code> با خانه بسازید، رمز بگذارید و با su واردش شوید و برگردید.</li>
+      <li>ستون GECOS کاربر <code dir="ltr">root</code> در passwd چیست؟</li>
+      <li>کدام کاربران سیستم شل‌شان <code dir="ltr">/usr/sbin/nologin</code> است؟ بشمارید.</li>
+      <li>چرا هشِ رمز در passwd نیست و در shadow جدا شده؟</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p dir="ltr">id</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">useradd -m -s /bin/bash tester && passwd tester && su tester → exit</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">grep '^root:' /etc/passwd | cut -d: -f5 → معمولا «root»</p></details>
+    <details><summary>پاسخ ۴</summary><p dir="ltr">grep -c nologin /etc/passwd یا grep nologin /etc/passwd | wc -l</p></details>
+    <details><summary>پاسخ ۵</summary><p>چون passwd باید برای همه خوانا باشد (برای id/ls و ...) اما هش‌ها فقط مال root — جداسازی = امنیت.</p></details>
+
+    <h2>چالش‌های مرتبط</h2>
+    <p>«خانه‌ی ریشه»، «همسایه‌ی lab» و چالش‌های «دسترسی‌ها» با این درس معنا پیدا می‌کنند.</p>
+  </main>
+</body>
+
+</html>

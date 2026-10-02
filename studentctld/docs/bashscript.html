@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آموزش اسکریپت bash مقدماتی</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="wrap">
+    <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
+
+    <h1>📜 آموزش اسکریپت bash مقدماتی</h1>
+    <p class="muted">هر چیزی که در ترمینال می‌زنید، می‌شود یک فایل که همیشه اجرا شود.</p>
+
+    <div class="card">
+      <h3>اسکریپت = فایل متنی از دستورها</h3>
+      <p>خط اول <strong>shebang</strong> است: به لینوکس می‌گوید «این فایل را با چه
+         برنامه‌ای اجرا کن»:</p>
+<pre dir="ltr">#!/bin/bash
+echo "Hello, $USER!"</pre>
+      <p>بعد دو مرحله: <strong>اجازه‌ی اجرا بده</strong> و <strong>اجرا کن</strong>:</p>
+<pre dir="ltr">chmod +x myscript.sh
+./myscript.sh</pre>
+      <p class="muted">بدون chmod +x با <code dir="ltr">bash myscript.sh</code> هم می‌شود اجرا کرد.</p>
+    </div>
+
+    <h2>متغیرها</h2>
+<pre dir="ltr">name="Amir"              # توجه: دور = فاصله ممنوع!
+echo "Salam $name"       # استفاده با $
+echo "Folder: ${name}s"  # وقتی متن می‌چسبد، با {} جدا کن
+files=$(ls | wc -l)      # خروجی یک دستور → متغیر (جایگزینی دستور)
+echo "We have $files files"</pre>
+
+    <h2>ورودی: آرگومان و read</h2>
+<pre dir="ltr">#!/bin/bash
+echo "First: $1, Second: $2"    # ./s.sh a b
+echo "All: $@"                  # همه‌ی آرگومان‌ها
+read -p "Esmet chiye? " uname   # گرفتن از کاربر
+echo "Salam $uname"</pre>
+
+    <h2>شرط: if</h2>
+<pre dir="ltr">if [ "$1" = "hi" ]; then
+  echo "Hi there!"
+elif [ -z "$1" ]; then        # -z یعنی خالی
+  echo "Say something!"
+else
+  echo "You said: $1"
+fi</pre>
+    <table>
+      <thead><tr><th>آزمون</th><th>معنی</th></tr></thead>
+      <tbody>
+        <tr><td><code dir="ltr">[ -f f ]</code></td><td>فایل وجود دارد؟</td></tr>
+        <tr><td><code dir="ltr">[ -d d ]</code></td><td>پوشه وجود دارد؟</td></tr>
+        <tr><td><code dir="ltr">[ -z "$x" ]</code></td><td>خالی است؟</td></tr>
+        <tr><td><code dir="ltr">[ "$a" = "$b" ]</code></td><td>متن‌ها برابرند؟</td></tr>
+        <tr><td><code dir="ltr">[ $n -gt 5 ]</code></td><td>عددی بزرگ‌تر؟ (lt/le/ge/gt/eq/ne)</td></tr>
+      </tbody>
+    </table>
+    <div class="card tip">
+      <strong>فاصله‌های اجباری:</strong> دور [ ] و دور = باید فاصله باشد:
+      <code dir="ltr">[ "$a" = "b" ]</code> درست، <code dir="ltr">["$a"="b"]</code> غلط!
+    </div>
+
+    <h2>حلقه: for</h2>
+<pre dir="ltr">for i in 1 2 3; do
+  echo "Round $i"
+done
+
+for f in /var/log/*.log; do         # روی همه‌ی لاگ‌ها
+  echo "$f : $(wc -l < "$f") lines"
+done
+
+for i in $(seq 1 5); do echo "N=$i"; done</pre>
+
+    <h2>وضعیت خروج</h2>
+<pre dir="ltr">ls /nope
+echo $?         # غیر صفر = شکست
+ls /etc > /dev/null
+echo $?         # 0 = موفق</pre>
+    <p>اسکریپت شما هم می‌تواند وضعیت برگرداند: <code dir="ltr">exit 0</code> (موفق)
+       یا <code dir="ltr">exit 1</code> (شکست) — همین است که cron و ابزارها را
+       از موفقیت کارتان خبردار می‌کند.</p>
+
+    <h2>خواندن اسکریپت دیگران (مهم‌ترین مهارت!)</h2>
+    <p>بیشتر وقت‌ها لازم نیست بنویسید — باید <strong>بفهمید</strong> چه می‌شود.
+       از بالا به پایین بخوانید؛ متغیرها را جایگزین کنید؛ هر دستور را انگار
+       در ترمینال می‌زنید دنبال کنید. اسکریپت‌های چالش‌های کلاس هم همین‌طور خوانا هستند.</p>
+
+    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
+    <ol>
+      <li>اسکریپتی بنویسید که تاریخ و نام کاربر و تعداد فایل‌های home را چاپ کند.</li>
+      <li>اسکریپتی بنویسید که یک نام فایل بگیرد ($1) و بگوید وجود دارد یا نه.</li>
+      <li>با for، پنج پوشه‌ی <code dir="ltr">/tmp/b$i</code> بسازید و بعد همه را پاک کنید.</li>
+      <li>اسکریپتی بنویسید که هر فایل .log در /tmp را بشمارد و عدد را چاپ کند.</li>
+      <li>چرا <code dir="ltr">name = "Ali"</code> غلط است ولی <code dir="ltr">name="Ali"</code> درست؟</li>
+    </ol>
+    <p><em>پاسخ‌ها:</em></p>
+    <details><summary>پاسخ ۱</summary><p dir="ltr">#!/bin/bash → echo "$(date)" "$USER" "$(ls ~ | wc -l)"</p></details>
+    <details><summary>پاسخ ۲</summary><p dir="ltr">if [ -f "$1" ]; then echo "hast"; else echo "nist"; fi</p></details>
+    <details><summary>پاسخ ۳</summary><p dir="ltr">for i in 1 2 3 4 5; do mkdir /tmp/b$i; done → سپس: for i in 1 2 3 4 5; do rmdir /tmp/b$i; done</p></details>
+    <details><summary>پاسخ ۴</summary><p dir="ltr">echo "logs: $(ls /tmp/*.log 2>/dev/null | wc -l)"</p></details>
+    <details><summary>پاسخ ۵</summary><p>در انتساب فاصله باعث می‌شود bash فکر کند name یک «دستور» است — انتساب باید چسبیده باشد.</p></details>
+
+    <h2>چالش‌های مرتبط</h2>
+    <p>«شیفت شب»، «تعقیب زمان» و «پاسخ‌گوی شب» اسکریپت‌هایی دارند که باید بخوانید و بفهمید.</p>
+  </main>
+</body>
+
+</html>
