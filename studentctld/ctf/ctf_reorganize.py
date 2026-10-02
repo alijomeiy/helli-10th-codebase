@@ -125,18 +125,26 @@ def apply(api):
             renamed += 1
     print(f"  renamed {renamed} challenges")
 
-    # 3) guide page as homepage (dump any existing index page first)
-    for p in api.get("/pages"):
-        if p.get("slug") == "index":
-            backup["pages"].append(p)
-            api.patch(f"/pages/{p['id']}",
-                      {"title": GUIDE_TITLE, "content": GUIDE_MD,
-                       "format": "markdown", "draft": False})
-            print("  guide page: existing index updated")
+    # 3) guide: prepend to the existing index page (keep the original
+    # landing content below). CTFd pages use the "route" field ("index" =
+    # homepage); idempotent via a first-line marker.
+    marker = GUIDE_MD.splitlines()[0]
+    for p in api.get("/pages", per_page=100):
+        if p.get("route") != "index":
+            continue
+        if p["content"].lstrip().startswith(marker):
+            print("  guide already on index page — skipping")
             break
+        backup["pages"].append({k: p.get(k) for k in
+                                ("id", "title", "content", "format", "draft")})
+        api.patch(f"/pages/{p['id']}",
+                  {"content": GUIDE_MD + "\n\n---\n\n" + p["content"],
+                   "format": "markdown", "draft": False})
+        print("  guide page: prepended to index")
+        break
     else:
         api.post("/pages", {"title": GUIDE_TITLE, "content": GUIDE_MD,
-                            "slug": "index", "format": "markdown",
+                            "route": "index", "format": "markdown",
                             "draft": False})
         print("  guide page: created as index")
 
@@ -152,19 +160,27 @@ def rollback(api):
         api.patch(f"/challenges/{c['id']}",
                   {"name": c["name"], "category": c["category"]})
     print(f"  restored {len(backup['challenges'])} challenges")
+    marker = GUIDE_MD.splitlines()[0]
+    restored = False
     if backup["pages"]:
         p = backup["pages"][0]
-        api.patch(f"/pages/{p['id']}", {"title": p["title"],
-                                        "content": p["content"],
-                                        "format": p.get("format", "markdown"),
-                                        "draft": p.get("draft", False)})
+        api.patch(f"/pages/{p['id']}", {"content": p["content"],
+                                        "format": p.get("format") or "markdown",
+                                        "draft": p.get("draft") or False})
+        restored = True
         print("  index page restored")
-    else:
-        for p in api.get("/pages"):
-            if p.get("slug") == "index":
-                api.delete("/pages", p["id"])
-                print("  guide page deleted (no index existed before)")
-                break
+    for p in api.get("/pages", per_page=100):
+        if (p.get("route") == "index"
+                and not restored
+                and p["content"].lstrip().startswith(marker)):
+            # no backup (impossible via --apply) — strip the guide part
+            _, _, rest = p["content"].partition("\n\n---\n\n")
+            api.patch(f"/pages/{p['id']}", {"content": rest})
+            restored = True
+            print("  guide stripped from index")
+        elif p.get("route") is None and p.get("title") == GUIDE_TITLE:
+            api.delete("/pages", p["id"])
+            print("  stray guide page deleted")
     print("  rollback done.")
 
 
