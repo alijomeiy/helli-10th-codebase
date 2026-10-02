@@ -13,13 +13,20 @@ import json
 
 import requests
 
-from challenges import CHALLENGES, numbered_titles
+from challenges import (CHALLENGES, numbered_titles, display_category,
+                        docs_line, DOCS_MAP, DOCS_TITLES, DOCS_BASE,
+                        DOCS_MARKER)
 
 BACKUP = "/root/ctf_reorg_backup.json"
 MERGE_TO = "اختیاری"
 GUIDE_TITLE = "از کجا شروع کنیم؟"
+GUIDE_SEP = "\n\n---\n\n"
 
-GUIDE_MD = """## 🧭 راهنمای شروع — از کجا و به چه ترتیب؟
+
+def build_guide():
+    """Guide page: intro + tier ladder + full challenge→lesson map.
+    Draft challenges are deliberately excluded (they must stay secret)."""
+    lines = ["""## 🧭 راهنمای شروع — از کجا و به چه ترتیب؟
 
 هر چالش یک **پرچم مخصوص خودت** دارد؛ پرچم دیگران به کار تو نمی‌آید.
 
@@ -35,8 +42,30 @@ GUIDE_MD = """## 🧭 راهنمای شروع — از کجا و به چه تر�
 **راهنمای درس‌ها:** [docs.helli-10th-computer.ir](https://docs.helli-10th-computer.ir)
 — هر درس می‌گوید برای کدام چالش‌ها لازم است.
 
-💡 درون هر دسته، شماره‌ی چالش‌ها ترتیب پیشنهادی است.
-"""
+## 🗺️ نقشه‌ی چالش‌ها ↔ درس‌ها
+
+قبول نداری سرِ چالشی گیر کرده‌ای؟ اول درسش را بخوان:
+
+| چالش | درس |
+|---|---|"""]
+    seq = {}
+    for ch in CHALLENGES:
+        if ch.get("draft"):
+            continue
+        cat = display_category(ch)
+        seq[cat] = seq.get(cat, 0) + 1
+        name = f"{cat} {seq[cat]:02d} — {ch['title']}"
+        slugs = DOCS_MAP.get(ch["name"], [])
+        if slugs:
+            docs = " · ".join(
+                f"[{DOCS_TITLES[s]}]({DOCS_BASE}/{s}.html)" for s in slugs)
+        else:
+            docs = "—"
+        lines.append(f"| **{name}** | {docs} |")
+    lines.append("""
+💡 شماره‌ی چالش‌ها در هر دسته، ترتیب پیشنهادی است.
+""")
+    return "\n".join(lines)
 
 
 class CTFd:
@@ -90,6 +119,7 @@ def all_challenges(api):
 
 
 def apply(api):
+    import os
     challenges = all_challenges(api)
     titles = numbered_titles()
     want = {titles[ch["name"]]: ch for ch in CHALLENGES}
@@ -127,40 +157,57 @@ def apply(api):
 
     # 3) guide: prepend to the existing index page (keep the original
     # landing content below). CTFd pages use the "route" field ("index" =
-    # homepage); idempotent via a first-line marker.
-    marker = GUIDE_MD.splitlines()[0]
+    # homepage); idempotent via the first-line marker.
+    guide = build_guide()
+    marker = guide.splitlines()[0]
     for p in api.get("/pages", per_page=100):
         if p.get("route") != "index":
             continue
         if p["content"].lstrip().startswith(marker):
-            print("  guide already on index page — skipping")
+            _, _, rest = p["content"].partition(GUIDE_SEP)
+            api.patch(f"/pages/{p['id']}",
+                      {"content": guide + GUIDE_SEP + rest,
+                       "format": "markdown", "draft": False})
+            print("  guide page: refreshed on index")
             break
         backup["pages"].append({k: p.get(k) for k in
                                 ("id", "title", "content", "format", "draft")})
         api.patch(f"/pages/{p['id']}",
-                  {"content": GUIDE_MD + "\n\n---\n\n" + p["content"],
+                  {"content": guide + GUIDE_SEP + p["content"],
                    "format": "markdown", "draft": False})
         print("  guide page: prepended to index")
         break
     else:
-        api.post("/pages", {"title": GUIDE_TITLE, "content": GUIDE_MD,
+        api.post("/pages", {"title": GUIDE_TITLE, "content": guide,
                             "route": "index", "format": "markdown",
                             "draft": False})
         print("  guide page: created as index")
 
-    with open(BACKUP, "w", encoding="utf-8") as f:
-        json.dump(backup, f, ensure_ascii=False, indent=1)
-    print(f"  before-state -> {BACKUP} (rollback anytime with --rollback)")
+    if os.path.exists(BACKUP):
+        # never overwrite: the backup must keep pointing at the ORIGINAL
+        # (pre-reorganization) state, or --rollback becomes a no-op
+        print(f"  backup already exists, kept: {BACKUP}")
+    else:
+        with open(BACKUP, "w", encoding="utf-8") as f:
+            json.dump(backup, f, ensure_ascii=False, indent=1)
+        print(f"  before-state -> {BACKUP} (rollback anytime with --rollback)")
 
 
 def rollback(api):
+    from challenges import DOCS_MARKER
     with open(BACKUP, encoding="utf-8") as f:
         backup = json.load(f)
     for c in backup["challenges"]:
         api.patch(f"/challenges/{c['id']}",
                   {"name": c["name"], "category": c["category"]})
-    print(f"  restored {len(backup['challenges'])} challenges")
-    marker = GUIDE_MD.splitlines()[0]
+        det = api.get(f"/challenges/{c['id']}")
+        desc = det.get("description") or ""
+        if DOCS_MARKER in desc:
+            api.patch(f"/challenges/{c['id']}",
+                      {"description": desc.split("\n---\n" + DOCS_MARKER)[0]})
+    print(f"  restored {len(backup['challenges'])} challenges "
+          "(names, categories, docs footers stripped)")
+    marker = build_guide().splitlines()[0]
     restored = False
     if backup["pages"]:
         p = backup["pages"][0]
@@ -174,7 +221,7 @@ def rollback(api):
                 and not restored
                 and p["content"].lstrip().startswith(marker)):
             # no backup (impossible via --apply) — strip the guide part
-            _, _, rest = p["content"].partition("\n\n---\n\n")
+            _, _, rest = p["content"].partition(GUIDE_SEP)
             api.patch(f"/pages/{p['id']}", {"content": rest})
             restored = True
             print("  guide stripped from index")

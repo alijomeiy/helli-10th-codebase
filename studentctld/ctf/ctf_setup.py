@@ -10,7 +10,7 @@ import json
 
 import requests
 
-from challenges import CHALLENGES, numbered_titles
+from challenges import CHALLENGES, numbered_titles, docs_line, DOCS_MARKER
 
 
 class CTFd:
@@ -44,12 +44,23 @@ def get_or_create_challenge(api, ch, display_name):
     data = api.post("/challenges", {
         "name": display_name,
         "category": ch["category"],
-        "description": ch["description"],
+        "description": ch["description"] + docs_line(ch),
         "value": ch["points"],
         "type": "standard",
         "state": "hidden" if ch.get("draft") else "visible",
     })
     return data["id"], True
+
+
+def ensure_docs_line(api, cid, ch):
+    """Idempotently append the docs-links footer to an existing challenge
+    description (description PATCH never touches flags or solves)."""
+    desc = api.get(f"/challenges/{cid}").get("description") or ""
+    if DOCS_MARKER in desc:
+        return False
+    api.patch(f"/challenges/{cid}",
+              {"description": desc + docs_line(ch)})
+    return True
 
 
 def register_flags(api, challenge_id, flags):
@@ -112,10 +123,12 @@ def main():
         flags = list(manifest["flags"].get(ch["name"], {}).values())
         added = register_flags(api, cid, flags)
         hinted = add_hint(api, cid, ch["hint"], ch["hint_cost"])
+        doced = ensure_docs_line(api, cid, ch)
         state = "created" if created else "exists"
         tag = " (draft)" if ch.get("draft") else ""
-        print(f"  {ch['name']:14s} {state:8s} +{added} flags"
-              + ("  +hint" if hinted else "") + tag)
+        print(f"  {ch['name']:16s} {state:8s} +{added} flags"
+              + ("  +hint" if hinted else "")
+              + ("  +docs" if doced and not created else "") + tag)
 
     print("done.")
 

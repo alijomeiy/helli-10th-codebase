@@ -601,6 +601,86 @@ def display_category(ch):
     return "اختیاری" if cat.startswith("اختیاری —") else cat
 
 
+# ---- docs mapping: challenge -> lesson pages on docs.helli-10th-computer.ir
+DOCS_BASE = "https://docs.helli-10th-computer.ir"
+DOCS_TITLES = {
+    "html": "آموزش HTML",
+    "regex": "آموزش ریجکس",
+    "permissions": "آموزش دسترسی‌ها",
+    "mybox": "راهنمای آزمایشگاه",
+    "apt": "آموزش apt",
+    "archives": "آرشیو و فشرده‌سازی",
+    "pipes": "لوله‌ها و تغییر مسیر",
+    "texttools": "پردازش متن",
+    "processes": "فرایندها و زمان‌بندی",
+    "networking": "شبکه",
+    "users": "کاربران و گروه‌ها",
+    "bashscript": "اسکریپت bash",
+    "docker101": "داکر ۱۰۱",
+}
+DOCS_MAP = {
+    "m-readme": ["texttools"],
+    "m-grep": ["texttools", "pipes"],
+    "o2-archive": ["archives"],
+    "o3-regex-class": ["regex"],
+    "o4-regex-anchor": ["regex"],
+    "o5-web-source": ["html"],
+    "o6-web-robots": ["html"],
+    "p1-locked": ["permissions"],
+    "p2-sealed": ["permissions"],
+    "p3-brothers": ["permissions"],
+    "r1-roothome": ["users"],
+    "r2-labuser": ["users"],
+    "r3-nightlog": ["texttools", "pipes"],
+    "r4-web": ["networking"],
+    "r5-cron": ["processes"],
+    "r6-history": ["texttools"],
+    "r7-ports": ["networking"],
+    "r8-dind": ["docker101"],
+    "e1-kit": ["apt"],
+    "e2-forest": ["apt"],
+    "e3-json": ["apt"],
+    "h1-lead": ["archives"],
+    "h2-tarhunt": ["archives"],
+    "h3-shift": ["processes", "texttools"],
+    "v1-oldsite": ["networking", "archives"],
+    "v2-layers": ["docker101", "archives"],
+    "v3-ghost": ["networking", "processes"],
+    "e4-archive2": ["archives"],
+    "e5-tailline": ["texttools"],
+    "e6-cutcol": ["texttools"],
+    "e7-psfind": ["processes"],
+    "e8-localweb": ["processes", "networking"],
+    "e9-ghostuser": ["users"],
+    "e10-shy": ["bashscript"],
+    "e11-readyimage": ["docker101"],
+    "e12-oldlog": ["texttools"],
+    "e13-doublezip": ["archives"],
+    "h4-catch": ["processes"],
+    "h5-deleted": ["processes"],
+    "h6-decoyports": ["networking", "pipes"],
+    "h7-legacy": ["users", "texttools"],
+    "h8-env": ["docker101"],
+    "v4-twoworlds": ["archives"],
+    "v5-deadcontainer": ["docker101"],
+    "v6-sentinel": ["networking", "processes"],
+    "v7-vault": ["users", "bashscript"],
+    "v8-needle2": ["pipes", "regex"],
+}
+DOCS_MARKER = "📚"
+
+
+def docs_line(ch):
+    """Markdown footer for the challenge description linking its lessons.
+    Empty for challenges with no matching lesson (basic m/o ones)."""
+    slugs = DOCS_MAP.get(ch["name"], [])
+    if not slugs:
+        return ""
+    links = " · ".join(
+        f"[{DOCS_TITLES[s]}]({DOCS_BASE}/{s}.html)" for s in slugs)
+    return f"\n\n---\n{DOCS_MARKER} **درس‌های مرتبط:** {links}"
+
+
 def numbered_titles():
     """CTFd display name for each challenge: «دسته NN — عنوان» so the board
     sorts and reads in intended order. Sequence follows list order per
