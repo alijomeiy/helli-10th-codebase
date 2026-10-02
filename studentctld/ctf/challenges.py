@@ -669,11 +669,44 @@ DOCS_MAP = {
 }
 DOCS_MARKER = "📚"
 
+# lessons actually published on the docs site right now; anything outside
+# this set is NOT mentioned on CTFd (no dangling names/footers) until the
+# pages are approved — flip them in and re-run ctf_setup + ctf_reorganize
+APPROVED_DOCS = {"html", "regex", "permissions", "mybox", "apt"}
+DOCS_SHORT = {
+    "html": "HTML",
+    "regex": "ریجکس",
+    "permissions": "دسترسی‌ها",
+    "mybox": "آزمایشگاه",
+    "apt": "apt",
+    "archives": "آرشیو",
+    "pipes": "لوله‌ها",
+    "texttools": "پردازش متن",
+    "processes": "فرایندها",
+    "networking": "شبکه",
+    "users": "کاربران",
+    "bashscript": "اسکریپت",
+    "docker101": "داکر",
+}
+
+
+def _approved_slugs(ch):
+    return [s for s in DOCS_MAP.get(ch["name"], []) if s in APPROVED_DOCS]
+
+
+def lesson_tag(ch):
+    """Trailing name fragment, e.g. « — درس: آرشیو»; empty when unmapped."""
+    slugs = _approved_slugs(ch)
+    if not slugs:
+        return ""
+    return " — درس: " + " · ".join(DOCS_SHORT[s] for s in slugs)
+
 
 def docs_line(ch):
-    """Markdown footer for the challenge description linking its lessons.
-    Empty for challenges with no matching lesson (basic m/o ones)."""
-    slugs = DOCS_MAP.get(ch["name"], [])
+    """Markdown footer for the challenge description linking its published
+    lessons only. Empty for challenges with no approved lesson (the basic
+    m/o ones) — never dangles a 404."""
+    slugs = _approved_slugs(ch)
     if not slugs:
         return ""
     links = " · ".join(
@@ -682,14 +715,15 @@ def docs_line(ch):
 
 
 def numbered_titles():
-    """CTFd display name for each challenge: «دسته NN — عنوان» so the board
-    sorts and reads in intended order. Sequence follows list order per
-    display category. ctf_setup registers with these names; ctf_reorganize
-    renames existing CTFd challenges to them."""
+    """CTFd display name for each challenge: «NN — Title» with the lesson
+    tag appended when an approved lesson exists. The category stays out of
+    the name entirely — it is the board header. Sequence follows list order
+    per display category. ctf_setup registers with these names;
+    ctf_reorganize renames existing CTFd challenges to them."""
     seq = {}
     out = {}
     for ch in CHALLENGES:
         cat = display_category(ch)
         seq[cat] = seq.get(cat, 0) + 1
-        out[ch["name"]] = f"{cat} {seq[cat]:02d} — {ch['title']}"
+        out[ch["name"]] = f"{seq[cat]:02d} — {ch['title']}" + lesson_tag(ch)
     return out

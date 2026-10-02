@@ -25,7 +25,8 @@ GUIDE_SEP = "\n\n---\n\n"
 
 def build_guide():
     """Guide page: intro + tier ladder + full challenge→lesson map.
-    Draft challenges are deliberately excluded (they must stay secret)."""
+    Draft challenges are deliberately excluded (they must stay secret).
+    Only approved lessons get links."""
     lines = ["""## 🧭 راهنمای شروع — از کجا و به چه ترتیب؟
 
 هر چالش یک **پرچم مخصوص خودت** دارد؛ پرچم دیگران به کار تو نمی‌آید.
@@ -48,14 +49,15 @@ def build_guide():
 
 | چالش | درس |
 |---|---|"""]
+    from challenges import _approved_slugs
     seq = {}
     for ch in CHALLENGES:
         if ch.get("draft"):
             continue
         cat = display_category(ch)
         seq[cat] = seq.get(cat, 0) + 1
-        name = f"{cat} {seq[cat]:02d} — {ch['title']}"
-        slugs = DOCS_MAP.get(ch["name"], [])
+        name = f"{seq[cat]:02d} — {ch['title']}"
+        slugs = _approved_slugs(ch)
         if slugs:
             docs = " · ".join(
                 f"[{DOCS_TITLES[s]}]({DOCS_BASE}/{s}.html)" for s in slugs)
@@ -66,6 +68,16 @@ def build_guide():
 💡 شماره‌ی چالش‌ها در هر دسته، ترتیب پیشنهادی است.
 """)
     return "\n".join(lines)
+
+
+def core_title(ctfd_name):
+    """Reduce any naming scheme used so far to the bare Persian title:
+    «اجباری 01 — X», «01 — X», «01 — X — درس: Y», «X» all -> «X»."""
+    base = ctfd_name.split(" — درس:", 1)[0]
+    parts = base.split(" — ", 1)
+    if len(parts) == 2 and parts[0].split()[-1].isdigit():
+        return parts[1]
+    return base
 
 
 class CTFd:
@@ -122,16 +134,6 @@ def apply(api):
     import os
     challenges = all_challenges(api)
     titles = numbered_titles()
-    want = {titles[ch["name"]]: ch for ch in CHALLENGES}
-    old_by_new = {}          # new display name -> current ctfd name
-    for c in challenges:
-        base = c["name"]
-        # strip a previous "cat NN — " prefix if re-running
-        for name, ch in want.items():
-            suffix = name.split(" — ", 1)[-1]
-            if base == name or base == suffix:
-                old_by_new[name] = base
-                break
 
     backup = {
         "challenges": [{"id": c["id"], "name": c["name"],
@@ -146,12 +148,19 @@ def apply(api):
             api.patch(f"/challenges/{c['id']}", {"category": MERGE_TO})
             print(f"  category: {c['name'][:30]} -> {MERGE_TO}")
 
-    # 2) names -> numbered display names
+    # 2) names -> display names (match by bare title + category, so any
+    # previous naming scheme maps correctly)
+    by_key = {}
+    for ch in CHALLENGES:
+        by_key[(display_category(ch), ch["title"])] = ch
     renamed = 0
-    for new, old in old_by_new.items():
-        if old != new:
-            cid = next(c["id"] for c in challenges if c["name"] == old)
-            api.patch(f"/challenges/{cid}", {"name": new})
+    for c in challenges:
+        ch = by_key.get((c["category"], core_title(c["name"])))
+        if ch is None:
+            continue
+        new = titles[ch["name"]]
+        if c["name"] != new:
+            api.patch(f"/challenges/{c['id']}", {"name": new})
             renamed += 1
     print(f"  renamed {renamed} challenges")
 

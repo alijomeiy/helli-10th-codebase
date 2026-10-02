@@ -58,13 +58,17 @@ def get_or_create_challenge(api, ch, display_name):
 
 
 def ensure_docs_line(api, cid, ch):
-    """Idempotently append the docs-links footer to an existing challenge
-    description (description PATCH never touches flags or solves)."""
-    desc = api.get(f"/challenges/{cid}").get("description") or ""
+    """Make the description footer exactly match docs_line(ch): strips any
+    previous/over-broad footer, then adds the approved-only one. Description
+    PATCH never touches flags or solves."""
+    orig = api.get(f"/challenges/{cid}").get("description") or ""
+    desc = orig
     if DOCS_MARKER in desc:
+        desc = desc.split("\n---\n" + DOCS_MARKER)[0]
+    new_desc = desc + docs_line(ch)
+    if new_desc == orig:
         return False
-    api.patch(f"/challenges/{cid}",
-              {"description": desc + docs_line(ch)})
+    api.patch(f"/challenges/{cid}", {"description": new_desc})
     return True
 
 
