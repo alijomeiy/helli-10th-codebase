@@ -69,12 +69,21 @@ class CTFd:
 
 
 def all_challenges(api):
-    # view=admin: see hidden drafts as well
+    # view=admin: see hidden drafts as well. Page via meta.pagination and
+    # cap hard — CTFd keeps returning rows for out-of-range pages, which
+    # otherwise loops forever (and OOMs the small session cgroup).
     out, page = [], 1
-    while True:
-        data = api.get("/challenges", view="admin", page=page)
+    while page <= 50:
+        r = api.s.get(f"{api.base}/challenges",
+                      params={"view": "admin", "page": page,
+                              "per_page": 100},
+                      timeout=15)
+        r.raise_for_status()
+        j = r.json()
+        data = j.get("data", [])
         out.extend(data)
-        if not data:
+        nxt = (j.get("meta", {}).get("pagination", {}) or {}).get("next")
+        if not nxt or not data:
             break
         page += 1
     return out

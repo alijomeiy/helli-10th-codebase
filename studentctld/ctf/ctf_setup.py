@@ -36,8 +36,9 @@ class CTFd:
 
 def get_or_create_challenge(api, ch, display_name):
     # view=admin so hidden (draft) challenges are seen too — otherwise
-    # re-runs would create duplicates of every draft
-    for existing in api.get("/challenges", view="admin"):
+    # re-runs would create duplicates of every draft. per_page explicit:
+    # never rely on CTFd's default page size.
+    for existing in api.get("/challenges", view="admin", per_page=200):
         if existing["name"] == display_name:
             return existing["id"], False
     data = api.post("/challenges", {
@@ -52,7 +53,8 @@ def get_or_create_challenge(api, ch, display_name):
 
 
 def register_flags(api, challenge_id, flags):
-    existing = {f["content"] for f in api.get("/flags", challenge_id=challenge_id)}
+    existing = {f["content"] for f in
+                api.get("/flags", challenge_id=challenge_id, per_page=500)}
     added = 0
     for flag in flags:
         if flag in existing:
@@ -99,7 +101,7 @@ def main():
 
     if args.fresh:
         n = 0
-        for ch in api.get("/challenges", view="admin"):
+        for ch in api.get("/challenges", view="admin", per_page=200):
             requests.delete(f"{api.url}/api/v1/challenges/{ch['id']}",
                             headers=api.s.headers, timeout=15)
             n += 1
