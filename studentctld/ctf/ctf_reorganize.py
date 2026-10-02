@@ -163,17 +163,20 @@ def apply(api):
     for p in api.get("/pages", per_page=100):
         if p.get("route") != "index":
             continue
-        if p["content"].lstrip().startswith(marker):
-            _, _, rest = p["content"].partition(GUIDE_SEP)
+        # the pages LISTING has no content field — fetch the detail
+        det = api.get(f"/pages/{p['id']}")
+        content = det.get("content") or ""
+        if content.lstrip().startswith(marker):
+            _, _, rest = content.partition(GUIDE_SEP)
             api.patch(f"/pages/{p['id']}",
                       {"content": guide + GUIDE_SEP + rest,
                        "format": "markdown", "draft": False})
             print("  guide page: refreshed on index")
             break
-        backup["pages"].append({k: p.get(k) for k in
+        backup["pages"].append({k: det.get(k) for k in
                                 ("id", "title", "content", "format", "draft")})
         api.patch(f"/pages/{p['id']}",
-                  {"content": guide + GUIDE_SEP + p["content"],
+                  {"content": guide + GUIDE_SEP + content,
                    "format": "markdown", "draft": False})
         print("  guide page: prepended to index")
         break

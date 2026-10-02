@@ -33,6 +33,11 @@ class CTFd:
         r.raise_for_status()
         return r.json()["data"]
 
+    def patch(self, path, payload):
+        r = self.s.patch(f"{self.base}{path}", json=payload, timeout=15)
+        r.raise_for_status()
+        return r.json().get("data", {})
+
 
 def get_or_create_challenge(api, ch, display_name):
     # view=admin so hidden (draft) challenges are seen too — otherwise
