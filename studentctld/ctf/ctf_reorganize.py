@@ -52,14 +52,12 @@ def build_guide():
 
 | چالش | درس |
 |---|---|"""]
-    from challenges import _approved_slugs
-    seq = {}
+    from challenges import _approved_slugs, numbered_titles  # noqa: E402
+    titles = numbered_titles()
     for ch in CHALLENGES:
         if ch.get("draft"):
             continue
-        cat = display_category(ch)
-        seq[cat] = seq.get(cat, 0) + 1
-        name = f"{seq[cat]:02d} — {ch['title']}"
+        name = titles[ch["name"]]
         slugs = _approved_slugs(ch)
         if slugs:
             docs = " · ".join(
