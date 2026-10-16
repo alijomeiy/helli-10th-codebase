@@ -15,7 +15,7 @@
     <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
 
     <h1>🗜️ آموزش آرشیو و فشرده‌سازی</h1>
-    <p class="muted">در لینوکس همه‌چیز را «بسته‌بندی» می‌کنند — یاد بگیرید بازش کنید.</p>
+    <p class="muted">ساخت و استخراج آرشیو همان‌طور که در ویندوز پراستفاده است در لینوکس نیز مورد استفاده است، این این که یک فایل را راحت‌تر جابه‌جا کنیم تا کارکردهای مربوط به فشرده‌سازی و یا بعضی دیگر از موارد در ویندوز ما معمولا از zip، rar یا 7zip استفاده کرده‌ایم.</p>
 
     <div class="card">
       <h3>چرا آرشیو؟</h3>
@@ -23,10 +23,10 @@
          جمع کردن (مثل tar)، و <strong>فشرده‌سازی</strong> یعنی کم‌حجم کردن (مثل gzip).
          ترکیب همیشگی لینوکس: <code dir="ltr">tar</code> + <code dir="ltr">gzip</code>
          که پسوندش می‌شود <code dir="ltr">.tar.gz</code>.</p>
-      <p>tar در همه‌جا نصب است — روی سرور و در آزمایشگاه شما. ابزار دیگری لازم ندارید.</p>
+      <p>tar معمولا در همه‌جا نصب است — روی سرور و در آزمایشگاه شما. ابزار دیگری لازم ندارید.</p>
     </div>
 
-    <h2>باز کردن (پرکاربردترین کار شما!)</h2>
+    <h2>استخراج</h2>
 <pre dir="ltr">tar xzf file.tar.gz          # باز کردن در پوشه‌ی فعلی
 tar xzf file.tar.gz -C /tmp  # باز کردن داخل پوشه‌ی دیگر
 tar xf file.tar              # آرشیوی که فشرده نیست
@@ -34,11 +34,11 @@ gunzip file.gz               # فقط فایل فشرده‌ی تکی</pre>
     <p class="muted">کلیدها: <strong>x</strong> = extract، <strong>z</strong> = gzip، <strong>f</strong> = file.
      ترفند حفظ‌کردن: «e<strong>X</strong>tract <strong>Z</strong>e <strong>F</strong>ile».</p>
 
-    <h2>قبل از باز کردن: نگاه داخل بسته</h2>
+    <h2>بررسی محتویات بدون استخراج</h2>
 <pre dir="ltr">tar tzf file.tar.gz          # فهرست محتوا (t = list) بدون باز کردن
 tar tzf file.tar.gz | head   # فقط ۱۰ خط اول</pre>
     <p>همیشه اول <code dir="ltr">t</code> بزنید — هم می‌فهمید داخل چیست، هم می‌فهمید
-       آرشیو پوشه دارد یا فایل‌های لخت؛ بعضی آرشیوها موقع باز کردن همه‌جا را شلوغ می‌کنند!</p>
+       آرشیو پوشه دارد یا فایل‌های خالی؛ بعضی آرشیوها موقع باز کردن همه‌جا را شلوغ می‌کنند!</p>
 
     <h2>ساختن آرشیو</h2>
 <pre dir="ltr">tar czf out.tar.gz folder/        # کل پوشه را بسته‌بندی کن
@@ -60,28 +60,7 @@ gzip -k bigfile.txt               # فشرده کن ولی اصل را نگه د
       </tbody>
     </table>
     <p class="muted">ترفند طلایی: <code dir="ltr">file mystery.bin</code> نوع واقعی هر فایلی را می‌گوید —
-       حتی اگر اسمش دروغ بگوید. (روی سرور نصب است؛ در آزمایشگاه بخشی از سیستم پایه است.)</p>
-
-    <h2>آرشیو و داکر</h2>
-    <p>آرشیو فقط برای فایل نیست! تصویرهای داکر هم «فایل tar» هستند:
-       <code dir="ltr">docker save</code> تصویر را tar می‌کند و <code dir="ltr">docker load</code>
-       برمی‌گرداند. و خودِ tar هم از داخل، لایه‌های بیشتری می‌تواند داشته باشد —
-       آرشیوِ داخل آرشیو کاملاً رایج است.</p>
-
-    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
-    <ol>
-      <li>پوشه‌ی <code dir="ltr">/etc/cron.d</code> را به <code dir="ltr">/tmp/cron-backup.tar.gz</code> آرشیو کنید — بدون باز کردن، اول محتوایش را فهرست کنید.</li>
-      <li>آرشیو تمرین ۱ را در <code dir="ltr">/tmp/restored</code> باز کنید و مطمئن شوید فایل‌ها سر جایشان‌اند.</li>
-      <li>تفاوت <code dir="ltr">tar czf</code> و <code dir="ltr">tar xzf</code> در یک خط بگویید.</li>
-      <li>فایلی به نام <code dir="ltr">notes.gz</code> دارید؛ بدون فشرده‌گشایی، محتوایش را ببینید.</li>
-      <li>یک آرشیو بسازید که داخلش یک آرشیو دیگر باشد و بعد هر دو لایه را باز کنید.</li>
-    </ol>
-    <p><em>پاسخ‌ها:</em></p>
-    <details><summary>پاسخ ۱</summary><p dir="ltr">tar tzf /tmp/cron-backup.tar.gz (اول!) و بعد: tar czf /tmp/cron-backup.tar.gz /etc/cron.d</p></details>
-    <details><summary>پاسخ ۲</summary><p dir="ltr">mkdir -p /tmp/restored && tar xzf /tmp/cron-backup.tar.gz -C /tmp/restored</p></details>
-    <details><summary>پاسخ ۳</summary><p>c می‌سازد (create)، x باز می‌کند (extract)؛ z یعنی gzip و f یعنی نام فایل.</p></details>
-    <details><summary>پاسخ ۴</summary><p dir="ltr">zcat notes.gz</p></details>
-    <details><summary>پاسخ ۵</summary><p dir="ltr">tar czf outer.tar.gz inner.tar.gz && tar xzf outer.tar.gz && tar xzf inner.tar.gz</p></details>
+       حتی اگر اسمش دروغ بگوید. (روی سرور نصب است؛ در آزمایشگاه بخشی از سیستم پایه است.) در لینوکس ممکن است بر اثر اشتباه یا حتی عمد فرمت فایل اشتباه باشد</p>
 
     <h2>چالش‌های مرتبط</h2>
     <p>این درس کلید چالش‌های «بسته‌ی بسته‌بندی‌شده»، «کارآگاه»، «گنج پنهان در بایگانی»،

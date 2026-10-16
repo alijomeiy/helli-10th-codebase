@@ -15,7 +15,7 @@
     <p><a href="index.html">→ بازگشت به فهرست مستندات</a></p>
 
     <h1>✂️ آموزش پردازش متن</h1>
-    <p class="muted">در لینوکس «فایل متنی» پادشاه است — لاگ، تنظیمات، داده؛ همه متن‌اند.</p>
+    <p class="muted">در لینوکس «فایل متنی» مبنای خیلی از چیزهاست — لاگ، تنظیمات، داده؛ همه متن‌اند.</p>
 
     <div class="card">
       <h3>دیدن، بریدن، شمردن</h3>
@@ -62,21 +62,6 @@ diff -u old.conf new.conf      # خروجی خواناتر (فرمت patch)</pre
 <pre dir="ltr">grep ERROR /var/log/app.log | cut -d' ' -f5 | sort | uniq -c | sort -rn | head</pre>
     <p>خطاهای لاگ را بگیر ← ستون ماژول را ببر ← مرتب کن ← بشمار ← پرتکرارترین‌ها.
        همین یک خط، کارِ یک روز تحلیل‌گر است!</p>
-
-    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
-    <ol>
-      <li>۱۰ کاربرِ اول <code dir="ltr">/etc/passwd</code> را فقط با نام‌شان نشان دهید.</li>
-      <li>پرتکرارترین «کلمه‌ی اول» در <code dir="ltr">/var/log/syslog</code> یا هر لاگ موجود را پیدا کنید.</li>
-      <li>متن <code dir="ltr">Uryyb Jbeyq</code> را با tr رمزگشایی کنید.</li>
-      <li>تعداد خط‌های فایل <code dir="ltr">/etc/services</code> را بشمارید.</li>
-      <li>تفاوت خروجی <code dir="ltr">wc -l f.txt</code> و <code dir="ltr">wc -l < f.txt</code> چیست؟</li>
-    </ol>
-    <p><em>پاسخ‌ها:</em></p>
-    <details><summary>پاسخ ۱</summary><p dir="ltr">head -10 /etc/passwd | cut -d: -f1</p></details>
-    <details><summary>پاسخ ۲</summary><p dir="ltr">awk-بدون: cut -d' ' -f1 /var/log/syslog | sort | uniq -c | sort -rn | head -1</p></details>
-    <details><summary>پاسخ ۳</summary><p dir="ltr">echo 'Uryyb Jbeyq' | tr 'A-Za-z' 'N-ZA-Mn-za-m'  →  Hello World</p></details>
-    <details><summary>پاسخ ۴</summary><p dir="ltr">wc -l /etc/services</p></details>
-    <details><summary>پاسخ ۵</summary><p>اولی نام فایل را هم نشان می‌دهد (چون آرگومان است)، دومی فقط عدد (چون از stdin می‌خواند).</p></details>
 
     <h2>چالش‌های مرتبط</h2>
     <p>«گزارش شبانه»، «ردپای تاریخچه»، «داده‌ی رمزی» و «شیفت شب» با همین ابزارها حل می‌شوند.</p>

@@ -52,7 +52,7 @@ grep root /etc/passwd 2>/dev/null   # خطاها را دور بریز (/dev/null
 <pre dir="ltr">ls -l | tee snap.txt           # روی صفحه هم نشان می‌دهد هم در فایل می‌نویسد
 make 2>&1 | tee build.log      # لاگِ ساخت را زنده ببین و نگه دار</pre>
 
-    <h2>xargs: خروجی را به «آرگومان» تبدیل کن</h2>
+    <h2>xargs: خروجی را به «آرگومان» تبدیل کن (امتیازی)</h2>
     <p>لوله خروجی را به <em>ورودی</em> می‌دهد؛ اما بعضی دستورها ورودی نمی‌گیرند،
        آرگومان می‌خواهند. xargs این پل است:</p>
 <pre dir="ltr">cat files.txt | xargs rm       # هر خط = یک آرگومان برای rm
@@ -63,21 +63,6 @@ grep -rl FLAG . | xargs cat | grep -c FLAG   # زنجیره‌ی واقعی کا
 <pre dir="ltr">grep FLAG file.txt
 echo $?                        # 0 = موفق، غیرصفر = ناموفق/پیدا نشد</pre>
     <p class="muted">این عدد بعداً در اسکریپت‌نویسی همه‌جا به کار می‌آید.</p>
-
-    <h2>تمرین (در آزمایشگاه خودتان انجام دهید)</h2>
-    <ol>
-      <li>تعداد فایل‌های <code dir="ltr">/usr/bin</code> را بشمارید — بدون باز کردن هیچ فایلی.</li>
-      <li>۱۰ خط آخر <code dir="ltr">/etc/passwd</code> را در فایلی ذخیره کنید، بعد بدون بازنویسی، ۵ خط اول را هم به همان فایل اضافه کنید.</li>
-      <li>دستوری بنویسید که خطای آن در <code dir="ltr">/dev/null</code> گم شود و فقط خروجی ببینید.</li>
-      <li>خروجی <code dir="ltr">history</code> را هم روی صفحه ببینید هم در فایل ذخیره کنید.</li>
-      <li>با یک زنجیره، تعداد کاربران واقعی (خط‌های دارای <code dir="ltr">/home</code>) در passwd را بشمارید.</li>
-    </ol>
-    <p><em>پاسخ‌ها:</em></p>
-    <details><summary>پاسخ ۱</summary><p dir="ltr">ls /usr/bin | wc -l</p></details>
-    <details><summary>پاسخ ۲</summary><p dir="ltr">tail -10 /etc/passwd > f.txt && head -5 /etc/passwd >> f.txt</p></details>
-    <details><summary>پاسخ ۳</summary><p dir="ltr">ls /nope 2>/dev/null</p></details>
-    <details><summary>پاسخ ۴</summary><p dir="ltr">history | tee h.txt</p></details>
-    <details><summary>پاسخ ۵</summary><p dir="ltr">grep /home /etc/passwd | wc -l</p></details>
 
     <h2>چالش‌های مرتبط</h2>
     <p>لوله‌ها در تقریباً همه‌ی چالش‌ها به کار می‌آیند؛ مخصوصاً «سوزن در انبار کاه»،
