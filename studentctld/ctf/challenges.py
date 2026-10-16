@@ -591,14 +591,318 @@ CHALLENGES = [
         "hint": "grep -rlE 'FLAG\\{[a-z0-9_-]+\\}' /opt/lab/hay — حرف‌های بزرگ/کوچک و الگوی دقیق، تفاوت فریب و واقعیت است",
         "hint_cost": 60,
     },
+
+    # ---------------- session exercises (box-based, per-student flag) ---------
+    # Naming encodes the class session: <tier>-s<session>-<n>-<slug>.
+    # Tiers: m = اجباری, oe = اختیاری — آسان, om = اختیاری — متوسط,
+    # oh = اختیاری — سخت. Session numbers follow docs index.html order.
+    # Each carries "session": N → board name gets « — جلسه N» (Persian digits).
+
+    # جلسه ۶ — آرشیو و فشرده‌سازی (docs/archives.html)
+    {
+        "name": "m-s6-1-packcron",
+        "title": "بایگانی کرون",
+        "category": "اجباری",
+        "points": 100,
+        "session": 6,
+        "description": "در آزمایشگاه شما /opt/lab/cron-pack.tar.gz بایگانی‌ای از "
+                       "برنامه‌های زمان‌بندی است. اول بدون باز کردن، فهرستش را "
+                       "ببینید؛ نام یکی از فایل‌ها با بقیه فرق دارد — فقط همان "
+                       "یک عضو را بیرون بیاورید. (تمرین جلسه ۶ — درس آرشیو: "
+                       "docs.helli-10th-computer.ir/archives.html)",
+        "hint": "tar tzf /opt/lab/cron-pack.tar.gz → نامِ متفاوت را پیدا کن → "
+                "tar xzf /opt/lab/cron-pack.tar.gz <نام‌عضو> -C /tmp/m61 → cat",
+        "hint_cost": 20,
+    },
+    {
+        "name": "m-s6-2-restore",
+        "title": "بازگردانی سایت",
+        "category": "اجباری",
+        "points": 125,
+        "session": 6,
+        "description": "پشتیبانِ یک وب‌سایت قدیمی در /opt/lab/site-backup.tar.gz "
+                       "خوابیده. آن را داخل پوشه‌ی تازه‌ی /tmp/restore باز کنید — "
+                       "نه اینکه ریخته همه‌جا پخش شود! — و پرچم را در همان درخت "
+                       "پیدا کنید. (تمرین جلسه ۶ — درس آرشیو: "
+                       "docs.helli-10th-computer.ir/archives.html)",
+        "hint": "mkdir -p /tmp/restore && tar xzf /opt/lab/site-backup.tar.gz "
+                "-C /tmp/restore → بعد: grep -r FLAG /tmp/restore",
+        "hint_cost": 20,
+    },
+    {
+        "name": "m-s6-3-gzview",
+        "title": "بدون باز کردن",
+        "category": "اجباری",
+        "points": 150,
+        "session": 6,
+        "description": "در پوشه‌ی فقط‌خواندنی /opt/lab/ro-backups یک notes.gz "
+                       "هست. آن پوشه اجازه‌ی نوشتن نمی‌دهد؛ محتوای فایل فشرده را "
+                       "بدون خارج کردن ببینید و پرچم را بردارید. (تمرین جلسه ۶ — "
+                       "درس آرشیو: docs.helli-10th-computer.ir/archives.html)",
+        "hint": "zcat /opt/lab/ro-backups/notes.gz | grep FLAG — یا کل‌اش را ببینید: zcat /opt/lab/ro-backups/notes.gz",
+        "hint_cost": 20,
+    },
+    {
+        "name": "oe-s6-1-tarkeys",
+        "title": "پسوند دروغگو",
+        "category": "اختیاری — آسان",
+        "points": 150,
+        "session": 6,
+        "description": "فایل /opt/lab/mystery.tar.gz هر کاری کنید با کلید z باز "
+                       "نمی‌شود! از او بپرسید واقعاً چیست (ابزار file) و با کلیدِ "
+                       "درست بازش کنید. (تمرین جلسه ۶ — درس آرشیو: "
+                       "docs.helli-10th-computer.ir/archives.html)",
+        "hint": "file /opt/lab/mystery.tar.gz — اگر gzip نبود، کلید z را بردار: tar xf /opt/lab/mystery.tar.gz -C /tmp/m61",
+        "hint_cost": 25,
+    },
+    {
+        "name": "oe-s6-2-singlefile",
+        "title": "دوقلوها",
+        "category": "اختیاری — آسان",
+        "points": 150,
+        "session": 6,
+        "description": "در /opt/lab دو یادداشت هم‌نام هستند: notes.txt معمولی و "
+                       "notes.txt.gz فشرده. یکی پرچم قلابی دارد؛ واقعی در دوقلوی "
+                       "فشرده است. (تمرین جلسه ۶ — درس آرشیو: "
+                       "docs.helli-10th-computer.ir/archives.html)",
+        "hint": "cat /opt/lab/notes.txt (قلابی است!) → zcat /opt/lab/notes.txt.gz",
+        "hint_cost": 25,
+    },
+    {
+        "name": "om-s6-1-tablemode",
+        "title": "جدول بایگانی",
+        "category": "اختیاری — متوسط",
+        "points": 200,
+        "session": 6,
+        "description": "بایگانی /opt/lab/table.tar.gz دویست عضو دارد و تقریباً "
+                       "همه ته‌خالی‌اند. فهرستِ پرجزئیات بگیرید؛ تنها عضوی که "
+                       "حجمِ واقعی دارد پرچم را حمل می‌کند — بدون باز کردن کل "
+                       "بایگانی، همان یک عضو را بیرون بکشید. (تمرین جلسه ۶ — "
+                       "درس آرشیو: docs.helli-10th-computer.ir/archives.html)",
+        "hint": "tar tvzf /opt/lab/table.tar.gz | grep -v ' 0 ' → حجم‌دارها → "
+                "tar xzf /opt/lab/table.tar.gz <نام‌عضو> -C /tmp/m61",
+        "hint_cost": 30,
+    },
+    {
+        "name": "oh-s6-1-singlemember",
+        "title": "تنها عضو واقعی",
+        "category": "اختیاری — سخت",
+        "points": 250,
+        "session": 6,
+        "description": "در /opt/lab/vault.tar.gz سیصد گنجِ هم‌نما و هم‌حجم هست؛ "
+                       "همه FAKEFLAG قلابی دارند و فقط یکی الگوی واقعی پرچم شما "
+                       "(FLAG{...}) را. با فهرستِ پرجزئیات و استخراجِ گزینشی — یا "
+                       "یک زنجیره‌ی خوب — پیدایش کنید. (تمرین جلسه ۶ — درس آرشیو: "
+                       "docs.helli-10th-computer.ir/archives.html)",
+        "hint": "mkdir /tmp/m61 && tar xzf /opt/lab/vault.tar.gz -C /tmp/m61 → "
+                "grep -rlE 'FLAG\\{[a-z]+-[0-9a-f]{6}\\}' /tmp/m61",
+        "hint_cost": 40,
+    },
+
+    # جلسه ۷ — لوله‌ها و تغییر مسیر (docs/pipes.html)
+    {
+        "name": "m-s7-1-linepick",
+        "title": "خطِ شمارِ شگفت‌انگیز",
+        "category": "اجباری",
+        "points": 100,
+        "session": 7,
+        "description": "در /opt/lab/rows.txt هزاران خط هست. شماره‌ی خطِ پرچم‌دار "
+                       "= تعدادِ خط‌هایی که کلمه‌ی ERROR دارند. یک دستور بشمارد، "
+                       "یکی همان خط را ببرد. (تمرین جلسه ۷ — درس لوله‌ها: "
+                       "docs.helli-10th-computer.ir/pipes.html)",
+        "hint": "grep -c ERROR /opt/lab/rows.txt → عدد = N → sed -n 'Np' "
+                "/opt/lab/rows.txt (یا: head -N | tail -1)",
+        "hint_cost": 20,
+    },
+    {
+        "name": "m-s7-2-appendlogs",
+        "title": "دفتر چسبان",
+        "category": "اجباری",
+        "points": 125,
+        "session": 7,
+        "description": "دفترِ /opt/lab/journal.txt پرچم را دو نیم کرده: نیمه‌ی "
+                       "اول در ۵ خطِ اول، نیمه‌ی دوم در ۱۰ خطِ آخر. مثل یک "
+                       "پرونده: آخرِ پرونده را در فایلی بریزید (>) و اولِ آن را "
+                       "به همان فایل بچسبانید (>>). پرچم = دو نیمه به هم. "
+                       "(تمرین جلسه ۷ — درس لوله‌ها: "
+                       "docs.helli-10th-computer.ir/pipes.html)",
+        "hint": "tail -10 /opt/lab/journal.txt > /tmp/j.txt && head -5 "
+                "/opt/lab/journal.txt >> /tmp/j.txt → cat /tmp/j.txt → نیمه‌ها را به هم بچسبانید",
+        "hint_cost": 20,
+    },
+    {
+        "name": "m-s7-3-silence",
+        "title": "زمزمه در بی‌صدا",
+        "category": "اجباری",
+        "points": 150,
+        "session": 7,
+        "description": "اسکریپت /opt/lab/noisy.sh مدام جملات بی‌مصرف روی صفحه "
+                       "می‌ریزد؛ اما رازش را جای دیگری می‌فرستد... خروجیِ معمولی‌اش "
+                       "را بی‌صدا کنید (>/dev/null) تا زمزمه‌ی واقعی بشنوید. "
+                       "(تمرین جلسه ۷ — درس لوله‌ها: "
+                       "docs.helli-10th-computer.ir/pipes.html)",
+        "hint": "bash /opt/lab/noisy.sh > /dev/null 2>/tmp/whisper.txt → "
+                "cat /tmp/whisper.txt (کلید: 2> یعنی جریانِ دوم)",
+        "hint_cost": 25,
+    },
+    {
+        "name": "oe-s7-1-teekeep",
+        "title": "ببین و نگه‌دار",
+        "category": "اختیاری — آسان",
+        "points": 150,
+        "session": 7,
+        "description": "سنسور /opt/lab/sensor.sh هر بار دویست خط «قرائت» می‌کند "
+                       "و پرچم فقط در یکی از آن‌هاست — صفحه تند رد می‌شود. هم روی "
+                       "صفحه ببینید هم در فایل نگه دارید؛ بعد در فایل بگردید. "
+                       "(تمرین جلسه ۷ — درس لوله‌ها: "
+                       "docs.helli-10th-computer.ir/pipes.html)",
+        "hint": "bash /opt/lab/sensor.sh | tee /tmp/keep.txt → grep FLAG /tmp/keep.txt",
+        "hint_cost": 25,
+    },
+    {
+        "name": "om-s7-1-usercount",
+        "title": "شمارش معکوس",
+        "category": "اختیاری — متوسط",
+        "points": 200,
+        "session": 7,
+        "description": "در فایلِ ۵۰۰ خطیِ /opt/lab/passwd-like کاربرانِ واقعی "
+                       "(پوسته‌ی bash و خانه‌شان زیر /home) چند نفرند؟ بگویید N — "
+                       "پرچم دقیقاً روی خطِ N فایلِ /opt/lab/gate.txt نشسته. "
+                       "(تمرین جلسه ۷ — درس لوله‌ها: "
+                       "docs.helli-10th-computer.ir/pipes.html)",
+        "hint": "grep '/bin/bash' /opt/lab/passwd-like | grep '/home/' | wc -l "
+                "→ N → sed -n 'Np' /opt/lab/gate.txt",
+        "hint_cost": 30,
+    },
+    {
+        "name": "oh-s7-1-xargchain",
+        "title": "زنجیره‌ی سرنخ‌ها",
+        "category": "اختیاری — سخت",
+        "points": 250,
+        "session": 7,
+        "description": "در /opt/lab/haystack صدها پرونده است و /opt/lab/clues.txt "
+                       "نامِ ۷ تا از آن‌ها را فهرست کرده (مواظب باشید: دو نام "
+                       "فاصله دارد!). هر پرونده‌ی سرنخ یک تکه SEG<k>=... دارد؛ "
+                       "تکه‌ها را به ترتیبِ k بچینید تا پرچم کامل شود. (xargs "
+                       "امتیازی است — تمرین جلسه ۷ — درس لوله‌ها: "
+                       "docs.helli-10th-computer.ir/pipes.html)",
+        "hint": "(cd /opt/lab/haystack && cat /opt/lab/clues.txt | xargs -d '\\n' "
+                "cat | sort | cut -d= -f2 | tr -d '\\n') → تکه‌های SEG1 تا SEG7 پشت‌سرهم",
+        "hint_cost": 40,
+    },
+
+    # جلسه ۸ — پردازش متن (docs/texttools.html)
+    {
+        "name": "m-s8-1-firstcol",
+        "title": "ستون برنده",
+        "category": "اجباری",
+        "points": 100,
+        "session": 8,
+        "description": "فایل /opt/lab/attendees.csv فهرستِ حاضران است؛ ردیفِ "
+                       "«winner» در ستون یادداشتِ خودش پرچم را دارد. اول ردیفش "
+                       "را پیدا کنید، بعد ستونش را ببرید. (تمرین جلسه ۸ — درس "
+                       "پردازش متن: docs.helli-10th-computer.ir/texttools.html)",
+        "hint": "grep winner /opt/lab/attendees.csv → cut -d, -f4",
+        "hint_cost": 20,
+    },
+    {
+        "name": "m-s8-2-topword",
+        "title": "پرتکرارترین",
+        "category": "اجباری",
+        "points": 125,
+        "session": 8,
+        "description": "در /opt/lab/chat.log یک واژه بیش از همه تکرار شده — نامِ "
+                       "فایلی در /opt/lab/words است که پرچم داخلش است. شمارش "
+                       "کنید، صدرِ جدول را ببینید. (تمرین جلسه ۸ — درس پردازش "
+                       "متن: docs.helli-10th-computer.ir/texttools.html)",
+        "hint": "tr ' ' '\\n' < /opt/lab/chat.log | sort | uniq -c | sort -rn | "
+                "head -3 → واژه‌ی صدر → cat /opt/lab/words/<واژه>",
+        "hint_cost": 25,
+    },
+    {
+        "name": "m-s8-3-countpos",
+        "title": "فاصله‌ی دقیق",
+        "category": "اجباری",
+        "points": 150,
+        "session": 8,
+        "description": "یادداشتِ /opt/lab/hint.txt را نخوانید — بشمارید! تعداد "
+                       "کاراکترهایش (wc -c) عددی می‌سازد: N. از بایتِ Nام فایل "
+                       "/opt/lab/blob.bin به بعد را بخوانید؛ پرچم همان‌جا "
+                       "نشسته. (تمرین جلسه ۸ — درس پردازش متن: "
+                       "docs.helli-10th-computer.ir/texttools.html)",
+        "hint": "N=$(wc -c < /opt/lab/hint.txt) → tail -c +$N /opt/lab/blob.bin | head -c 60",
+        "hint_cost": 25,
+    },
+    {
+        "name": "oe-s8-1-confdiff",
+        "title": "چیز عوض شد",
+        "category": "اختیاری — آسان",
+        "points": 150,
+        "session": 8,
+        "description": "دو نسخه‌ی تنظیمات در /opt/lab هست: old.conf و new.conf. "
+                       "تفاوت‌شان را ببینید — یکی از خط‌های تغییریافته پرچم را لو "
+                       "می‌دهد. (تمرین جلسه ۸ — درس پردازش متن: "
+                       "docs.helli-10th-computer.ir/texttools.html)",
+        "hint": "diff /opt/lab/old.conf /opt/lab/new.conf → خط‌های + (اضافه‌شده) را بخوانید",
+        "hint_cost": 25,
+    },
+    {
+        "name": "om-s8-1-logtop",
+        "title": "مقصر اصلی",
+        "category": "اختیاری — متوسط",
+        "points": 200,
+        "session": 8,
+        "description": "گزارش /opt/lab/app.log پر از رخداد است؛ فقط خط‌های "
+                       "status=FAIL مهم‌اند. کدام ماژول بیشتر از همه شکست خورده؟ "
+                       "کلیدِ پرچم در /opt/lab/modules زیرِ نامِ همان ماژول است. "
+                       "(تمرین جلسه ۸ — درس پردازش متن: "
+                       "docs.helli-10th-computer.ir/texttools.html)",
+        "hint": "grep 'status=FAIL' /opt/lab/app.log | cut -d' ' -f3 | sort | "
+                "uniq -c | sort -rn | head -3 → نام ماژول صدر (module=...) → "
+                "cat /opt/lab/modules/<نام>.key",
+        "hint_cost": 30,
+    },
+    {
+        "name": "oh-s8-1-chainforensic",
+        "title": "کالبدشکافی زنجیره‌ای",
+        "category": "اختیاری — سخت",
+        "points": 250,
+        "session": 8,
+        "description": "در /opt/lab/cases ده‌ها پرونده هست (case-*/notes.txt). "
+                       "ماژولی که در بیشترین پرونده‌ها status=FAIL داشته، مقصر "
+                       "اصلی است؛ پرچم در پرونده‌ی هم‌نامش در /opt/lab/suspects "
+                       "است — اما بزرگ و کوچکِ حروفش برعکس شده! (تمرین جلسه ۸ — "
+                       "درس پردازش متن: docs.helli-10th-computer.ir/texttools.html)",
+        "hint": "grep -h 'status=FAIL' /opt/lab/cases/*/notes.txt | cut -d' ' "
+                "-f3 | sort | uniq -c | sort -rn | head -1 → نام ماژول → "
+                "tr 'A-Za-z' 'a-zA-Z' < /opt/lab/suspects/<نام>",
+        "hint_cost": 40,
+    },
 ]
+
+
+# Optional sub-categories that existed before session exercises were added;
+# these merge into one «اختیاری» on the board. The session-exercise tiers
+# («اختیاری — آسان/متوسط/سخت») stay separate on purpose: they encode the
+# practice ladder for each lesson.
+LEGACY_OPTIONAL = ("پیشرفته", "ریجکس", "وب", "دسترسی‌ها")
+
+
+def is_legacy_optional(cat):
+    """True for the pre-session «اختیاری — …» sub-categories that merge
+    into plain «اختیاری» (board header + ctf_reorganize merge)."""
+    if not cat.startswith("اختیاری —"):
+        return False
+    suffix = cat.split("—", 1)[1].strip()
+    return suffix in LEGACY_OPTIONAL
 
 
 def display_category(ch):
     """Post-cleanup category for the board: the fragmented «اختیاری — …»
-    sub-categories read as one «اختیاری» (matches ctf_reorganize merge)."""
+    sub-categories read as one «اختیاری» (matches ctf_reorganize merge);
+    the session tiers «اختیاری — آسان/متوسط/سخت» stay as-is."""
     cat = ch["category"]
-    return "اختیاری" if cat.startswith("اختیاری —") else cat
+    return "اختیاری" if is_legacy_optional(cat) else cat
 
 
 # ---- docs mapping: challenge -> lesson pages on docs.helli-10th-computer.ir
@@ -666,6 +970,26 @@ DOCS_MAP = {
     "v6-sentinel": ["networking", "processes"],
     "v7-vault": ["users", "bashscript"],
     "v8-needle2": ["pipes", "regex"],
+    # session exercises
+    "m-s6-1-packcron": ["archives"],
+    "m-s6-2-restore": ["archives"],
+    "m-s6-3-gzview": ["archives"],
+    "oe-s6-1-tarkeys": ["archives"],
+    "oe-s6-2-singlefile": ["archives"],
+    "om-s6-1-tablemode": ["archives"],
+    "oh-s6-1-singlemember": ["archives"],
+    "m-s7-1-linepick": ["pipes"],
+    "m-s7-2-appendlogs": ["pipes"],
+    "m-s7-3-silence": ["pipes"],
+    "oe-s7-1-teekeep": ["pipes"],
+    "om-s7-1-usercount": ["pipes"],
+    "oh-s7-1-xargchain": ["pipes"],
+    "m-s8-1-firstcol": ["texttools"],
+    "m-s8-2-topword": ["texttools"],
+    "m-s8-3-countpos": ["texttools"],
+    "oe-s8-1-confdiff": ["texttools"],
+    "om-s8-1-logtop": ["texttools"],
+    "oh-s8-1-chainforensic": ["texttools"],
 }
 DOCS_MARKER = "📚"
 
@@ -714,11 +1038,15 @@ def docs_line(ch):
     return f"\n\n---\n{DOCS_MARKER} **درس‌های مرتبط:** {links}"
 
 
+FA_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
+
+
 def numbered_titles():
     """CTFd display name for each challenge: «NN — Title» with the lesson
-    tag appended when an approved lesson exists. The category stays out of
-    the name entirely — it is the board header. Sequence follows list order
-    per display category. ctf_setup registers with these names;
+    tag appended when an approved lesson exists, and the session tag
+    (« — جلسه N», Persian digits) for session exercises. The category stays
+    out of the name entirely — it is the board header. Sequence follows list
+    order per display category. ctf_setup registers with these names;
     ctf_reorganize renames existing CTFd challenges to them."""
     seq = {}
     out = {}
@@ -726,4 +1054,7 @@ def numbered_titles():
         cat = display_category(ch)
         seq[cat] = seq.get(cat, 0) + 1
         out[ch["name"]] = f"{seq[cat]:02d} — {ch['title']}" + lesson_tag(ch)
+        if ch.get("session"):
+            out[ch["name"]] += (" — جلسه "
+                                + str(ch["session"]).translate(FA_DIGITS))
     return out

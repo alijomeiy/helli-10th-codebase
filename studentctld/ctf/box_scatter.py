@@ -35,7 +35,7 @@ BOXCTL = "/usr/local/sbin/studentctl-box"
 WORKERS = 4          # parallel boxes during scatter/reset
 
 R_NAMES = [c["name"] for c in CHALLENGES
-           if re.match(r"^[rehv]\d-", c["name"])]
+           if re.match(r"^([rehv]\d-|(m|oe|om|oh)-s\d+-\d+-)", c["name"])]
 
 
 def sh(cmd, stdin_data=None, timeout=300, check=True):
@@ -125,6 +125,154 @@ def box_payload(u, flags):
 
     # v1: second half served by the dormant web app
     v1_part2 = flags["v1-oldsite"][len(flags["v1-oldsite"]) // 2:]
+
+    # ---- session exercises (s6 archives / s7 pipes / s8 texttools).
+    # Every rnd use below is deliberately AFTER all legacy draws above so
+    # re-scatter regenerates the legacy artifacts byte-identically. ----
+
+    def ts():
+        return f"{rnd.randint(0, 23):02d}:{rnd.randint(0, 59):02d}:" \
+               f"{rnd.randint(0, 59):02d}"
+
+    mods = ["authx", "billing", "cache", "queue", "mailer", "storage"]
+
+    # m-s6-1: odd member name inside the cron archive
+    rnd61 = rnd.randint(100, 999)
+    # om-s6-1: the single sized member among 200 empty ones
+    m66real = rnd.randint(1, 200)
+    # oh-s6-1: 300 same-size vault members; FAKEFLAG decoys + dot padding,
+    # exactly one carries the real flag pattern
+    real67 = flags["oh-s6-1-singlemember"]
+    real67 += "." * (40 - len(real67))
+    m67 = []
+    for i in range(1, 301):
+        fake = f"FAKEFLAG{{decoy-{i:03d}}}"
+        m67.append(fake + "." * (40 - len(fake)))
+    m67[rnd.randint(0, 299)] = real67
+    m67_block = "\n".join(
+        f"printf '%s\\n' '{content}' > /opt/lab/m67src/vault/.treasure-{i:03d}.txt"
+        for i, content in enumerate(m67, 1))
+
+    # m-s6-3: notes viewed through gzip
+    m63 = [f"note {i:02d}: routine maintenance, nothing unusual."
+           for i in range(1, 26)]
+    m63[rnd.randint(5, 20)] = f"night backup passphrase: {flags['m-s6-3-gzview']}"
+    m63_text = chr(10).join(m63) + "\n"
+
+    # oe-s6-2: twin notes — plain decoy, gz real
+    m65 = [f"shopping list item {i}: nothing interesting." for i in range(1, 13)]
+    m65[rnd.randint(3, 9)] = flags["oe-s6-2-singlefile"]
+    m65_text = chr(10).join(m65) + "\n"
+
+    # m-s7-1: exactly m71_k lines carry ERROR; the flag sits on line m71_k
+    m71_k = rnd.randint(150, 700)
+    words = ["alpha", "bravo", "cargo", "delta", "echo", "fox", "gold",
+             "hotel", "iris", "juno", "kiwi", "lime", "mango", "nile",
+             "opal", "pico", "quartz", "ray", "solar", "tango", "umbra",
+             "vela", "wren", "xenon", "yonder", "zinc"]
+    m71 = [f"line {i}: " + " ".join(rnd.choice(words) for _ in range(6))
+           for i in range(1, 2001)]
+    for i in rnd.sample([j for j in range(1, 2001) if j != m71_k], m71_k):
+        m71[i - 1] += " ERROR"
+    m71[m71_k - 1] = f"line {m71_k}: ALERT note={flags['m-s7-1-linepick']}"
+    m71_text = chr(10).join(m71) + "\n"
+
+    # m-s7-2: journal — first half in the top 5 lines, second in the last 10
+    m72 = flags["m-s7-2-appendlogs"]
+    m72_p1, m72_p2 = m72[: len(m72) // 2], m72[len(m72) // 2:]
+    jtop = [f"journal entry {i}: morning pages, nothing special."
+            for i in range(1, 6)]
+    jtop[1] = f"journal entry 2: PART1={m72_p1}"
+    jmid = [f"journal entry {i}: midday pages, nothing here."
+            for i in range(6, 31)]
+    jbot = [f"journal entry {i}: evening pages, still nothing."
+            for i in range(31, 41)]
+    jbot[6] = f"PART2={m72_p2}"
+    m72_text = chr(10).join(jtop + jmid + jbot) + "\n"
+
+    # om-s7-1: EXACTLY 17 bash+/home users; flag waits on gate.txt line 17
+    m73 = [f"stu{i}:x:{2000 + i}:{2000 + i}::/home/stu{i}:/bin/bash"
+           for i in range(1, 18)]
+    m73 += ["root:x:0:0::/root:/bin/bash",
+            "svc:x:100:100::/srv/svc:/bin/bash",
+            "build:x:105:105::/var/build:/bin/bash"]
+    m73 += [f"old{i}:x:{1500 + i}:{1500 + i}::/home/old{i}:/usr/sbin/nologin"
+            for i in range(1, 21)]
+    while len(m73) < 500:
+        i = len(m73)
+        m73.append(f"sys{i}:x:{100 + i}:{100 + i}::/var/empty{rnd.randint(1, 9)}:"
+                   f"{rnd.choice(['/usr/sbin/nologin', '/bin/false'])}")
+    m73_text = chr(10).join(m73) + "\n"
+    gate = [f"gate line {i}: sealed" for i in range(1, 401)]
+    gate[16] = flags["om-s7-1-usercount"]
+    m73_gate = chr(10).join(gate) + "\n"
+
+    # oh-s7-1: 7 clue files (two names carry spaces), SEG pieces in order
+    m76 = flags["oh-s7-1-xargchain"]
+    seg = -(-len(m76) // 7)
+    m76_parts = [m76[k * seg:(k + 1) * seg] for k in range(7)]
+    clue_names = [f"report-{n}.txt" for n in rnd.sample(range(1000, 10000), 5)]
+    clue_names += [f"old report {rnd.randint(100, 999)}.txt",
+                   f"final note {rnd.randint(100, 999)}.txt"]
+    rnd.shuffle(clue_names)
+    m76_clues = chr(10).join(clue_names) + "\n"
+    m76_files = "\n".join(
+        f'cat > "/opt/lab/haystack/{name}" << "EOF"\n'
+        f"SEG{k + 1}={m76_parts[k]}\nEOF"
+        for k, name in enumerate(clue_names))
+
+    # m-s8-1: attendees.csv — exactly one winner row
+    m81 = ["name,city,uid,note"]
+    for i in range(1, 300):
+        m81.append(f"guest{i},{rnd.choice(['tehran', 'esfahan', 'shiraz', 'tabriz'])},"
+                   f"{3000 + i},-")
+    m81.append(f"winner,tehran,{3300},{flags['m-s8-1-firstcol']}")
+    rnd.shuffle(m81[1:])
+    m81_text = chr(10).join(m81) + "\n"
+
+    # m-s8-2: chat.log — pineapple-42 is the top word (40x), cactus-17 decoy
+    toks = (["pineapple-42"] * 40 + ["cactus-17"] * 25
+            + [f"tok-{rnd.randint(1, 400)}" for _ in range(2335)])
+    rnd.shuffle(toks)
+    m82_text = chr(10).join(
+        " ".join(toks[i:i + 8]) for i in range(0, len(toks), 8)) + "\n"
+
+    # om-s8-1: app.log — billing FAILs most (25), cache runner-up (18)
+    m88 = [f"{ts()} status=FAIL module=billing msg=timeout" for _ in range(25)]
+    m88 += [f"{ts()} status=FAIL module=cache msg=evicted" for _ in range(18)]
+    m88 += [f"{ts()} status=FAIL module={mo} msg=retry"
+            for mo in ("queue", "authx", "mailer", "storage")
+            for _ in range(rnd.randint(2, 7))]
+    m88 += [f"{ts()} status=OK module={rnd.choice(mods)} msg=ok"
+            for _ in range(430)]
+    rnd.shuffle(m88)
+    m88_text = chr(10).join(m88) + "\n"
+
+    # oh-s8-1: 30 case files; cronmond FAILs in exactly 18 (top); the
+    # culprit's suspect file stores the flag with case flipped (tr to read)
+    assign = ["cronmond"] * 18 + ["webhookd"] * 12
+    rnd.shuffle(assign)
+    case_blocks = []
+    for c in range(1, 31):
+        lines = [f"{ts()} status=OK module={rnd.choice(mods)} msg=ok"
+                 for _ in range(rnd.randint(8, 14))]
+        lines.append(f"{ts()} status=FAIL module={assign[c - 1]} msg=crash")
+        rnd.shuffle(lines)
+        body = chr(10).join(lines) + "\n"
+        case_blocks.append(
+            f"mkdir -p /opt/lab/cases/case-{c:02d}\n"
+            f"cat > /opt/lab/cases/case-{c:02d}/notes.txt << 'EOF'\n"
+            f"{body}EOF")
+    m89_cases = "\n".join(case_blocks) + "\n"
+    m89_suspects = "\n".join(
+        f"cat > /opt/lab/suspects/{name} << 'EOF'\n{content}\nEOF"
+        for name, content in [
+            ("cronmond", flags["oh-s8-1-chainforensic"].swapcase()),
+            ("webhookd", "FAKEFLAG{not-the-culprit}".swapcase()),
+            ("cache", "FAKEFLAG{keep-looking}".swapcase()),
+            ("authx", "FAKEFLAG{nope}".swapcase()),
+        ])
+
 
     return f"""set -e
 # ---- r1: secret in root's home
@@ -302,6 +450,163 @@ chmod 700 /opt/lab/.ghost/ghost.py
 cat >> /home/lab/.bash_history <<'EOF'
 curl localhost:{ghost_port}
 EOF
+
+# ---- session 6: archives exercises ------------------------------------------
+
+# m-s6-1: cron-pack archive with one oddly-named member (list before extract)
+mkdir -p /opt/lab/m61src
+for i in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24; do
+  printf 'cron note %s: nothing special here\n' "$i" > /opt/lab/m61src/job-$i.conf
+done
+printf '%s\n' '{flags["m-s6-1-packcron"]}' > /opt/lab/m61src/special-{rnd61}.conf
+tar -C /opt/lab/m61src -czf /opt/lab/cron-pack.tar.gz $(ls /opt/lab/m61src)
+rm -rf /opt/lab/m61src
+
+# m-s6-2: site backup tree (extract with -C into a fresh dir)
+mkdir -p /opt/lab/m62src/var/www/html/assets
+printf '<h1>old site</h1>\n' > /opt/lab/m62src/var/www/html/index.html
+printf 'body {{ color: #333; }}\n' > /opt/lab/m62src/var/www/html/assets/style.css
+printf '%s\n' '{flags["m-s6-2-restore"]}' > /opt/lab/m62src/var/www/html/.restored.flag
+tar -C /opt/lab/m62src -czf /opt/lab/site-backup.tar.gz var
+rm -rf /opt/lab/m62src
+
+# m-s6-3: read-only backups dir with a gzipped note (zcat lesson)
+mkdir -p /opt/lab/ro-backups
+gzip -c > /opt/lab/ro-backups/notes.gz << 'EOF'
+{m63_text}EOF
+chmod 644 /opt/lab/ro-backups/notes.gz
+chmod 555 /opt/lab/ro-backups
+
+# oe-s6-1: a plain tar wearing a .tar.gz name (file(1) tells the truth)
+mkdir -p /opt/lab/m64src/notes
+printf 'plain note: the extension lies sometimes.\n' > /opt/lab/m64src/notes/list.txt
+printf '%s\n' '{flags["oe-s6-1-tarkeys"]}' > /opt/lab/m64src/notes/true-flag.txt
+tar -C /opt/lab/m64src -cf /opt/lab/mystery.tar.gz notes
+rm -rf /opt/lab/m64src
+
+# oe-s6-2: twin notes — plain decoy, gzipped real
+printf '%s\n' 'FAKEFLAG{{the-plain-one-lies}}' > /opt/lab/notes.txt
+gzip -c > /opt/lab/notes.txt.gz << 'EOF'
+{m65_text}EOF
+
+# om-s6-1: 200 empty members, exactly one sized (tar tvzf)
+mkdir -p /opt/lab/m66src/items
+for i in $(seq 1 200); do
+  : > /opt/lab/m66src/items/item-$i.dat
+done
+printf 'THIS ONE IS REAL. %s\n' '{flags["om-s6-1-tablemode"]}' > /opt/lab/m66src/items/item-{m66real}.dat
+tar -C /opt/lab/m66src -czf /opt/lab/table.tar.gz items
+rm -rf /opt/lab/m66src
+
+# oh-s6-1: 300 same-size vault members, one real flag pattern
+mkdir -p /opt/lab/m67src/vault
+{m67_block}
+tar -C /opt/lab/m67src -czf /opt/lab/vault.tar.gz vault
+rm -rf /opt/lab/m67src
+
+# ---- session 7: pipes exercises ---------------------------------------------
+
+# m-s7-1: rows.txt (ERROR count == flag line number)
+cat > /opt/lab/rows.txt << 'EOF'
+{m71_text}EOF
+
+# m-s7-2: journal with split halves (head -5 / tail -10, > then >>)
+cat > /opt/lab/journal.txt << 'EOF'
+{m72_text}EOF
+
+# m-s7-3: noisy script; the whisper goes to stderr
+cat > /opt/lab/noisy.sh << 'SH'
+#!/bin/bash
+for i in $(seq 1 60); do
+  echo "packet $i: nothing to see here, keep moving..."
+done
+SH
+echo 'echo "whisper: tonight it is {flags["m-s7-3-silence"]}" >&2' >> /opt/lab/noisy.sh
+chmod 755 /opt/lab/noisy.sh
+
+# oe-s7-1: sensor script (tee it, then grep the saved copy)
+cat > /opt/lab/sensor.sh << 'SH'
+#!/bin/bash
+hit=$((RANDOM % 180 + 10))
+for i in $(seq 1 200); do
+  if [ "$i" -eq "$hit" ]; then
+    echo "reading $i: FLAG_PLACEHOLDER"
+  else
+    echo "reading $i: temp=$((RANDOM % 30 + 20))C pressure=$((RANDOM % 40 + 900))"
+  fi
+done
+SH
+sed -i "s|FLAG_PLACEHOLDER|{flags["oe-s7-1-teekeep"]}|" /opt/lab/sensor.sh
+chmod 755 /opt/lab/sensor.sh
+
+# om-s7-1: passwd-like (exactly 17 bash+/home users) + gate.txt line 17
+cat > /opt/lab/passwd-like << 'EOF'
+{m73_text}EOF
+cat > /opt/lab/gate.txt << 'EOF'
+{m73_gate}EOF
+
+# oh-s7-1: haystack dust + 7 clue files (two names carry spaces)
+mkdir -p /opt/lab/haystack
+for i in $(seq 1 500); do
+  printf 'dust %s: nothing here\n' "$i" > /opt/lab/haystack/grain-$i.txt
+done
+{m76_files}
+cat > /opt/lab/clues.txt << 'EOF'
+{m76_clues}EOF
+
+# ---- session 8: texttools exercises -----------------------------------------
+
+# m-s8-1: attendees.csv (grep the winner row, cut the note column)
+cat > /opt/lab/attendees.csv << 'EOF'
+{m81_text}EOF
+
+# m-s8-2: chat.log + words/ (top word names the file)
+mkdir -p /opt/lab/words
+cat > /opt/lab/chat.log << 'EOF'
+{m82_text}EOF
+printf '%s\n' '{flags["m-s8-2-topword"]}' > /opt/lab/words/pineapple-42
+printf '%s\n' 'FAKEFLAG{{second-place}}' > /opt/lab/words/cactus-17
+for w in tok-7 tok-88 tok-291; do
+  printf '%s\n' 'nothing here' > /opt/lab/words/$w
+done
+
+# m-s8-3: byte-position hint (wc -c -> tail -c +N)
+printf '%s' 'REMEMBER: count everything, trust nothing, and always carry a towel.' > /opt/lab/hint.txt
+N=$(wc -c < /opt/lab/hint.txt)
+head -c $((N - 1)) /dev/urandom > /opt/lab/blob.bin
+printf '%s' '{flags["m-s8-3-countpos"]}' >> /opt/lab/blob.bin
+printf '\n' >> /opt/lab/blob.bin
+
+# oe-s8-1: two conf versions (diff)
+cat > /opt/lab/old.conf << 'EOF'
+[server]
+port = 8080
+timeout = 30
+loglevel = info
+max_clients = 50
+EOF
+cat > /opt/lab/new.conf << 'EOF'
+[server]
+port = 8080
+timeout = 30
+loglevel = debug
+max_clients = 50
+secret_token = {flags["oe-s8-1-confdiff"]}
+EOF
+
+# om-s8-1: app log + module keys (billing fails most)
+mkdir -p /opt/lab/modules
+cat > /opt/lab/app.log << 'EOF'
+{m88_text}EOF
+for mo in authx cache queue mailer storage; do
+  printf '%s\n' 'FAKEFLAG{{wrong-module}}' > /opt/lab/modules/$mo.key
+done
+printf '%s\n' '{flags["om-s8-1-logtop"]}' > /opt/lab/modules/billing.key
+
+# oh-s8-1: 30 case files + suspects (culprit stores the flag reversed)
+mkdir -p /opt/lab/suspects
+{m89_cases}
+{m89_suspects}
 """
     # source files may carry CRLF (Windows checkout) — bash inside the box
     # needs clean LF

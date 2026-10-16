@@ -383,6 +383,11 @@ SCATTERERS = {
     "v3-ghost": scatter_r_stub,
 }
 
+# session exercises are box-only (box_scatter.py owns them); anything not
+# listed above falls through to the stub so a full-mode run never KeyErrors
+for _ch in CHALLENGES:
+    SCATTERERS.setdefault(_ch["name"], scatter_r_stub)
+
 
 def chown_tree(path, uid):
     for root, dirs, files in os.walk(path):

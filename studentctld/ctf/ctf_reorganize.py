@@ -14,8 +14,8 @@ import json
 import requests
 
 from challenges import (CHALLENGES, numbered_titles, display_category,
-                        docs_line, DOCS_MAP, DOCS_TITLES, DOCS_BASE,
-                        DOCS_MARKER)
+                        is_legacy_optional, docs_line, DOCS_MAP, DOCS_TITLES,
+                        DOCS_BASE, DOCS_MARKER)
 
 BACKUP = "/root/ctf_reorg_backup.json"
 MERGE_TO = "اختیاری"
@@ -35,10 +35,13 @@ def build_guide():
 |---|---|---|---|
 | ۱ | **اجباری** | آشنایی با ترمینال: خواندن، جستجو، vim | فقط حساب سرور |
 | ۲ | **اختیاری** | مخفی‌کاری، آرشیو، ریجکس، وب، دسترسی‌ها | حساب سرور |
-| ۳ | **آسان** | تمرین درس‌ها: apt، آرشیو، متن، فرایند، شبکه، داکر | آزمایشگاه (mybox) |
-| ۴ | **آزمایشگاه** | root واقعی: کاربر، cron، سرویس، داکر-داخل-داکر | آزمایشگاه (mybox) |
-| ۵ | **سخت** | کارآگاهی: بایگانی، زمان، نیمه‌های گم‌شده | آزمایشگاه + درس‌ها |
-| ۶ | **بسیار سخت** | کانتینر-فورنزیک و سرویس‌های پنهان | همه‌ی بالا |
+| ۳ | **اختیاری — آسان** | تمرین جلسات، پله‌ی اول (در جعبه‌ی خودتان) | حساب سرور + mybox |
+| ۴ | **اختیاری — متوسط** | تمرین جلسات، پله‌ی دوم | mybox + درس جلسه |
+| ۵ | **اختیاری — سخت** | تمرین جلسات، پله‌ی آخر | mybox + درس جلسه |
+| ۶ | **آسان** | تمرین درس‌ها: apt، آرشیو، متن، فرایند، شبکه، داکر | آزمایشگاه (mybox) |
+| ۷ | **آزمایشگاه** | root واقعی: کاربر، cron، سرویس، داکر-داخل-داکر | آزمایشگاه (mybox) |
+| ۸ | **سخت** | کارآگاهی: بایگانی، زمان، نیمه‌های گم‌شده | آزمایشگاه + درس‌ها |
+| ۹ | **بسیار سخت** | کانتینر-فورنزیک و سرویس‌های پنهان | همه‌ی بالا |
 
 **راهنمای درس‌ها:** [docs.helli-10th-computer.ir](https://docs.helli-10th-computer.ir)
 — هر درس می‌گوید برای کدام چالش‌ها لازم است.
@@ -72,8 +75,10 @@ def build_guide():
 
 def core_title(ctfd_name):
     """Reduce any naming scheme used so far to the bare Persian title:
-    «اجباری 01 — X», «01 — X», «01 — X — درس: Y», «X» all -> «X»."""
+    «اجباری 01 — X», «01 — X», «01 — X — درس: Y», «01 — X — جلسه N», «X»
+    all -> «X»."""
     base = ctfd_name.split(" — درس:", 1)[0]
+    base = base.split(" — جلسه", 1)[0]
     parts = base.split(" — ", 1)
     if len(parts) == 2 and parts[0].split()[-1].isdigit():
         return parts[1]
@@ -142,9 +147,10 @@ def apply(api):
         "pages": [],
     }
 
-    # 1) categories: merge the fragmented اختیاری — * ones
+    # 1) categories: merge only the LEGACY fragmented «اختیاری — *» ones;
+    # the session tiers («اختیاری — آسان/متوسط/سخت») stay separate
     for c in challenges:
-        if c["category"].startswith("اختیاری —"):
+        if is_legacy_optional(c["category"]):
             api.patch(f"/challenges/{c['id']}", {"category": MERGE_TO})
             print(f"  category: {c['name'][:30]} -> {MERGE_TO}")
 
