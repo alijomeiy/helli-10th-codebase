@@ -14,8 +14,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 import server_api
 from server_api import (
-    box_create, box_remove, box_reset, box_status, box_stop,
-    passwd as srv_passwd, kill as srv_kill,
+        passwd as srv_passwd, kill as srv_kill,
 )
 from config import Config
 from models import (
@@ -282,32 +281,11 @@ def dashboard():
     except Exception:
         capacity = None
 
-    # lab box status (best effort)
-    box = None
-    try:
-        box = box_status(current_user.username)
-    except Exception:
-        box = None
-
     return render_template(
         "dashboard.html",
-        pending=False, rejected=False, capacity=capacity, box=box,
+        pending=False, rejected=False, disabled=False, capacity=capacity,
     )
 
-
-@app.route("/box/reset", methods=["POST"])
-@login_required
-def box_reset_mine():
-    """Student self-service: wipe and recreate their own lab box."""
-    if current_user.role != "student" or current_user.status != STATUS_APPROVED:
-        abort(403)
-    try:
-        box_reset(current_user.username)
-        log_event(current_user.username, "box_reset", "self-service")
-        flash("آزمایشگاه شما از نو ساخته شد؛ همه‌چیز تازه است.", "ok")
-    except Exception as e:
-        flash(f"بازنشانی آزمایشگاه ناموفق بود: {e}", "error")
-    return redirect(url_for("dashboard"))
 
 
 # ---------- admin blueprint ---------------------------------------------------
@@ -397,13 +375,6 @@ def approve(uid):
     sync_server()
     log_event(u.username, "provision", f"uid={new_uid} port={port}")
 
-    # lab box (best-effort — approval proceeds even if this fails)
-    try:
-        box_create(u.username)
-        log_event(u.username, "box", "created")
-    except Exception as e:
-        log_event(u.username, "box", f"create failed: {e}")
-
     ctfd = ctfd_provision(u.username, pw)
     if ctfd:
         log_event(u.username, "ctf_account", "created via CTFd API")
@@ -441,10 +412,6 @@ def disable(uid):
     u.status = STATUS_DISABLED
     db.session.commit()
     sync_server()
-    try:
-        box_stop(u.username)          # put the lab to sleep too
-    except Exception:
-        pass
     ctfd_ok = ctfd_set_banned(u.username, banned=True)
     log_event(u.username, "disable", f"banned by admin {current_user.username}")
     msg = f"دسترسی {u.username} مسدود شد و نشست‌های فعال او قطع شدند."
@@ -467,10 +434,6 @@ def enable(uid):
     u.status = STATUS_APPROVED
     db.session.commit()
     sync_server()
-    try:
-        box_create(u.username)        # ensure the lab exists after re-enable
-    except Exception:
-        pass
     ctfd_ok = ctfd_set_banned(u.username, banned=False)
     log_event(u.username, "enable", f"unbanned by admin {current_user.username}")
     msg = f"دسترسی {u.username} دوباره فعال شد."
@@ -540,10 +503,6 @@ def delete(uid):
     db.session.delete(u)
     db.session.commit()
     sync_server()
-    try:
-        box_remove(uname)             # lab goes with the account
-    except Exception:
-        pass
     log_event(uname, "delete")
     flash(f"{uname} از همه‌جا حذف شد.", "ok")
     return redirect(url_for("admin.admin_index"))
