@@ -10,7 +10,7 @@
   <div style="background:#2a1010; border:1px solid #5b1d1d; border-radius:12px; padding:24px; margin:20px 0;">
     <h1 style="color:#ef4444; margin-top:0;">⛔ حساب کاربری شما مسدود شده است</h1>
     <p style="font-size:16px; color:#fecaca; line-height:1.8;">
-      دسترسی شما به سرور لینوکس، آزمایشگاه و سامانه مسابقات به دلیل فعالیت غیرمجاز یا مغایرت با قوانین دوره به حالت تعلیق درآمده است.
+      دسترسی شما به سرور لینوکس و سامانه مسابقات به دلیل فعالیت غیرمجاز یا مغایرت با قوانین دوره به حالت تعلیق درآمده است.
     </p>
     <p class="muted" style="margin-bottom:0;">
       تمامی نشست‌های فعال شما بسته شده و اطلاعات اتصال مخفی است. جهت بررسی وضعیت، لطفاً مستقیماً با دبیر یا مدیر دوره تماس بگیرید.
@@ -33,33 +33,12 @@
     <div><span>ترمینال مرورگر</span><a href="/terminal/" target="_blank">ورود به ترمینال وب</a></div>
   </div>
 
-  <h2>آزمایشگاه شخصی شما (mybox)</h2>
-  <p>
-    یک لینوکس کامل و خصوصی که در آن <strong>root</strong> هستید: می‌توانید نصب
-    نرم‌افزار (<code dir="ltr">apt</code>)، کاربر بسازید، سرویس اجرا کنید و حتی
-    کانتینرهای خودتان را با دستور <code dir="ltr">docker</code> بالا بیاورید.
-  </p>
-  <div class="creds">
-    <div>
-      <span>وضعیت آزمایشگاه</span>
-      {% if box and box.running %}بیدار {% if box.mem %}({{ box.mem }}){% endif %}
-      {% elif box and box.exists %}خوابیده (با ورود، بیدار می‌شود)
-      {% else %}هنوز ساخته نشده — با اولین ورود ساخته می‌شود{% endif %}
-    </div>
-    <div>
-      <span>ورود به آزمایشگاه</span>
-      بعد از اتصال SSH یا ترمینال وب، دستور <code>mybox</code> را بزنید
-    </div>
-  </div>
-  <p class="muted">آزمایشگاه بعد از حدود ۳۰ دقیقه بی‌کاری خودش خوابید تا منابع سرور آزاد بماند؛ کارهای شما محفوظ می‌ماند.</p>
-  <form method="post" action="{{ url_for('box_reset_mine') }}"
-        onsubmit="return confirm('همه‌چیز داخل آزمایشگاه پاک می‌شود و از نو ساخته می‌شود. مطمئنید؟')">
-    <button type="submit" class="danger">بازنشانی آزمایشگاه</button>
-  </form>
-
   <h2>نحوه اتصال</h2>
   <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p {{ config.SSH_PORT_PUBLIC }}</pre>
-  <p class="muted">سپس یک سرویس روی پورت خودتان اجرا کنید، مثلاً:</p>
+  <p class="muted">یا می‌توانید بدون نیاز به کلاینت SSH، مستقیماً از بخش «ترمینال مرورگر» یا دکمه زیر وارد حساب خود در سرور شوید:</p>
+  <p><a href="/terminal/" target="_blank" style="font-weight: 500;">🖥️ ورود مستقیم به حساب لینوکس از طریق ترمینال وب</a></p>
+
+  <p class="muted">سپس برای آزمایش، می‌توانید یک سرویس وب روی پورت اختصاصی خودتان اجرا کنید:</p>
   <pre dir="ltr">python3 -m http.server {{ current_user.port }}</pre>
   <p>و در مرورگر باز کنید:
     <a href="http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/" dir="ltr">http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/</a>
