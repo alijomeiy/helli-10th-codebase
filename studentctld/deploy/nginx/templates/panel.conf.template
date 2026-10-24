@@ -1,31 +1,3 @@
-# nginx config template (envsubst replaces ${DOMAIN} from the compose environment).
-# HTTP serves the ACME challenge and redirects everything else to HTTPS.
-# HTTPS terminates TLS and proxies to the panel container.
-
-#server {
-#    listen      80;
-#    listen [::]:80;
-#    server_name ${DOMAIN};
-#
-#    # Let's Encrypt verification
-#    location /.well-known/acme-challenge/ {
-#        root /var/www/certbot;
-#    }
-#
-#    # Redirect all other traffic to HTTPS
-#    location / {
-#        return 301 https://$host$request_uri;
-#    }
-#}
-#server {
-#    listen 80;
-#    server_name ~^(?<user>[^.]+)\.$helli-10th-computer.ir;
-#
-#    location / {
-#        alias /home/$user/public_html/;
-#        index index.html index.php;
-#    }
-#}
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
@@ -42,6 +14,23 @@ server {
 
     client_max_body_size 8m;
 
+    location = /terminal {
+        return 301 /terminal/;
+    }
+
+    location /terminal/ {
+        proxy_pass http://172.18.0.1:7681/terminal/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
     location / {
         proxy_pass http://panel:5000;
         proxy_http_version 1.1;
@@ -53,4 +42,3 @@ server {
         proxy_read_timeout 60s;
     }
 }
-
