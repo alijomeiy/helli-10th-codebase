@@ -10,7 +10,7 @@
   <div style="background:#2a1010; border:1px solid #5b1d1d; border-radius:12px; padding:24px; margin:20px 0;">
     <h1 style="color:#ef4444; margin-top:0;">⛔ حساب کاربری شما مسدود شده است</h1>
     <p style="font-size:16px; color:#fecaca; line-height:1.8;">
-      دسترسی شما به سرور لینوکس و سامانه مسابقات به دلیل فعالیت غیرمجاز یا مغایرت با قوانین دوره به حالت تعلیق درآمده است.
+      دسترسی شما به سرور لینوکس، آزمایشگاه و سامانه مسابقات به دلیل فعالیت غیرمجاز یا مغایرت با قوانین دوره به حالت تعلیق درآمده است.
     </p>
     <p class="muted" style="margin-bottom:0;">
       تمامی نشست‌های فعال شما بسته شده و اطلاعات اتصال مخفی است. جهت بررسی وضعیت، لطفاً مستقیماً با دبیر یا مدیر دوره تماس بگیرید.
@@ -32,6 +32,28 @@
     <div><span>پورت سرویس</span><code>{{ current_user.port }}</code></div>
     <div><span>ترمینال مرورگر</span><a href="/terminal/" target="_blank">ورود به ترمینال وب</a></div>
   </div>
+
+  <h2>آزمایشگاه شخصی شما (mybox)</h2>
+  <p>
+    یک محیط لینوکس ایزوله و اختصاصی که در آن <strong>root</strong> هستید: برای تمرین‌های درس، نصب بسته‌ها با <code dir="ltr">apt</code>، مدیریت سرویس‌ها و حل چالش‌های مسابقه (CTF).
+  </p>
+  <div class="creds">
+    <div>
+      <span>وضعیت آزمایشگاه</span>
+      {% if box and box.running %}بیدار {% if box.mem %}({{ box.mem }}){% endif %}
+      {% elif box and box.exists %}خوابیده (با ورود، بیدار می‌شود)
+      {% else %}هنوز ساخته نشده — با اولین ورود ساخته می‌شود{% endif %}
+    </div>
+    <div>
+      <span>ورود به آزمایشگاه</span>
+      پس از اتصال با ترمینال وب یا SSH، دستور <code dir="ltr">mybox</code> را وارد کنید
+    </div>
+  </div>
+  <p class="muted">آزمایشگاه بعد از حدود ۳۰ دقیقه بی‌کاری به‌صورت خودکار به خواب می‌رود تا منابع سرور آزاد بماند؛ فایل‌ها و کارهای شما کاملاً محفوظ می‌ماند.</p>
+  <form method="post" action="{{ url_for('box_reset_mine') }}"
+        onsubmit="return confirm('همه‌چیز داخل آزمایشگاه پاک می‌شود و از نو ساخته می‌شود. مطمئنید؟')">
+    <button type="submit" class="danger">بازنشانی آزمایشگاه (Reset Box)</button>
+  </form>
 
   <h2>نحوه اتصال</h2>
   <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p {{ config.SSH_PORT_PUBLIC }}</pre>
