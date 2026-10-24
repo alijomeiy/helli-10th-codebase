@@ -21,6 +21,84 @@
 </form>
 <p class="muted">هر دانشجو هر زمان که ظرفیت آزاد باشد می‌تواند وارد شود. اگر بی‌کار بماند، پس از این مدت به‌صورت خودکار خارج می‌شود تا جای او آزاد شود.</p>
 
+<h2>مدیریت کلاس‌ها و دسترسی به مسابقات (CTF)</h2>
+
+{% if classes_summary %}
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th>کلاس</th>
+      <th>تعداد کل دانش‌آموزان</th>
+      <th>دانش‌آموزان فعال</th>
+      <th>وضعیت مسابقه CTF</th>
+      <th>عملیات کنترل دسترسی</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for c in classes_summary %}
+    <tr>
+      <td>
+        {% if c.class_label %}
+          <strong style="font-size:15px; color:#38bdf8;">کلاس {{ c.class_label }}</strong>
+        {% else %}
+          <strong style="font-size:14px; color:#94a3b8;">— (تخصیص‌نیافته)</strong>
+        {% endif %}
+      </td>
+      <td>{{ c.total }}</td>
+      <td>{{ c.active }}</td>
+      <td>
+        {% if not c.class_label %}
+          <span class="muted">بدون کلاس</span>
+        {% elif c.is_locked %}
+          <span style="background:#2a1010; color:#fecaca; border:1px solid #5b1d1d; padding:3px 10px; border-radius:6px; font-size:12px; font-weight:600;">🔒 قفل‌شده</span>
+        {% else %}
+          <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:3px 10px; border-radius:6px; font-size:12px; font-weight:600;">🔓 باز / فعال</span>
+        {% endif %}
+      </td>
+      <td class="actions">
+        {% if c.class_label %}
+          {% if c.is_locked %}
+            <form method="post" action="{{ url_for('admin.class_unlock') }}"
+                  onsubmit="return confirm('دسترسی CTF برای کلاس «{{ c.class_label }}» بازگشایی شود؟');">
+              <input type="hidden" name="class_label" value="{{ c.class_label }}">
+              <button type="submit" class="ok" title="بازگشایی دسترسی CTF برای این کلاس">🔓 بازگشایی مسابقه</button>
+            </form>
+          {% else %}
+            <form method="post" action="{{ url_for('admin.class_lock') }}"
+                  onsubmit="return confirm('دسترسی CTF برای کلاس «{{ c.class_label }}» قفل شود؟ حساب‌های مسابقه تمام دانش‌آموزان این کلاس مسدود می‌شوند.');">
+              <input type="hidden" name="class_label" value="{{ c.class_label }}">
+              <button type="submit" class="danger" title="قفل دسترسی CTF برای این کلاس">🔒 قفل مسابقه</button>
+            </form>
+          {% endif %}
+        {% else %}
+          <span class="muted">—</span>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">هیچ کلاسی ثبت نشده است.</p>
+{% endif %}
+
+<details style="margin: 14px 0 28px 0; background:#121620; border:1px solid var(--bd); border-radius:8px; padding:12px 18px;">
+  <summary style="cursor:pointer; font-weight:600; color:var(--ink);">➕ تخصیص دسته‌جمعی کلاس به دانش‌آموزان</summary>
+  <form method="post" action="{{ url_for('admin.bulk_assign_class') }}" class="form" style="margin-top:14px;">
+    <div style="display:flex; gap:16px; flex-wrap:wrap;">
+      <label style="flex:1; min-width:200px;">نام یا شماره کلاس مقصد (مثلاً 101)
+        <input name="class_label" required placeholder="مثال: 101" dir="ltr">
+      </label>
+      <label style="flex:2; min-width:280px;">نام‌های کاربری دانش‌آموزان (با فاصله، ویرگول یا خط جدید)
+        <textarea name="usernames" rows="3" required placeholder="ali_reza mohammad_ahmadi ajomei" dir="ltr"></textarea>
+      </label>
+    </div>
+    <button type="submit" class="ok" style="margin-top:8px;">ثبت و تخصیص کلاس</button>
+  </form>
+</details>
+
 <h2>مدیریت تسک‌ها و تابلوی امتیازات</h2>
 
 <div class="actions" style="margin:12px 0">
@@ -72,11 +150,11 @@
 {% if pending %}
 <div class="table-scroll">
 <table>
-  <thead><tr><th>نام کاربری</th><th>نام</th><th>رایانامه</th><th>تاریخ درخواست</th><th></th></tr></thead>
+  <thead><tr><th>نام کاربری</th><th>نام</th><th>کلاس</th><th>رایانامه</th><th>تاریخ درخواست</th><th></th></tr></thead>
   <tbody>
   {% for u in pending %}
     <tr>
-      <td dir="ltr">{{ u.username }}</td><td>{{ u.full_name }}</td><td dir="ltr">{{ u.email }}</td>
+      <td dir="ltr">{{ u.username }}</td><td>{{ u.full_name }}</td><td><strong style="color:#38bdf8;">{{ u.class_label or '—' }}</strong></td><td dir="ltr">{{ u.email }}</td>
       <td>{{ u.created_at }}</td>
       <td class="actions">
         <form method="post" action="{{ url_for('admin.approve', uid=u.id) }}"><button class="ok">تأیید</button></form>
@@ -100,6 +178,7 @@
     <tr>
       <th>نام کاربری</th>
       <th>نام دانش‌آموز</th>
+      <th>کلاس</th>
       <th>UID</th>
       <th>پورت</th>
       <th>وضعیت</th>
@@ -112,6 +191,12 @@
     <tr>
       <td dir="ltr" style="font-weight:600;">{{ u.username }}</td>
       <td>{{ u.full_name or '—' }}</td>
+      <td>
+        <span style="font-weight:600; color:#38bdf8;">{{ u.class_label or '—' }}</span>
+        <button type="button" onclick="promptClass({{ u.id }}, '{{ u.username }}', '{{ u.class_label or '' }}')"
+                style="padding:2px 7px; font-size:11px; margin-right:4px; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:4px; cursor:pointer;"
+                title="تغییر کلاس دانش‌آموز">✏️</button>
+      </td>
       <td dir="ltr">{{ u.uid }}</td>
       <td dir="ltr">{{ u.port }}</td>
       <td>
@@ -180,6 +265,22 @@ function promptPassword(uid, username) {
     input.type = "hidden";
     input.name = "new_password";
     input.value = pw;
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+function promptClass(uid, username, currentClass) {
+  const newClass = prompt(`کلاس جدید برای دانش‌آموز "${username}" را وارد نمایید:`, currentClass);
+  if (newClass !== null) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = `{{ url_for('admin.admin_index') }}/user/class/${uid}`;
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "class_label";
+    input.value = newClass.trim();
     form.appendChild(input);
     document.body.appendChild(form);
     form.submit();
