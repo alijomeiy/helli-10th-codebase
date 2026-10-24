@@ -24,26 +24,13 @@
 {% else %}
   <h1>حساب لینوکس شما</h1>
 
-  <!-- کارت دسترسی به ترمینال وب -->
-  <div style="background:rgba(37,99,235,0.12); border:1px solid rgba(59,130,246,0.35); border-radius:12px; padding:20px; margin:20px 0;">
-    <h3 style="color:#60a5fa; margin-top:0; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-      🖥️ ترمینال وب مستقیم (بدون نیاز به پورت SSH و نرم‌افزار)
-    </h3>
-    <p style="margin-bottom:14px; font-size:14px; color:#cbd5e1; line-height:1.7;">
-      اگر از اینترنت مدرسه متصل هستید و اتصال SSH به دلیل مسدود بودن پورت در فایروال مدرسه برقرار نمی‌شود، می‌توانید مستقیماً و از طریق مرورگر به لینوکس متصل شوید:
-    </p>
-    <a href="/terminal/" target="_blank" style="display:inline-block; background:#2563eb; color:#ffffff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:15px; box-shadow:0 2px 8px rgba(37,99,235,0.4);">
-      🚀 باز کردن ترمینال لینوکس در مرورگر
-    </a>
-    <span class="muted" style="margin-right:12px; font-size:13px;">(نام کاربری و رمز عبور زیر را در صفحه ترمینال وارد کنید)</span>
-  </div>
-
   <div class="creds">
     <div><span>نشانی سرور</span><code>{{ config.SERVER_DOMAIN }}</code></div>
-    <div><span>پورت‌های فعال SSH</span><code>22, 2222, 4443, 10022</code></div>
+    <div><span>پورت SSH</span><code>{{ config.SSH_PORT_PUBLIC }}</code></div>
     <div><span>نام کاربری</span><code>{{ current_user.username }}</code></div>
     <div><span>رمز عبور</span><code>{{ current_user.ssh_password }}</code></div>
     <div><span>پورت سرویس</span><code>{{ current_user.port }}</code></div>
+    <div><span>ترمینال مرورگر</span><a href="/terminal/" target="_blank">ورود به ترمینال وب</a></div>
   </div>
 
   <h2>آزمایشگاه شخصی شما (mybox)</h2>
@@ -61,7 +48,7 @@
     </div>
     <div>
       <span>ورود به آزمایشگاه</span>
-      بعد از اتصال به ترمینال، دستور <code>mybox</code> را بزنید
+      بعد از اتصال SSH یا ترمینال وب، دستور <code>mybox</code> را بزنید
     </div>
   </div>
   <p class="muted">آزمایشگاه بعد از حدود ۳۰ دقیقه بی‌کاری خودش خوابید تا منابع سرور آزاد بماند؛ کارهای شما محفوظ می‌ماند.</p>
@@ -70,24 +57,9 @@
     <button type="submit" class="danger">بازنشانی آزمایشگاه</button>
   </form>
 
-  <h2>نحوه اتصال از کلاینت SSH (ترمینال، VSCode، PuTTY)</h2>
-  
-  <div style="margin-bottom:14px;">
-    <strong>۱. پورت استاندارد (اینترنت خانه یا شبکه آزاد):</strong>
-    <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p 22</pre>
-  </div>
-
-  <div style="margin-bottom:14px;">
-    <strong>۲. پورت ۲۲۲۲ (مخصوص اینترنت مدرسه در صورت انسداد پورت ۲۲):</strong>
-    <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p 2222</pre>
-  </div>
-
-  <div style="margin-bottom:14px;">
-    <strong>۳. در صورت بروز مشکل در DNS با نشانی مستقیم IP سرور:</strong>
-    <pre dir="ltr">ssh {{ current_user.username }}@62.3.41.38 -p 2222</pre>
-  </div>
-
-  <p class="muted">سپس یک سرویس روی پورت اختصاصی خودتان اجرا کنید، مثلاً:</p>
+  <h2>نحوه اتصال</h2>
+  <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p {{ config.SSH_PORT_PUBLIC }}</pre>
+  <p class="muted">سپس یک سرویس روی پورت خودتان اجرا کنید، مثلاً:</p>
   <pre dir="ltr">python3 -m http.server {{ current_user.port }}</pre>
   <p>و در مرورگر باز کنید:
     <a href="http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/" dir="ltr">http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/</a>

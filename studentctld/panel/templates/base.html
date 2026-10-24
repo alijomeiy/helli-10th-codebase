@@ -15,7 +15,7 @@
     <div class="spacer"></div>
     {% if current_user.is_authenticated %}
       <span class="muted">{{ current_user.username }}</span>
-      <a href="/terminal/" target="_blank" style="color:#60a5fa; font-weight:bold;">🖥️ ترمینال وب</a>
+      <a href="/terminal/" target="_blank">ترمینال وب</a>
       {% if current_user.role == 'student' %}
         <a href="{{ url_for('my.my_activity') }}">کارنامه من</a>
       {% else %}
