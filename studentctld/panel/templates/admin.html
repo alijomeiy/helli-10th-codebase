@@ -89,27 +89,68 @@
 </div>
 {% else %}<p class="muted">درخواستی در انتظار نیست.</p>{% endif %}
 
-<h2>حساب‌های فعال ({{ active|length }})</h2>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-top:28px; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+  <h2 style="margin:0;">مدیریت حساب‌های کاربران ({{ active|length }})</h2>
+  <input type="text" id="userSearch" placeholder="🔍 جست‌وجوی نام کاربری، نام یا UID..." onkeyup="filterUsers()" style="max-width:320px; padding:9px 14px; font-size:14px; border-radius:8px; border:1px solid var(--bd); background:#0b0d12; color:var(--ink);">
+</div>
 {% if active %}
 <div class="table-scroll">
-<table>
-  <thead><tr><th>نام کاربری</th><th>UID</th><th>پورت</th><th>وضعیت</th><th></th></tr></thead>
+<table id="activeUsersTable">
+  <thead>
+    <tr>
+      <th>نام کاربری</th>
+      <th>نام دانش‌آموز</th>
+      <th>UID</th>
+      <th>پورت</th>
+      <th>وضعیت</th>
+      <th>رمز عبور جاری</th>
+      <th style="min-width:260px;">عملیات نظارتی</th>
+    </tr>
+  </thead>
   <tbody>
   {% for u in active %}
     <tr>
-      <td dir="ltr">{{ u.username }}</td>
+      <td dir="ltr" style="font-weight:600;">{{ u.username }}</td>
+      <td>{{ u.full_name or '—' }}</td>
       <td dir="ltr">{{ u.uid }}</td>
       <td dir="ltr">{{ u.port }}</td>
-      <td>{{ u.status }}</td>
-      <td class="actions">
+      <td>
         {% if u.status == 'approved' %}
-          <form method="post" action="{{ url_for('admin.disable', uid=u.id) }}"><button class="warn">غیرفعال</button></form>
+          <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:2px 8px; border-radius:6px; font-size:12px; font-weight:600;">فعال</span>
+        {% elif u.status == 'disabled' %}
+          <span style="background:#2a1010; color:#fecaca; border:1px solid #5b1d1d; padding:2px 8px; border-radius:6px; font-size:12px; font-weight:600;">مسدود / تعلیق</span>
         {% else %}
-          <form method="post" action="{{ url_for('admin.enable', uid=u.id) }}"><button class="ok">فعال‌سازی</button></form>
+          <span class="muted">{{ u.status }}</span>
         {% endif %}
+      </td>
+      <td dir="ltr"><code>{{ u.ssh_password or '—' }}</code></td>
+      <td class="actions">
+        <!-- Change Password -->
+        <button type="button" class="warn" onclick="promptPassword({{ u.id }}, '{{ u.username }}')" title="تغییر رمز عبور در لینوکس، پنل و CTF">تغییر رمز</button>
+
+        <!-- Kill active sessions -->
+        <form method="post" action="{{ url_for('admin.kill_user', uid=u.id) }}"
+              onsubmit="return confirm('تمامی نشست‌های فعال و پردازه‌های {{ u.username }} بلافاصله متوقف شوند؟');">
+          <button type="submit" style="background:#374151; color:#fff;" title="قطع فوری نشست‌های فعال و بستن پردازه‌ها">خروج اجباری</button>
+        </form>
+
+        <!-- Ban / Unban -->
+        {% if u.status == 'approved' %}
+          <form method="post" action="{{ url_for('admin.disable', uid=u.id) }}"
+                onsubmit="return confirm('دسترسی {{ u.username }} مسدود، نشست‌های او قطع و در CTF نیز بن شود؟');">
+            <button type="submit" class="danger" title="مسدودسازی کامل و بستن دسترسی‌ها">مسدودسازی</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('admin.enable', uid=u.id) }}"
+                onsubmit="return confirm('حساب {{ u.username }} رفع مسدودی شده و دسترسی‌های او بازگردد؟');">
+            <button type="submit" class="ok" title="رفع مسدودی و فعال‌سازی مجدد">رفع مسدودی</button>
+          </form>
+        {% endif %}
+
+        <!-- Delete -->
         <form method="post" action="{{ url_for('admin.delete', uid=u.id) }}"
               onsubmit="return confirm('حساب {{ u.username }} و تمام داده‌های آن برای همیشه حذف شود؟');">
-          <button class="danger">حذف</button>
+          <button type="submit" style="background:#7f1d1d;" title="حذف دائمی حساب">حذف</button>
         </form>
       </td>
     </tr>
@@ -118,5 +159,32 @@
 </table>
 </div>
 {% else %}<p class="muted">هنوز حساب فعالی وجود ندارد.</p>{% endif %}
+
+<script>
+function filterUsers() {
+  const query = document.getElementById("userSearch").value.toLowerCase();
+  const rows = document.querySelectorAll("#activeUsersTable tbody tr");
+  rows.forEach(row => {
+    const text = row.innerText.toLowerCase();
+    row.style.display = text.includes(query) ? "" : "none";
+  });
+}
+
+function promptPassword(uid, username) {
+  const pw = prompt(`رمز عبور جدید برای کاربر "${username}" را وارد نمایید:\n(در صورت خالی گذاشتن، یک رمز عبور تصادفی قوی ایجاد می‌شود)`);
+  if (pw !== null) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = `{{ url_for('admin.admin_index') }}/password/${uid}`;
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "new_password";
+    input.value = pw;
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+</script>
 
 {% endblock %}

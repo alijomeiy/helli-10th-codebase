@@ -67,6 +67,14 @@ def delete(username):
     return _sudo("studentctl-delete", username)
 
 
+def passwd(username, password):
+    return _sudo("studentctl-passwd", username, password)
+
+
+def kill(username):
+    return _sudo("studentctl-kill", username)
+
+
 def status():
     rc, out, err = _run("sudo /usr/local/sbin/studentctl-status")
     if rc != 0:

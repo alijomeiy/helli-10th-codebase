@@ -13,7 +13,10 @@ from flask_login import (
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import server_api
-from server_api import box_create, box_remove, box_reset, box_status, box_stop
+from server_api import (
+    box_create, box_remove, box_reset, box_status, box_stop,
+    passwd as srv_passwd, kill as srv_kill,
+)
 from config import Config
 from models import (
     db, User, Setting, LoginLog, Task, TaskAttempt,
@@ -125,6 +128,59 @@ def ctfd_provision(username, password):
         return False
 
 
+def ctfd_get_user_id(username):
+    """Find CTFd user id for a given username."""
+    import requests
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    if not url or not token:
+        return None
+    try:
+        h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+        r = requests.get(f"{url}/api/v1/users?field=name&q={username}", headers=h, timeout=10, verify=False)
+        if r.status_code == 200:
+            for item in r.json().get("data", []):
+                if item.get("name") == username:
+                    return item.get("id")
+    except Exception as e:
+        app.logger.warning(f"ctfd_get_user_id failed for {username}: {e}")
+    return None
+
+
+def ctfd_set_banned(username, banned=True):
+    """Ban or unban a user on CTFd."""
+    import requests
+    user_id = ctfd_get_user_id(username)
+    if not user_id:
+        return False
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    try:
+        h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+        r = requests.patch(f"{url}/api/v1/users/{user_id}", headers=h, json={"banned": banned}, timeout=10, verify=False)
+        return r.status_code == 200
+    except Exception as e:
+        app.logger.warning(f"ctfd_set_banned failed for {username}: {e}")
+        return False
+
+
+def ctfd_change_password(username, new_password):
+    """Update user password on CTFd."""
+    import requests
+    user_id = ctfd_get_user_id(username)
+    if not user_id:
+        return False
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    try:
+        h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+        r = requests.patch(f"{url}/api/v1/users/{user_id}", headers=h, json={"password": new_password}, timeout=10, verify=False)
+        return r.status_code == 200
+    except Exception as e:
+        app.logger.warning(f"ctfd_change_password failed for {username}: {e}")
+        return False
+
+
 # ---------- public pages ------------------------------------------------------
 
 @app.route("/")
@@ -216,6 +272,8 @@ def dashboard():
         return render_template("dashboard.html", pending=True)
     if current_user.status == STATUS_REJECTED:
         return render_template("dashboard.html", rejected=True)
+    if current_user.status == STATUS_DISABLED:
+        return render_template("dashboard.html", disabled=True)
 
     # live capacity (best effort)
     capacity = None
@@ -377,8 +435,9 @@ def disable(uid):
         return redirect(url_for("admin.admin_index"))
     try:
         server_api.disable(u.username)
+        srv_kill(u.username)
     except Exception as e:
-        flash(f"خطای سرور: {e}", "error")
+        flash(f"خطای سرور هنگام قطع دسترسی لینوکس: {e}", "error")
     u.status = STATUS_DISABLED
     db.session.commit()
     sync_server()
@@ -386,8 +445,12 @@ def disable(uid):
         box_stop(u.username)          # put the lab to sleep too
     except Exception:
         pass
-    log_event(u.username, "disable")
-    flash(f"دسترسی {u.username} غیرفعال شد.", "ok")
+    ctfd_ok = ctfd_set_banned(u.username, banned=True)
+    log_event(u.username, "disable", f"banned by admin {current_user.username}")
+    msg = f"دسترسی {u.username} مسدود شد و نشست‌های فعال او قطع شدند."
+    if ctfd_ok:
+        msg += " (حساب CTF نیز مسدود شد)"
+    flash(msg, "ok")
     return redirect(url_for("admin.admin_index"))
 
 
@@ -400,7 +463,7 @@ def enable(uid):
     try:
         server_api.enable(u.username)
     except Exception as e:
-        flash(f"خطای سرور: {e}", "error")
+        flash(f"خطای سرور هنگام فعال‌سازی لینوکس: {e}", "error")
     u.status = STATUS_APPROVED
     db.session.commit()
     sync_server()
@@ -408,8 +471,59 @@ def enable(uid):
         box_create(u.username)        # ensure the lab exists after re-enable
     except Exception:
         pass
-    log_event(u.username, "enable")
-    flash(f"دسترسی {u.username} دوباره فعال شد.", "ok")
+    ctfd_ok = ctfd_set_banned(u.username, banned=False)
+    log_event(u.username, "enable", f"unbanned by admin {current_user.username}")
+    msg = f"دسترسی {u.username} دوباره فعال شد."
+    if ctfd_ok:
+        msg += " (حساب CTF نیز رفع مسدودی شد)"
+    flash(msg, "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/password/<int:uid>", methods=["POST"])
+@admin_required
+def change_password(uid):
+    u = User.query.get_or_404(uid)
+    new_pw = request.form.get("new_password", "").strip()
+    if not new_pw:
+        new_pw = gen_password()
+    elif len(new_pw) < 6:
+        flash("رمز عبور باید حداقل ۶ نویسه باشد.", "error")
+        return redirect(url_for("admin.admin_index"))
+
+    # 1. Update Linux system account password
+    if u.uid is not None:
+        try:
+            srv_passwd(u.username, new_pw)
+        except Exception as e:
+            flash(f"خطا در تغییر رمز لینوکس: {e}", "error")
+
+    # 2. Update Web Panel login password & stored SSH password
+    u.set_password(new_pw)
+    u.ssh_password = new_pw
+    db.session.commit()
+
+    # 3. Update CTFd password
+    ctfd_ok = ctfd_change_password(u.username, new_pw)
+
+    log_event(u.username, "passwd_change", f"by admin {current_user.username}")
+    msg = f"رمز عبور کاربر {u.username} با موفقیت تغییر کرد. رمز جدید: {new_pw}"
+    if ctfd_ok:
+        msg += " (رمز CTF نیز همگام شد)"
+    flash(msg, "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/kill/<int:uid>", methods=["POST"])
+@admin_required
+def kill_user(uid):
+    u = User.query.get_or_404(uid)
+    try:
+        srv_kill(u.username)
+        log_event(u.username, "kill_sessions", f"by admin {current_user.username}")
+        flash(f"تمامی نشست‌های فعال و پردازه‌های کاربر {u.username} متوقف شدند.", "ok")
+    except Exception as e:
+        flash(f"خطا در بستن نشست‌های کاربر: {e}", "error")
     return redirect(url_for("admin.admin_index"))
 
 
