@@ -1,0 +1,11 @@
+[Unit]
+Description=Student lab flag service (networking week-2 challenges)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/studentlab/labserver.py /root/helli-10th-codebase/studentctld/ctf/manifest.json
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

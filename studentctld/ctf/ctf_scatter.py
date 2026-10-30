@@ -9,6 +9,7 @@ v2: challenge set remapped to classroom skills (mandatory = core commands
 only; optional = ls -a / tar / regex / web).
 """
 import argparse
+import hashlib
 import json
 import os
 import random
@@ -336,6 +337,43 @@ def scatter_v1_oldsite(home, flag):
             tf.add(os.path.join(td, "index.html"), arcname="index.html")
 
 
+# ---------------- week 2: networking scatterers ----------------
+# The protocol drills (n2..n6) are served by the shared localhost lab
+# service (/opt/studentlab/labserver.py, systemd: student-lab-flags). It
+# identifies students by a per-student key derived from the username; the
+# same derivations live in labserver.py — keep them in sync.
+
+def lab_key(username):
+    return hashlib.md5(username.encode()).hexdigest()[:10]
+
+
+def lab_code(key):
+    return str(int(hashlib.md5((key + "code").encode()).hexdigest(), 16)
+               % 10000).zfill(4)
+
+
+def lab_port(uid):
+    """Unique per-student port for the self-server exercise (uid is unique,
+    so two students can never fight over one port)."""
+    return 20000 + (uid - 2000)
+
+
+def scatter_n1_selfserver(home, flag):
+    uid = os.stat(home).st_uid
+    w(f"{home}/netlab/port.txt", f"{lab_port(uid)}\n")
+    w(f"{home}/netlab/secret.txt", flag + "\n")
+
+
+def scatter_n2_headerbox(home, flag):
+    key = lab_key(os.path.basename(home.rstrip("/")))
+    w(f"{home}/netlab/mylink.txt", f"http://localhost:8901/lab/{key}\n")
+
+
+def scatter_n6_detective(home, flag):
+    key = lab_key(os.path.basename(home.rstrip("/")))
+    w(f"{home}/netlab/code.txt", lab_code(key) + "\n")
+
+
 # per-challenge home dirs that a (re)scatter may wipe
 WIPE_DIRS = {
     "h1-lead": "level5",
@@ -343,6 +381,12 @@ WIPE_DIRS = {
     "p1-locked": "level4",
     "p2-sealed": "level4",
     "p3-brothers": "level4",
+    "n1-selfserver": "netlab",
+    "n2-headerbox": "netlab",
+    "n3-fileshare": "netlab",
+    "n4-portfarm": "netlab",
+    "n5-redirect": "netlab",
+    "n6-detective": "netlab",
 }
 
 
@@ -381,6 +425,12 @@ SCATTERERS = {
     "v1-oldsite": scatter_v1_oldsite,
     "v2-layers": scatter_r_stub,
     "v3-ghost": scatter_r_stub,
+    "n1-selfserver": scatter_n1_selfserver,
+    "n2-headerbox": scatter_n2_headerbox,
+    "n3-fileshare": scatter_r_stub,
+    "n4-portfarm": scatter_r_stub,
+    "n5-redirect": scatter_r_stub,
+    "n6-detective": scatter_n6_detective,
 }
 
 # session exercises are box-only (box_scatter.py owns them); anything not
@@ -437,7 +487,7 @@ def main():
         wipe = tuple(sorted({WIPE_DIRS[n] for n in only if n in WIPE_DIRS}))
     else:
         wipe = ("level1", "level2", "level3", "level4", "level5",
-                ".level1", "ctf")
+                ".level1", "ctf", "netlab")
     known = {s["username"] for s in manifest["students"]}
 
     for username, uid in students:

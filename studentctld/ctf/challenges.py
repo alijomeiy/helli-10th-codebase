@@ -878,6 +878,94 @@ CHALLENGES = [
                 "tr 'A-Za-z' 'a-zA-Z' < /opt/lab/suspects/<نام>",
         "hint_cost": 40,
     },
+
+    # هفته ۲ — شبکه (docs/networking.html)
+    # Artifacts are scattered into ~/netlab/ by ctf_scatter.py; the protocol
+    # drills (n2..n6) are served by the shared localhost lab service
+    # (/opt/studentlab/labserver.py) which identifies the student by the
+    # per-student key inside ~/netlab/mylink.txt.
+    {
+        "name": "n1-selfserver",
+        "title": "سرور خودت",
+        "category": "چالش‌های هفته دوم — آسان",
+        "points": 50,
+        "description": "در پوشه‌ی netlab خانه‌ی شما دو فایل هست: port.txt "
+                       "(پورتِ اختصاصی شما) و secret.txt. یک وب‌سرور روی پورتِ "
+                       "خودتان بالا بیاورید و secret.txt را «از طریق خود "
+                       "سرور» با curl بگیرید. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "cd ~/netlab → python3 -m http.server $(cat port.txt) & → "
+                "curl localhost:$(cat port.txt)/secret.txt",
+        "hint_cost": 10,
+    },
+    {
+        "name": "n2-headerbox",
+        "title": "روی پاکت نوشته",
+        "category": "چالش‌های هفته دوم — آسان",
+        "points": 75,
+        "description": "در netlab فایل mylink.txt یک لینک شخصی به شما می‌دهد. "
+                       "صفحه‌ی header آن ادعا می‌کند پرچم در صفحه نیست — راست "
+                       "می‌گوید: پرچم در «هدر» پاسخ است، همان بخشی که curl "
+                       "به‌صورت پیش‌فرض نشان نمی‌دهد. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "curl -i $(cat ~/netlab/mylink.txt)/header → هدر "
+                "X-Lab-Secret را در پاسخ ببینید",
+        "hint_cost": 10,
+    },
+    {
+        "name": "n3-fileshare",
+        "title": "فایل اشتراکی",
+        "category": "چالش‌های هفته دوم — آسان",
+        "points": 100,
+        "description": "لینک شخصی شما (mylink.txt) یک پوشه‌ی share دارد با شش "
+                       "فایل؛ فقط یکی پرچم واقعی دارد. فهرست را بگیرید، "
+                       "فایل‌ها را امتحان کنید و پاسخ‌ها را با دقت بخوانید. "
+                       "(درس شبکه: docs.helli-10th-computer.ir/networking.html)",
+        "hint": "curl -s $(cat ~/netlab/mylink.txt)/share → نام فایل‌ها → "
+                "curl -s $(cat ~/netlab/mylink.txt)/share/<نام> برای هرکدام",
+        "hint_cost": 15,
+    },
+    {
+        "name": "n4-portfarm",
+        "title": "مزرعه‌ی درها",
+        "category": "چالش‌های هفته دوم — سخت",
+        "points": 125,
+        "description": "زیر لینک شخصی شما شش «در» هست: farm/door1 تا "
+                       "farm/door6. فقط یکی پرچم واقعی می‌دهد؛ بقیه FAKEFLAG "
+                       "اند. حلقه بزنید و پاسخ‌ها را بخوانید. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "for d in 1 2 3 4 5 6; do curl -s "
+                "$(cat ~/netlab/mylink.txt)/farm/door$d; done",
+        "hint_cost": 20,
+    },
+    {
+        "name": "n5-redirect",
+        "title": "دنبال‌کننده‌ی مسیر",
+        "category": "چالش‌های هفته دوم — سخت",
+        "points": 150,
+        "description": "لینک شخصی شما یک hop1 دارد که خودش پاسخ نهایی نیست — "
+                       "کد ۳۰۱ می‌دهد و با هدرِ Location می‌گوید «بعدی». "
+                       "زنجیره را تا انتها دنبال کنید؛ پرچم در پاسخِ آخر است. "
+                       "(درس شبکه: docs.helli-10th-computer.ir/networking.html)",
+        "hint": "curl -i $(cat ~/netlab/mylink.txt)/hop1 → هدر Location را "
+                "بخوانید و بروید بعدی — یا یک‌جا: "
+                "curl -sL $(cat ~/netlab/mylink.txt)/hop1",
+        "hint_cost": 20,
+    },
+    {
+        "name": "n6-detective",
+        "title": "کارآگاه شبکه",
+        "category": "چالش‌های هفته دوم — سخت",
+        "points": 175,
+        "description": "لینک شخصی شما یک vault دارد که اهل پروتکل است: اول "
+                       "جواب نمی‌دهد، می‌گوید چه «هدرِ»ی می‌خواهد. کدش در "
+                       "netlab/code.txt پیام داده شده — رعایت کنید تا پرچم "
+                       "واقعی را ببینید. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "cat ~/netlab/code.txt → curl -i -H 'X-Lab-Code: <کد>' "
+                "$(cat ~/netlab/mylink.txt)/vault",
+        "hint_cost": 30,
+    },
 ]
 
 
@@ -990,13 +1078,20 @@ DOCS_MAP = {
     "oe-s8-1-confdiff": ["texttools"],
     "om-s8-1-logtop": ["texttools"],
     "oh-s8-1-chainforensic": ["texttools"],
+    # week 2 — networking
+    "n1-selfserver": ["networking"],
+    "n2-headerbox": ["networking"],
+    "n3-fileshare": ["networking"],
+    "n4-portfarm": ["networking"],
+    "n5-redirect": ["networking"],
+    "n6-detective": ["networking"],
 }
 DOCS_MARKER = "📚"
 
 # lessons actually published on the docs site right now; anything outside
 # this set is NOT mentioned on CTFd (no dangling names/footers) until the
 # pages are approved — flip them in and re-run ctf_setup + ctf_reorganize
-APPROVED_DOCS = {"html", "regex", "permissions", "mybox", "apt"}
+APPROVED_DOCS = {"html", "regex", "permissions", "mybox", "apt", "networking"}
 DOCS_SHORT = {
     "html": "HTML",
     "regex": "ریجکس",
