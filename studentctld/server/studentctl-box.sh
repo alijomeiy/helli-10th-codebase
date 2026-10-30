@@ -32,7 +32,7 @@ awake_count(){ docker ps -q --filter label=studentctl=box | wc -l; }
 
 # students reach this script ONLY via the sudoers rule for 'enter';
 # if invoked under sudo with any other command, refuse hard.
-if [ -n "${SUDO_USER:-}" ] && [ "${1:-}" != "enter" ]; then
+if [ -n "${SUDO_USER:-}" ] && [ "${SUDO_USER}" != "studentctl" ] && ! id -nG "${SUDO_USER}" 2>/dev/null | grep -qw sudo && [ "${1:-}" != "enter" ]; then
   echo "not allowed"; exit 1
 fi
 

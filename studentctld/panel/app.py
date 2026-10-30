@@ -1,5 +1,8 @@
+import json
+import re
 import os
 import secrets
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from functools import wraps
 
@@ -13,7 +16,9 @@ from flask_login import (
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import server_api
-from server_api import box_create, box_remove, box_reset, box_status, box_stop
+from server_api import (
+        passwd as srv_passwd, kill as srv_kill,
+)
 from config import Config
 from models import (
     db, User, Setting, LoginLog, Task, TaskAttempt,
@@ -125,6 +130,154 @@ def ctfd_provision(username, password):
         return False
 
 
+def ctfd_get_user_id(username):
+    """Find CTFd user id for a given username."""
+    import requests
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    if not url or not token:
+        return None
+    try:
+        h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+        r = requests.get(f"{url}/api/v1/users?view=admin&field=name&q={username}", headers=h, timeout=10, verify=False)
+        if r.status_code == 200:
+            for item in r.json().get("data", []):
+                if item.get("name") == username:
+                    return item.get("id")
+    except Exception as e:
+        app.logger.warning(f"ctfd_get_user_id failed for {username}: {e}")
+    return None
+
+
+def ctfd_set_banned(username, banned=True):
+    """Ban or unban a user on CTFd."""
+    import requests
+    user_id = ctfd_get_user_id(username)
+    if not user_id:
+        return False
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    try:
+        h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+        r = requests.patch(f"{url}/api/v1/users/{user_id}", headers=h, json={"banned": banned}, timeout=10, verify=False)
+        return r.status_code == 200
+    except Exception as e:
+        app.logger.warning(f"ctfd_set_banned failed for {username}: {e}")
+        return False
+
+
+def ctfd_change_password(username, new_password):
+    """Update user password on CTFd."""
+    import requests
+    user_id = ctfd_get_user_id(username)
+    if not user_id:
+        return False
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    try:
+        h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+        r = requests.patch(f"{url}/api/v1/users/{user_id}", headers=h, json={"password": new_password}, timeout=10, verify=False)
+        return r.status_code == 200
+    except Exception as e:
+        app.logger.warning(f"ctfd_change_password failed for {username}: {e}")
+        return False
+
+
+def get_locked_classes():
+    """Return a set of class labels whose CTF access is currently locked."""
+    try:
+        db.session.expire_all()
+    except Exception:
+        pass
+    row = Setting.query.get("locked_ctf_classes")
+    if not row or not row.value:
+        return set()
+    try:
+        data = json.loads(row.value)
+        if isinstance(data, list):
+            return set(str(x) for x in data)
+    except Exception:
+        pass
+    return set()
+
+
+def set_locked_classes(locked_set):
+    """Save the set of locked class labels."""
+    Setting.set("locked_ctf_classes", json.dumps(sorted(list(locked_set))))
+    db.session.commit()
+
+
+def ctfd_fetch_all_users():
+    """Fetch mapping of username -> ctfd user id for all CTFd users."""
+    import requests
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    if not url or not token:
+        return {}
+    mapping = {}
+    try:
+        h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+        page = 1
+        while page:
+            r = requests.get(f"{url}/api/v1/users?view=admin&page={page}", headers=h, timeout=10, verify=False)
+            if r.status_code != 200:
+                break
+            payload = r.json()
+            data = payload.get("data", [])
+            for u in data:
+                mapping[u.get("name")] = u.get("id")
+            meta = payload.get("meta", {}).get("pagination", {})
+            page = meta.get("next")
+    except Exception as e:
+        app.logger.warning(f"ctfd_fetch_all_users error: {e}")
+    return mapping
+
+
+def ctfd_set_class_banned(class_label, banned=True):
+    """Ban or unban all students belonging to a class_label in CTFd.
+    Also updates locked_ctf_classes in Setting.
+    """
+    class_label = (class_label or "").strip()
+    if not class_label:
+        return 0, 0
+
+    locked = get_locked_classes()
+    if banned:
+        locked.add(class_label)
+    else:
+        locked.discard(class_label)
+    set_locked_classes(locked)
+
+    students = User.query.filter_by(role="student", class_label=class_label).all()
+    if not students:
+        return 0, 0
+
+    student_usernames = {u.username for u in students}
+    mapping = ctfd_fetch_all_users()
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    if not url or not token:
+        return 0, len(students)
+
+    h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+    target_ids = [mapping[u] for u in student_usernames if u in mapping]
+
+    def _patch_ban(ctf_uid):
+        import requests
+        try:
+            r = requests.patch(f"{url}/api/v1/users/{ctf_uid}", headers=h, json={"banned": banned}, timeout=6, verify=False)
+            return r.status_code == 200
+        except Exception:
+            return False
+
+    success_count = 0
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(_patch_ban, target_ids))
+        success_count = sum(1 for res in results if res)
+
+    return success_count, len(students)
+
+
 # ---------- public pages ------------------------------------------------------
 
 @app.route("/")
@@ -160,6 +313,7 @@ def register():
         full_name = request.form.get("full_name", "").strip()
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
+        class_label = request.form.get("class_label", "").strip()
 
         if not username.isidentifier() or not (3 <= len(username) <= 24):
             flash("نام کاربری باید ۳ تا ۲۴ نویسه و فقط شامل حروف انگلیسی، عدد و خط زیر باشد.", "error")
@@ -173,7 +327,7 @@ def register():
 
         u = User(
             role="student", username=username, full_name=full_name, email=email,
-            status=STATUS_PENDING,
+            status=STATUS_PENDING, class_label=class_label,
         )
         u.set_password(password)
         db.session.add(u)
@@ -216,6 +370,8 @@ def dashboard():
         return render_template("dashboard.html", pending=True)
     if current_user.status == STATUS_REJECTED:
         return render_template("dashboard.html", rejected=True)
+    if current_user.status == STATUS_DISABLED:
+        return render_template("dashboard.html", disabled=True)
 
     # live capacity (best effort)
     capacity = None
@@ -224,32 +380,14 @@ def dashboard():
     except Exception:
         capacity = None
 
-    # lab box status (best effort)
-    box = None
-    try:
-        box = box_status(current_user.username)
-    except Exception:
-        box = None
+    class_ctf_locked = bool(current_user.class_label and current_user.class_label in get_locked_classes())
 
     return render_template(
         "dashboard.html",
-        pending=False, rejected=False, capacity=capacity, box=box,
+        pending=False, rejected=False, disabled=False, capacity=capacity,
+        class_ctf_locked=class_ctf_locked,
     )
 
-
-@app.route("/box/reset", methods=["POST"])
-@login_required
-def box_reset_mine():
-    """Student self-service: wipe and recreate their own lab box."""
-    if current_user.role != "student" or current_user.status != STATUS_APPROVED:
-        abort(403)
-    try:
-        box_reset(current_user.username)
-        log_event(current_user.username, "box_reset", "self-service")
-        flash("آزمایشگاه شما از نو ساخته شد؛ همه‌چیز تازه است.", "ok")
-    except Exception as e:
-        flash(f"بازنشانی آزمایشگاه ناموفق بود: {e}", "error")
-    return redirect(url_for("dashboard"))
 
 
 # ---------- admin blueprint ---------------------------------------------------
@@ -308,9 +446,28 @@ def admin_index():
             "completed": completed,
             "total": total_attempts,
         })
+
+    locked_classes = get_locked_classes()
+    all_students = User.query.filter_by(role="student").all()
+    class_map = {}
+    for s in all_students:
+        cl = (s.class_label or "").strip()
+        if cl not in class_map:
+            class_map[cl] = {"class_label": cl, "total": 0, "active": 0, "is_locked": cl in locked_classes}
+        class_map[cl]["total"] += 1
+        if s.status == STATUS_APPROVED:
+            class_map[cl]["active"] += 1
+
+    for lc in locked_classes:
+        if lc not in class_map:
+            class_map[lc] = {"class_label": lc, "total": 0, "active": 0, "is_locked": True}
+
+    classes_summary = sorted(class_map.values(), key=lambda x: (x["class_label"] == "", x["class_label"]))
+
     return render_template(
         "admin.html", pending=pending, active=active, capacity=capacity,
         max_conc=max_concurrent(), idle=idle_timeout(), tasks_info=tasks_info,
+        classes_summary=classes_summary, locked_classes=locked_classes,
     )
 
 
@@ -339,16 +496,13 @@ def approve(uid):
     sync_server()
     log_event(u.username, "provision", f"uid={new_uid} port={port}")
 
-    # lab box (best-effort — approval proceeds even if this fails)
-    try:
-        box_create(u.username)
-        log_event(u.username, "box", "created")
-    except Exception as e:
-        log_event(u.username, "box", f"create failed: {e}")
-
     ctfd = ctfd_provision(u.username, pw)
     if ctfd:
-        log_event(u.username, "ctf_account", "created via CTFd API")
+        if u.class_label and u.class_label in get_locked_classes():
+            ctfd_set_banned(u.username, banned=True)
+            log_event(u.username, "ctf_account", f"created & banned (class {u.class_label} is locked)")
+        else:
+            log_event(u.username, "ctf_account", "created via CTFd API")
         flash(f"حساب {u.username} تأیید شد (لینوکس + آزمایشگاه + CTF). رمز SSH او در پنل کاربری‌اش نمایش داده می‌شود.", "ok")
     elif ctfd is False:
         log_event(u.username, "ctf_account", "FAILED (check CTFD_URL/CTFD_TOKEN)")
@@ -377,17 +531,18 @@ def disable(uid):
         return redirect(url_for("admin.admin_index"))
     try:
         server_api.disable(u.username)
+        srv_kill(u.username)
     except Exception as e:
-        flash(f"خطای سرور: {e}", "error")
+        flash(f"خطای سرور هنگام قطع دسترسی لینوکس: {e}", "error")
     u.status = STATUS_DISABLED
     db.session.commit()
     sync_server()
-    try:
-        box_stop(u.username)          # put the lab to sleep too
-    except Exception:
-        pass
-    log_event(u.username, "disable")
-    flash(f"دسترسی {u.username} غیرفعال شد.", "ok")
+    ctfd_ok = ctfd_set_banned(u.username, banned=True)
+    log_event(u.username, "disable", f"banned by admin {current_user.username}")
+    msg = f"دسترسی {u.username} مسدود شد و نشست‌های فعال او قطع شدند."
+    if ctfd_ok:
+        msg += " (حساب CTF نیز مسدود شد)"
+    flash(msg, "ok")
     return redirect(url_for("admin.admin_index"))
 
 
@@ -400,16 +555,144 @@ def enable(uid):
     try:
         server_api.enable(u.username)
     except Exception as e:
-        flash(f"خطای سرور: {e}", "error")
+        flash(f"خطای سرور هنگام فعال‌سازی لینوکس: {e}", "error")
     u.status = STATUS_APPROVED
     db.session.commit()
     sync_server()
+    ctfd_ok = ctfd_set_banned(u.username, banned=False)
+    log_event(u.username, "enable", f"unbanned by admin {current_user.username}")
+    msg = f"دسترسی {u.username} دوباره فعال شد."
+    if ctfd_ok:
+        msg += " (حساب CTF نیز رفع مسدودی شد)"
+    flash(msg, "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/password/<int:uid>", methods=["POST"])
+@admin_required
+def change_password(uid):
+    u = User.query.get_or_404(uid)
+    new_pw = request.form.get("new_password", "").strip()
+    if not new_pw:
+        new_pw = gen_password()
+    elif len(new_pw) < 6:
+        flash("رمز عبور باید حداقل ۶ نویسه باشد.", "error")
+        return redirect(url_for("admin.admin_index"))
+
+    # 1. Update Linux system account password
+    if u.uid is not None:
+        try:
+            srv_passwd(u.username, new_pw)
+        except Exception as e:
+            flash(f"خطا در تغییر رمز لینوکس: {e}", "error")
+
+    # 2. Update Web Panel login password & stored SSH password
+    u.set_password(new_pw)
+    u.ssh_password = new_pw
+    db.session.commit()
+
+    # 3. Update CTFd password
+    ctfd_ok = ctfd_change_password(u.username, new_pw)
+
+    log_event(u.username, "passwd_change", f"by admin {current_user.username}")
+    msg = f"رمز عبور کاربر {u.username} با موفقیت تغییر کرد. رمز جدید: {new_pw}"
+    if ctfd_ok:
+        msg += " (رمز CTF نیز همگام شد)"
+    flash(msg, "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/kill/<int:uid>", methods=["POST"])
+@admin_required
+def kill_user(uid):
+    u = User.query.get_or_404(uid)
     try:
-        box_create(u.username)        # ensure the lab exists after re-enable
-    except Exception:
-        pass
-    log_event(u.username, "enable")
-    flash(f"دسترسی {u.username} دوباره فعال شد.", "ok")
+        srv_kill(u.username)
+        log_event(u.username, "kill_sessions", f"by admin {current_user.username}")
+        flash(f"تمامی نشست‌های فعال و پردازه‌های کاربر {u.username} متوقف شدند.", "ok")
+    except Exception as e:
+        flash(f"خطا در بستن نشست‌های کاربر: {e}", "error")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/class/lock", methods=["POST"])
+@admin_required
+def class_lock():
+    class_label = request.form.get("class_label", "").strip()
+    if not class_label:
+        flash("شناسه کلاس نامعتبر است.", "error")
+        return redirect(url_for("admin.admin_index"))
+    succ, total = ctfd_set_class_banned(class_label, banned=True)
+    log_event(current_user.username, "class_ctf_lock", f"class={class_label} banned={succ}/{total}")
+    flash(f"دسترسی مسابقه CTF برای کلاس «{class_label}» قفل شد ({succ} حساب در سامانه CTF مسدود شدند).", "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/class/unlock", methods=["POST"])
+@admin_required
+def class_unlock():
+    class_label = request.form.get("class_label", "").strip()
+    if not class_label:
+        flash("شناسه کلاس نامعتبر است.", "error")
+        return redirect(url_for("admin.admin_index"))
+    succ, total = ctfd_set_class_banned(class_label, banned=False)
+    log_event(current_user.username, "class_ctf_unlock", f"class={class_label} unbanned={succ}/{total}")
+    flash(f"دسترسی مسابقه CTF برای کلاس «{class_label}» بازگشایی شد ({succ} حساب در سامانه CTF فعال شدند).", "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/user/class/<int:uid>", methods=["POST"])
+@admin_required
+def set_user_class(uid):
+    u = User.query.get_or_404(uid)
+    new_class = request.form.get("class_label", "").strip()
+    old_class = u.class_label or ""
+    u.class_label = new_class
+    db.session.commit()
+
+    locked = get_locked_classes()
+    if new_class and new_class in locked:
+        ctfd_set_banned(u.username, banned=True)
+    elif u.status == STATUS_APPROVED:
+        ctfd_set_banned(u.username, banned=False)
+
+    log_event(u.username, "class_changed", f"from '{old_class}' to '{new_class}' by {current_user.username}")
+    flash(f"کلاس کاربر {u.username} به «{new_class or 'تعیین‌نشده'}» تغییر یافت.", "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/class/bulk_assign", methods=["POST"])
+@admin_required
+def bulk_assign_class():
+    target_class = request.form.get("class_label", "").strip()
+    raw_users = request.form.get("usernames", "")
+    if not target_class:
+        flash("لطفاً نام یا شناسه کلاس را وارد نمایید.", "error")
+        return redirect(url_for("admin.admin_index"))
+
+    tokens = [t.strip().lower() for t in re.split(r"[\s,]+", raw_users) if t.strip()]
+    if not tokens:
+        flash("هیچ نام کاربری وارد نشده است.", "error")
+        return redirect(url_for("admin.admin_index"))
+
+    matched = User.query.filter(User.role == "student", User.username.in_(tokens)).all()
+    if not matched:
+        flash("هیچ کاربری با شناسه‌های وارد شده یافت نشد.", "error")
+        return redirect(url_for("admin.admin_index"))
+
+    locked = get_locked_classes()
+    is_locked = target_class in locked
+
+    for u in matched:
+        u.class_label = target_class
+        if is_locked:
+            ctfd_set_banned(u.username, banned=True)
+        elif u.status == STATUS_APPROVED:
+            ctfd_set_banned(u.username, banned=False)
+    db.session.commit()
+
+    log_event(current_user.username, "bulk_class_assign", f"{len(matched)} users -> {target_class}")
+    flash(f"کلاس {len(matched)} دانش‌آموز با موفقیت به «{target_class}» تنظیم شد.", "ok")
     return redirect(url_for("admin.admin_index"))
 
 
@@ -426,10 +709,6 @@ def delete(uid):
     db.session.delete(u)
     db.session.commit()
     sync_server()
-    try:
-        box_remove(uname)             # lab goes with the account
-    except Exception:
-        pass
     log_event(uname, "delete")
     flash(f"{uname} از همه‌جا حذف شد.", "ok")
     return redirect(url_for("admin.admin_index"))

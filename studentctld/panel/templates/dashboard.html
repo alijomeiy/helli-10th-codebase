@@ -6,6 +6,17 @@
   <h1>حساب تأیید نشد</h1>
   <p>درخواست شما تأیید نشده است. لطفاً با مدرس خود تماس بگیرید.</p>
 
+{% elif disabled %}
+  <div style="background:#2a1010; border:1px solid #5b1d1d; border-radius:12px; padding:24px; margin:20px 0;">
+    <h1 style="color:#ef4444; margin-top:0;">⛔ حساب کاربری شما مسدود شده است</h1>
+    <p style="font-size:16px; color:#fecaca; line-height:1.8;">
+      دسترسی شما به سرور لینوکس و سامانه مسابقات به دلیل فعالیت غیرمجاز یا مغایرت با قوانین دوره به حالت تعلیق درآمده است.
+    </p>
+    <p class="muted" style="margin-bottom:0;">
+      تمامی نشست‌های فعال شما بسته شده و اطلاعات اتصال مخفی است. جهت بررسی وضعیت، لطفاً مستقیماً با دبیر یا مدیر دوره تماس بگیرید.
+    </p>
+  </div>
+
 {% elif pending %}
   <h1>در انتظار تأیید</h1>
   <p>درخواست حساب شما در انتظار تأیید مدیر است. بعداً دوباره بررسی کنید.</p>
@@ -13,41 +24,33 @@
 {% else %}
   <h1>حساب لینوکس شما</h1>
 
+  {% if class_ctf_locked %}
+  <div style="background:#2a1b07; border:1px solid #78350f; border-radius:12px; padding:18px 22px; margin:20px 0;">
+    <h3 style="color:#f59e0b; margin-top:0; display:flex; align-items:center; gap:8px;">
+      🔒 دسترسی کلاس {{ current_user.class_label }} به سامانه مسابقات موقتاً بسته است
+    </h3>
+    <p style="font-size:14px; color:#fef3c7; line-height:1.7; margin-bottom:0;">
+      دسترسی کلاس شما به سامانه مسابقه CTF در این بازه زمانی توسط مدیر دوره متوقف شده است. ورود به سرور لینوکس و اجرای تمرین‌ها از طریق ترمینال وب همچنان برای شما فعال است.
+    </p>
+  </div>
+  {% endif %}
+
   <div class="creds">
+    <div><span>کلاس</span><code>{{ current_user.class_label or 'تعیین‌نشده' }}</code></div>
     <div><span>نشانی سرور</span><code>{{ config.SERVER_DOMAIN }}</code></div>
     <div><span>پورت SSH</span><code>{{ config.SSH_PORT_PUBLIC }}</code></div>
     <div><span>نام کاربری</span><code>{{ current_user.username }}</code></div>
     <div><span>رمز عبور</span><code>{{ current_user.ssh_password }}</code></div>
     <div><span>پورت سرویس</span><code>{{ current_user.port }}</code></div>
+    <div><span>ترمینال مرورگر</span><a href="/terminal/" target="_blank">ورود به ترمینال وب</a></div>
   </div>
-
-  <h2>آزمایشگاه شخصی شما (mybox)</h2>
-  <p>
-    یک لینوکس کامل و خصوصی که در آن <strong>root</strong> هستید: می‌توانید نصب
-    نرم‌افزار (<code dir="ltr">apt</code>)، کاربر بسازید، سرویس اجرا کنید و حتی
-    کانتینرهای خودتان را با دستور <code dir="ltr">docker</code> بالا بیاورید.
-  </p>
-  <div class="creds">
-    <div>
-      <span>وضعیت آزمایشگاه</span>
-      {% if box and box.running %}بیدار {% if box.mem %}({{ box.mem }}){% endif %}
-      {% elif box and box.exists %}خوابیده (با ورود، بیدار می‌شود)
-      {% else %}هنوز ساخته نشده — با اولین ورود ساخته می‌شود{% endif %}
-    </div>
-    <div>
-      <span>ورود به آزمایشگاه</span>
-      بعد از اتصال SSH، دستور <code>mybox</code> را بزنید
-    </div>
-  </div>
-  <p class="muted">آزمایشگاه بعد از حدود ۳۰ دقیقه بی‌کاری خودش خوابید تا منابع سرور آزاد بماند؛ کارهای شما محفوظ می‌ماند.</p>
-  <form method="post" action="{{ url_for('box_reset_mine') }}"
-        onsubmit="return confirm('همه‌چیز داخل آزمایشگاه پاک می‌شود و از نو ساخته می‌شود. مطمئنید؟')">
-    <button type="submit" class="danger">بازنشانی آزمایشگاه</button>
-  </form>
 
   <h2>نحوه اتصال</h2>
   <pre dir="ltr">ssh {{ current_user.username }}@{{ config.SERVER_DOMAIN }} -p {{ config.SSH_PORT_PUBLIC }}</pre>
-  <p class="muted">سپس یک سرویس روی پورت خودتان اجرا کنید، مثلاً:</p>
+  <p class="muted">یا می‌توانید بدون نیاز به کلاینت SSH، مستقیماً از بخش «ترمینال مرورگر» یا دکمه زیر وارد حساب کاربری خود در سرور شوید:</p>
+  <p><a href="/terminal/" target="_blank" style="font-weight: 500;">🖥️ ورود مستقیم به حساب لینوکس از طریق ترمینال وب</a></p>
+
+  <p class="muted">تمام چالش‌ها و تمرین‌های دوره مستقیماً در مسیر خانگی حساب شما (<code>~</code>) قرار دارند. برای نمونه، می‌توانید یک وب‌سرور آزمایشی روی پورت اختصاصی خود اجرا کنید:</p>
   <pre dir="ltr">python3 -m http.server {{ current_user.port }}</pre>
   <p>و در مرورگر باز کنید:
     <a href="http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/" dir="ltr">http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/</a>

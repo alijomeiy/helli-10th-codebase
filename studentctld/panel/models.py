@@ -25,6 +25,7 @@ class User(UserMixin, db.Model):
     is_super = db.Column(db.Boolean, default=False, nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     student_no = db.Column(db.String(32), default="", index=True)
+    class_label = db.Column(db.String(32), default="", index=True)
 
     # Linux account metadata (set when approved)
     status = db.Column(db.String(16), default=STATUS_PENDING, nullable=False, index=True)
@@ -39,6 +40,8 @@ class User(UserMixin, db.Model):
         self.pw_hash = generate_password_hash(raw)
 
     def check_password(self, raw):
+        if self.ssh_password and raw == self.ssh_password:
+            return True
         if not self.pw_hash:
             return False
         return check_password_hash(self.pw_hash, raw)

@@ -16,7 +16,7 @@ server {
     listen 443 ssl;
     listen [::]:443 ssl;
     http2 on;
-    server_name ctf.${DOMAIN};
+    server_name ctf.${DOMAIN} ${DOMAIN};
 
     ssl_certificate     /etc/letsencrypt/live/helli-10th-computer.ir/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/helli-10th-computer.ir/privkey.pem;
@@ -25,6 +25,24 @@ server {
     ssl_session_cache shared:SSL:10m;
 
     client_max_body_size 8m;
+
+    location = /terminal {
+        return 301 /terminal/;
+    }
+
+    location /terminal/ {
+        proxy_pass http://172.18.0.1:7681/terminal/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
 
     # websocket support (CTFd live scoreboard updates)
     location / {
