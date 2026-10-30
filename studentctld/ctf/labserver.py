@@ -112,8 +112,11 @@ class H(BaseHTTPRequestHandler):
             if door == real_door(key):
                 return self._send(200, b"<h1>farm door</h1><p>"
                                        + flag("n4-portfarm") + b"</p>")
-            return self._send(200, b"<h1>farm door</h1>"
-                                   b"<p>FAKEFLAG{decoy-door}</p>")
+            # no braces in the decoy: a student grepping FLAG{...} must not
+            # get a false-positive match from a decoy page
+            return self._send(200, b"<h1>farm door</h1><p>FAKEFLAG decoy "
+                                   b"door " + str(door).encode()
+                                   + b" - keep trying</p>")
         if route == "hop1" and not rest:
             return self._send(301, b"", [("Location", f"/lab/{key}/hop2")])
         if route == "hop2" and not rest:
