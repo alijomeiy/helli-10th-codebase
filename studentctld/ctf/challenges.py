@@ -210,6 +210,7 @@ CHALLENGES = [
     },
     {
         "name": "r4-web",
+        "board_name": "04 — سرویس وب",
         "title": "سرویس وب",
         "category": "آزمایشگاه",
         "points": 225,
@@ -239,6 +240,7 @@ CHALLENGES = [
     },
     {
         "name": "r7-ports",
+        "board_name": "07 — چهار درِ بسته",
         "title": "چهار درِ بسته",
         "category": "آزمایشگاه",
         "points": 250,
@@ -331,6 +333,7 @@ CHALLENGES = [
     # «بسیار سخت» — deep mixed, container-flavored
     {
         "name": "v1-oldsite",
+        "board_name": "01 — سایت قدیمی",
         "title": "سایت قدیمی",
         "category": "بسیار سخت",
         "points": 400,
@@ -353,6 +356,7 @@ CHALLENGES = [
     },
     {
         "name": "v3-ghost",
+        "board_name": "03 — پاسخ‌گوی شب",
         "title": "پاسخ‌گوی شب",
         "category": "بسیار سخت",
         "points": 400,
@@ -413,6 +417,7 @@ CHALLENGES = [
     },
     {
         "name": "e8-localweb",
+        "board_name": "08 — همسایه‌ی localhost",
         "title": "همسایه‌ی localhost",
         "category": "آسان",
         "points": 150,
@@ -506,6 +511,7 @@ CHALLENGES = [
     },
     {
         "name": "h6-decoyports",
+        "board_name": "06 — پورت‌های فریبکار",
         "title": "پورت‌های فریبکار",
         "category": "سخت",
         "points": 300,
@@ -566,6 +572,7 @@ CHALLENGES = [
     },
     {
         "name": "v6-sentinel",
+        "board_name": "06 — دروازه‌بانی که توکن می‌خواهد",
         "title": "دروازه‌بانی که توکن می‌خواهد",
         "category": "بسیار سخت",
         "points": 400,
@@ -589,6 +596,7 @@ CHALLENGES = [
     },
     {
         "name": "v8-needle2",
+        "board_name": "08 — هزار سوزن — درس: ریجکس",
         "title": "هزار سوزن",
         "category": "بسیار سخت",
         "points": 400,
