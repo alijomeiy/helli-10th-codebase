@@ -1245,14 +1245,16 @@ def numbered_titles():
     seq = {}
     out = {}
     for ch in CHALLENGES:
+        cat = display_category(ch)
+        seq[cat] = seq.get(cat, 0) + 1
         if ch.get("board_name"):
             # exact CTFd display name pinned by hand (week-format challenges
             # whose board names don't follow the «NN — title» generator);
-            # prevents ctf_setup from re-creating renamed challenges
+            # prevents ctf_setup from re-creating renamed challenges.
+            # NOTE: the seq slot above is still consumed so the UNPINNED
+            # challenges keep their original numbers.
             out[ch["name"]] = ch["board_name"]
             continue
-        cat = display_category(ch)
-        seq[cat] = seq.get(cat, 0) + 1
         out[ch["name"]] = f"{seq[cat]:02d} — {ch['title']}" + lesson_tag(ch)
         if ch.get("session"):
             out[ch["name"]] += (" — جلسه "
