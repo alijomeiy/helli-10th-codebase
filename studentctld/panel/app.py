@@ -380,13 +380,35 @@ def dashboard():
     except Exception:
         capacity = None
 
+    # lab box status (best effort)
+    box = None
+    try:
+        box = server_api.box_status(current_user.username)
+    except Exception:
+        box = None
+
     class_ctf_locked = bool(current_user.class_label and current_user.class_label in get_locked_classes())
 
     return render_template(
         "dashboard.html",
         pending=False, rejected=False, disabled=False, capacity=capacity,
-        class_ctf_locked=class_ctf_locked,
+        box=box, class_ctf_locked=class_ctf_locked,
     )
+
+
+@app.route("/box/reset", methods=["POST"])
+@login_required
+def box_reset_mine():
+    """Student self-service: wipe and recreate their own lab box."""
+    if current_user.role != "student" or current_user.status != STATUS_APPROVED:
+        abort(403)
+    try:
+        server_api.box_reset(current_user.username)
+        log_event(current_user.username, "box_reset", "self-service")
+        flash("آزمایشگاه شما از نو ساخته شد؛ همه‌چیز تازه است.", "ok")
+    except Exception as e:
+        flash(f"بازنشانی آزمایشگاه ناموفق بود: {e}", "error")
+    return redirect(url_for("dashboard"))
 
 
 
@@ -496,6 +518,13 @@ def approve(uid):
     sync_server()
     log_event(u.username, "provision", f"uid={new_uid} port={port}")
 
+    # lab box (best-effort — approval proceeds even if this fails)
+    try:
+        server_api.box_create(u.username)
+        log_event(u.username, "box", "created")
+    except Exception as e:
+        log_event(u.username, "box", f"create failed: {e}")
+
     ctfd = ctfd_provision(u.username, pw)
     if ctfd:
         if u.class_label and u.class_label in get_locked_classes():
@@ -534,6 +563,10 @@ def disable(uid):
         srv_kill(u.username)
     except Exception as e:
         flash(f"خطای سرور هنگام قطع دسترسی لینوکس: {e}", "error")
+    try:
+        server_api.box_stop(u.username)          # put the lab to sleep too
+    except Exception:
+        pass
     u.status = STATUS_DISABLED
     db.session.commit()
     sync_server()
@@ -556,6 +589,10 @@ def enable(uid):
         server_api.enable(u.username)
     except Exception as e:
         flash(f"خطای سرور هنگام فعال‌سازی لینوکس: {e}", "error")
+    try:
+        server_api.box_create(u.username)        # ensure the lab exists after re-enable
+    except Exception:
+        pass
     u.status = STATUS_APPROVED
     db.session.commit()
     sync_server()
@@ -706,6 +743,10 @@ def delete(uid):
         except Exception as e:
             flash(f"خطای سرور هنگام حذف: {e}", "error")
     uname = u.username
+    try:
+        server_api.box_remove(uname)             # lab goes with the account
+    except Exception:
+        pass
     db.session.delete(u)
     db.session.commit()
     sync_server()

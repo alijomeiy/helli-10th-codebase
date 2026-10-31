@@ -85,19 +85,28 @@ def status():
 # ---- student lab boxes (see server/studentctl-box.sh) ------------------------
 
 def box_create(username):
-    return True
+    return _sudo("studentctl-box", "create", username)
+
 
 def box_stop(username):
-    return True
+    return _sudo("studentctl-box", "stop", username)
+
 
 def box_remove(username):
-    return True
+    return _sudo("studentctl-box", "remove", username)
+
 
 def box_reset(username):
-    return True
+    return _sudo("studentctl-box", "reset", username)
+
 
 def box_status(username):
-    return {"exists": False, "running": False}
+    """Returns {exists, running, mem} or raises."""
+    rc, out, err = _run(
+        'sudo /usr/local/sbin/studentctl-box status "%s"' % username)
+    if rc != 0:
+        raise RuntimeError(err or out or "status failed")
+    return json.loads(out)
 
 def deploy_task1(student_data):
     """SSH to server, pipe JSON to studentctl-deploy-task1 which creates

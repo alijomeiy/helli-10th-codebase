@@ -23,7 +23,7 @@
          را با همه‌ی پیش‌نیازهایش دانلود، نصب و به‌روز می‌کند. مخزن شما همان
          مخزنِ سرور است (آینه‌ی ایرانی، سریع).</p>
       <p>دسترسی نصب فقط برای root است — یعنی روی سرورِ مشترک نمی‌توانید، اما در
-         حساب کاربری خودتان در سرور که root هستید آزادید.</p>
+         <a href="mybox.html">آزمایشگاه خودتان</a> که root هستید آزادید.</p>
     </div>
 
     <h2>دستورهای پایه</h2>
@@ -66,14 +66,14 @@ apt install -y tree                   # بدون پرسیدن yes/no (برای �
       <li>چه دستوری نشان می‌دهد بسته‌ی <code dir="ltr">jq</code> وجود دارد و توضیحش چیست، بدون نصب؟</li>
       <li>ابزار <code dir="ltr">tree</code> را نصب کنید و ببینید فایل‌هایش کجا نصب شده‌اند.</li>
       <li>بسته‌ای را که در تمرین ۳ نصب کردید، کامل (با تنظیمات) حذف کنید.</li>
-      <li>چرا <code dir="ltr">apt install</code> روی سرور مشترک برای شما خطای دسترسی می‌دهد ولی در حساب کاربری لینوکس کار می‌کند؟</li>
+      <li>چرا <code dir="ltr">apt install</code> روی سرور مشترک برای شما خطای دسترسی می‌دهد ولی در mybox کار می‌کند؟</li>
     </ol>
     <p><em>پاسخ‌ها:</em></p>
     <details><summary>پاسخ ۱</summary><p>update فقط فهرست/مخزن را تازه می‌کند؛ upgrade خودِ بسته‌های نصب‌شده را به نسخه‌ی جدید می‌آورد.</p></details>
     <details><summary>پاسخ ۲</summary><p dir="ltr">apt show jq</p></details>
     <details><summary>پاسخ ۳</summary><p dir="ltr">apt install tree && dpkg -L tree</p></details>
     <details><summary>پاسخ ۴</summary><p dir="ltr">apt purge tree</p></details>
-    <details><summary>پاسخ ۵</summary><p>چون فقط root اجازه‌ی نصب دارد؛ روی سرور کاربر عادی‌اید ولی در حساب کاربری لینوکس root هستید.</p></details>
+    <details><summary>پاسخ ۵</summary><p>چون فقط root اجازه‌ی نصب دارد؛ روی سرور کاربر عادی‌اید ولی در mybox root هستید.</p></details>
 
     <p class="muted">حالا در CTF، چالش‌های دسته‌ی «آسان» را باز کنید — به همین‌ها وابسته‌اند.</p>
   </main>
