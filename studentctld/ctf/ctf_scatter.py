@@ -15,6 +15,7 @@ import os
 import random
 import shutil
 import string
+import subprocess
 import tarfile
 import tempfile
 
@@ -444,6 +445,106 @@ for _ch in CHALLENGES:
     SCATTERERS.setdefault(_ch["name"], scatter_r_stub)
 
 
+# ---------------- portable box-section groups (host model) --------------------
+# The docker boxes are gone. These challenges' artifacts are the TESTED
+# box_payload sections, re-run per student with paths rewritten into the
+# home: /opt/lab -> ~/lab, /opt/labweb -> ~/labweb, /var/log/lab.log ->
+# ~/lab/lab.log, /home/lab -> home (v3 clue -> the student's real history,
+# r6 -> ~/lab/.bash_history). Per-student ports: r4 gets 12000+(uid-2000).
+# h3's root cron is dropped (student runs job.sh by hand); r6's chown is
+# dropped (the wrapper chowns).
+
+BOX_GROUPS = {
+    "extras": (["r3-nightlog", "r4-web", "r6-history", "h2-tarhunt",
+                "h3-shift", "v3-ghost"],
+               ["r3 + h1", "r4", "r6", "h2", "h3", "v3"]),
+    "session6": (["m-s6-1-packcron", "m-s6-2-restore", "m-s6-3-gzview",
+                  "oe-s6-1-tarkeys", "oe-s6-2-singlefile",
+                  "om-s6-1-tablemode", "oh-s6-1-singlemember"],
+                 ["session 6"]),
+    "session7": (["m-s7-1-linepick", "m-s7-2-appendlogs", "m-s7-3-silence",
+                  "oe-s7-1-teekeep", "om-s7-1-usercount",
+                  "oh-s7-1-xargchain"],
+                 ["session 7"]),
+    "session8": (["m-s8-1-firstcol", "m-s8-2-topword", "m-s8-3-countpos",
+                  "oe-s8-1-confdiff", "om-s8-1-logtop",
+                  "oh-s8-1-chainforensic"],
+                 ["session 8"]),
+}
+
+
+def _slice_sections(payload, labels):
+    lines = payload.splitlines(keepends=True)
+    marks = [(i, ln) for i, ln in enumerate(lines)
+             if ln.startswith("# ---- ")]
+    slices = {}
+    for label in labels:
+        for idx, (i, ln) in enumerate(marks):
+            if ln.startswith("# ---- " + label):
+                end = marks[idx + 1][0] if idx + 1 < len(marks) \
+                    else len(lines)
+                slices[label] = "".join(lines[i:end])
+                break
+        else:
+            raise SystemExit(f"box section not found: {label}")
+    return slices
+
+
+def scatter_box_group(home, group, manifest, uid):
+    """Re-run the group's box_payload sections for this student, with all
+    paths inside their home. Group flags are taken from the manifest
+    (main loop already stored this run's real values) or freshly minted
+    and stored, so CTFd registration keeps working."""
+    from box_scatter import box_payload
+    u = os.path.basename(home.rstrip("/"))
+    allnames = [c["name"] for c in CHALLENGES]
+    flags = {}
+    for n in allnames:
+        flags[n] = manifest["flags"].get(n, {}).get(u) or \
+            f"FLAG{{dummy-{n}}}"
+    names, labels = BOX_GROUPS[group]
+    for n in names:
+        f = manifest["flags"].get(n, {}).get(u)
+        if not f:
+            f = make_flag(u)
+            manifest["flags"][n][u] = f
+        flags[n] = f
+    slices = _slice_sections(box_payload(u, flags), labels)
+    r4port = 12000 + (uid - 2000)
+    parts = []
+    for label in labels:
+        text = slices[label]
+        if label == "h3":
+            # no root cron on the host: the student runs job.sh by hand
+            text = "\n".join(ln for ln in text.splitlines()
+                             if "/etc/crontab" not in ln) + "\n"
+            text = text.replace("/tmp/out.txt", home + "/lab/out.txt")
+        if label == "r6":
+            text = text.replace(
+                "chown lab:lab /home/lab/.bash_history\n", "")
+            text = text.replace("/home/lab/.bash_history",
+                                home + "/lab/.bash_history")
+        if label == "v3":
+            # the clue lands in the student's own bash history
+            text = text.replace("/home/lab/.bash_history",
+                                home + "/.bash_history")
+        text = (text
+                .replace("/opt/labweb", home + "/labweb")
+                .replace("/opt/lab", home + "/lab")
+                .replace("/var/log/lab.log", home + "/lab/lab.log"))
+        if label == "r4":
+            # per-student port: 170 students cannot share 8080
+            text = text.replace("('0.0.0.0', 8080)",
+                                f"('0.0.0.0', {r4port})")
+        parts.append(text)
+    section = "\n".join(parts).replace("\r\n", "\n")
+    subprocess.run(["bash", "-s"], input=section.encode("utf-8"),
+                   check=True)
+    os.makedirs(home + "/labweb", exist_ok=True)
+    with open(home + "/labweb/port.txt", "w") as f:
+        f.write(f"{r4port}\n")
+
+
 def chown_tree(path, uid):
     for root, dirs, files in os.walk(path):
         for x in dirs + files:
@@ -492,7 +593,7 @@ def main():
         wipe = tuple(sorted({WIPE_DIRS[n] for n in only if n in WIPE_DIRS}))
     else:
         wipe = ("level1", "level2", "level3", "level4", "level5",
-                ".level1", "ctf", "netlab")
+                ".level1", "ctf", "netlab", "lab", "labweb", "lablog")
     known = {s["username"] for s in manifest["students"]}
 
     for username, uid in students:
@@ -526,6 +627,29 @@ def main():
         if os.path.exists(wp):
             os.chown(wp, uid, -1)
         print(f"  OK {username}")
+
+    # portable box-section groups: run once per affected group AFTER the
+    # per-challenge loop (whole-group artifacts, path-rewritten into homes)
+    sel = {c["name"] for c in chals}
+    for group, (gnames, _labels) in BOX_GROUPS.items():
+        if not (sel & set(gnames)):
+            continue
+        n_homes = 0
+        for username, uid in students:
+            home = f"/home/{username}"
+            if not os.path.isdir(home):
+                continue
+            scatter_box_group(home, group, manifest, uid)
+            for sub in ("lab", "labweb"):
+                p = os.path.join(home, sub)
+                if os.path.isdir(p):
+                    chown_tree(p, uid)
+            for extra in (".bash_history", "lab/.bash_history"):
+                p = os.path.join(home, extra)
+                if os.path.exists(p):
+                    os.chown(p, uid, -1)
+            n_homes += 1
+        print(f"  box-group {group} scattered ({n_homes} homes)")
 
     with open(args.manifest, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)

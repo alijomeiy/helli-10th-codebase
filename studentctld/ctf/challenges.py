@@ -203,9 +203,9 @@ CHALLENGES = [
         "title": "گزارش شبانه",
         "category": "آزمایشگاه",
         "points": 200,
-        "description": "گزارش رخدادهای سیستم در /var/log/lab.log صدها خط دارد؛ "
+        "description": "گزارش رخدادهای سیستم در ~/lab/lab.log صدها خط دارد؛ "
                        "یکی از آن‌ها پرچم را بار است.",
-        "hint": "grep FLAG /var/log/lab.log",
+        "hint": "grep FLAG ~/lab/lab.log",
         "hint_cost": 40,
     },
     {
@@ -214,9 +214,10 @@ CHALLENGES = [
         "title": "سرویس وب",
         "category": "آزمایشگاه",
         "points": 225,
-        "description": "در /opt/labweb یک وب‌سرور کوچک خواب است. بیدارش کنید و "
-                       "از همان داخل آزمایشگاه به آن سر بزنید.",
-        "hint": "apt install python3 را اول نصب کنید؛ بعد: python3 /opt/labweb/web.py &  و در پایان  curl localhost:8080",
+        "description": "در ~/labweb یک وب‌سرور کوچک خواب است. بیدارش کنید — پورتِ "
+                       "اختصاصی‌اش کنارش در port.txt نوشته شده — و از "
+                       "همان‌جا با curl به آن سر بزنید.",
+        "hint": "python3 ~/labweb/web.py & → curl localhost:$(cat ~/labweb/port.txt)",
         "hint_cost": 45,
     },
     {
@@ -226,7 +227,7 @@ CHALLENGES = [
         "points": 225,
         "description": "زنگ‌زده‌ی این سیستم هر یک دقیقه یک جایزه در جای مشخصی "
                        "می‌گذارد. برنامه‌اش را پیدا کنید و صبور باشید.",
-        "hint": "cat /etc/crontab ببینید؛ یک دقیقه صبر کنید و بعد cat /tmp/prize.txt",
+        "hint": "cat /etc/crontab ببینید؛ یک دقیقه صبر کنید و بعد cat ~/tmp/prize.txt",
         "hint_cost": 45,
     },
     {
@@ -234,8 +235,9 @@ CHALLENGES = [
         "title": "ردپای تاریخچه",
         "category": "آزمایشگاه",
         "points": 175,
-        "description": "کاربر lab سابقه‌ی فرمان‌هایش را پاک نکرده است...",
-        "hint": "cat /home/lab/.bash_history",
+        "description": "سابقه‌ی فرمان‌های کاربر lab در ~/lab/.bash_history "
+                       "مانده است — هنوز پاکش نکرده!",
+        "hint": "cat ~/lab/.bash_history",
         "hint_cost": 35,
     },
     {
@@ -244,9 +246,9 @@ CHALLENGES = [
         "title": "چهار درِ بسته",
         "category": "آزمایشگاه",
         "points": 250,
-        "description": "اسکریپتی در /opt/lab/servers چهار در پشت‌سرِهم باز می‌کند. "
+        "description": "اسکریپتی در ~/lab/servers چهار در پشت‌سرِهم باز می‌کند. "
                        "پرچم فقط پشت یکی از آن‌هاست — کدام در؟",
-        "hint": "apt install iproute2  بعد  bash /opt/lab/servers/run.sh  سپس  ss -tlnp  و در آخر curl localhost:9001 تا 9004",
+        "hint": "apt install iproute2  بعد  bash ~/lab/servers/run.sh  سپس  ss -tlnp  و در آخر curl localhost:9001 تا 9004",
         "hint_cost": 50,
     },
     {
@@ -268,9 +270,9 @@ CHALLENGES = [
         "category": "آسان",
         "points": 150,
         "description": "در آزمایشگاه (mybox) یک بسته‌ی آماده برای شما گذاشته‌ایم: "
-                       "/opt/lab/kit.deb — نصبش کنید و ببینید داخلش چه است. "
+                       "~/lab/kit.deb — نصبش کنید و ببینید داخلش چه است. "
                        "درس apt: docs.helli-10th-computer.ir/apt.html",
-        "hint": "apt install /opt/lab/kit.deb  (یا dpkg -i) — بعد فایل را که در /usr/share گذاشت پیدا و بخوانید: dpkg -L flagpkg",
+        "hint": "apt install ~/lab/kit.deb  (یا dpkg -i) — بعد فایل را که در /usr/share گذاشت پیدا و بخوانید: dpkg -L flagpkg",
         "hint_cost": 25,
     },
     {
@@ -278,9 +280,9 @@ CHALLENGES = [
         "title": "جنگل درخت‌ها",
         "category": "آسان",
         "points": 150,
-        "description": "در /opt/lab/e2 هزارتویی از پوشه‌ها ساخته شده. ابزارِ مناسب "
+        "description": "در ~/lab/e2 هزارتویی از پوشه‌ها ساخته شده. ابزارِ مناسب "
                        "نصب کنید تا یک‌نگاهی تهِ جنگل را ببینید؛ پرچم در عمیق‌ترین برگ است.",
-        "hint": "apt install tree  بعد  tree /opt/lab/e2 — فایل انتهایی عمیق‌ترین مسیر",
+        "hint": "apt install tree  بعد  tree ~/lab/e2 — فایل انتهایی عمیق‌ترین مسیر",
         "hint_cost": 25,
     },
     {
@@ -288,10 +290,10 @@ CHALLENGES = [
         "title": "داده‌ی رمزی",
         "category": "آسان",
         "points": 150,
-        "description": "فایل /opt/lab/data.json یک راز دارد؛ اما خودش را ساده لوحانه "
+        "description": "فایل ~/lab/data.json یک راز دارد؛ اما خودش را ساده لوحانه "
                        "لو نمی‌دهد. ابزارِ پرس‌وجوی JSON را نصب کنید و «secret» را "
                        "کدگشایی کنید (راهنمایی: base64).",
-        "hint": "apt install jq  بعد  jq -r .secret /opt/lab/data.json | base64 -d",
+        "hint": "apt install jq  بعد  jq -r .secret ~/lab/data.json | base64 -d",
         "hint_cost": 25,
     },
 
@@ -304,7 +306,7 @@ CHALLENGES = [
         "description": "در خانه‌ی میزبان شما (روی سرور، نه آزمایشگاه) پوشه‌ی level5 "
                        "یک سرنخ بسته‌بندی‌شده دارد. آن را باز کنید؛ بقیه‌ی ماجرا در "
                        "گزارشِ ساعت ۰۳:۰۰ آزمایشگاه شماست. پرچم = نیمه‌ی اول + نیمه‌ی دوم.",
-        "hint": "میزبان: tar xzf level5/lead.tar.gz → نیمه‌ی اول. آزمایشگاه: mybox → grep '03:00' /var/log/lab.log → نیمه‌ی دوم. بچسبانید!",
+        "hint": "میزبان: tar xzf level5/lead.tar.gz → نیمه‌ی اول. آزمایشگاه: mybox → grep '03:00' ~/lab/lab.log → نیمه‌ی دوم. بچسبانید!",
         "hint_cost": 50,
     },
     {
@@ -312,10 +314,10 @@ CHALLENGES = [
         "title": "گنج پنهان در بایگانی",
         "category": "سخت",
         "points": 250,
-        "description": "در آزمایشگاه، /opt/lab/backup.tar.gz یک بایگانی شلوغ است. "
+        "description": "بایگانیِ شلوغِ ~/lab/backup.tar.gz "
                        "چند فایل «گنج‌نما» دارد؛ فقط یکی پرچم واقعی دارد — و اسمش "
                        "با نقطه شروع می‌شود.",
-        "hint": "cd /opt/lab && tar xzf backup.tar.gz -C /tmp/h2 && find /tmp/h2 -name '.treasure*' → هرکدام را cat کنید؛ FLAG واقعی را پیدا کنید",
+        "hint": "mkdir -p ~/tmp && tar xzf ~/lab/backup.tar.gz -C ~/tmp/h2 && find ~/tmp/h2 -name '.treasure*' → هرکدام را cat کنید؛ FLAG واقعی را پیدا کنید",
         "hint_cost": 40,
     },
     {
@@ -323,10 +325,11 @@ CHALLENGES = [
         "title": "شیفت شب",
         "category": "سخت",
         "points": 300,
-        "description": "در آزمایشگاه هر دقیقه کاری انجام می‌شود که خروجی‌اش را در "
-                       "/tmp می‌گذارد. متنِ خروجی عجیب است... انگار حروفش را جابه‌جا "
-                       "کرده‌اند. (راهنمایی: هر حرف ۱۳ پله جلوتر.)",
-        "hint": "cat /etc/crontab → job را ببین؛ یک دقیقه صبر کن یا دستی اجرا کن؛ بعد decode با: tr 'A-Za-z' 'N-ZA-Mn-za-m' < /tmp/out.txt",
+        "description": "اسکریپتِ ~/lab/job.sh اجرا می‌شود و خروجی‌اش را در "
+                       "~/lab/out.txt می‌گذارد. متنِ خروجی عجیب است... انگار "
+                       "حروفش را جابه‌جا کرده‌اند. (راهنمایی: هر حرف ۱۳ پله "
+                       "جلوتر.)",
+        "hint": "bash ~/lab/job.sh → بعد رمزگشایی با: tr 'A-Za-z' 'N-ZA-Mn-za-m' < ~/lab/out.txt",
         "hint_cost": 50,
     },
 
@@ -337,10 +340,10 @@ CHALLENGES = [
         "title": "سایت قدیمی",
         "category": "بسیار سخت",
         "points": 400,
-        "description": "وب‌اپ خاموشی در آزمایشگاه شماست (/opt/lab/old-web) و بایگانی‌ای "
+        "description": "وب‌اپ خاموشی در آزمایشگاه شماست (~/lab/old-web) و بایگانی‌ای "
                        "در خانه‌ی میزبان (level5/old-site.tar.gz). سایتِ قدیمی دو نیمه‌ی "
                        "پرچم شما را بین خودش و بایگانی تقسیم کرده. پرچم = نیمه‌ها به هم.",
-        "hint": "میزبان: tar xzf level5/old-site.tar.gz → کامنت HTML. آزمایشگاه: python3 /opt/lab/old-web/web.py &  بعد  curl localhost:9999. دو نیمه را بچسبانید.",
+        "hint": "میزبان: tar xzf level5/old-site.tar.gz → کامنت HTML. آزمایشگاه: python3 ~/lab/old-web/web.py &  بعد  curl localhost:9999. دو نیمه را بچسبانید.",
         "hint_cost": 60,
     },
     {
@@ -351,7 +354,7 @@ CHALLENGES = [
         "description": "در آزمایشگاه، /root/buried.tar تصویری داکری است که یک راز را "
                        "داشته و بعد آن را پاک کرده! اجرایش کنید تا قانع شوید چیزی "
                        "نمی‌گوید. اما... لایه‌ها دروغ نمی‌گویند.",
-        "hint": "docker load -i /root/buried.tar → docker run flagbox:2 (چیزی نمی‌دهد) → خودِ تصویر را save کنید: docker save flagbox:2 -o /tmp/x.tar → tar xf → در لایه‌ها بگردید (flag حذف‌شده در لایه‌ی قبلی است)",
+        "hint": "docker load -i /root/buried.tar → docker run flagbox:2 (چیزی نمی‌دهد) → خودِ تصویر را save کنید: docker save flagbox:2 -o ~/tmp/x.tar → tar xf → در لایه‌ها بگردید (flag حذف‌شده در لایه‌ی قبلی است)",
         "hint_cost": 60,
     },
     {
@@ -360,11 +363,11 @@ CHALLENGES = [
         "title": "پاسخ‌گوی شب",
         "category": "بسیار سخت",
         "points": 400,
-        "description": "در آزمایشگاه شما خدمتکاری پنهان است: اسکریپتی که خودش را "
+        "description": "روی سرور یک خدمتکار پنهان دارید: اسکریپتی که خودش را "
                        "خوب جا خوش کرده و پورتِ خودش را هم لو نمی‌دهد... تقریباً. "
-                       "کاربر lab یک بار به او سر زده است. پیدایش کنید، روشنش کنید، "
-                       "و پورتِ واقعی‌اش را پیدا کنید.",
-        "hint": "find / -name '*.py' -path '*lab*' 2>/dev/null → اجرا با: python3 <مسیر> &  بعد: apt install iproute2 && ss -tlnp → curl localhost:<پورت>",
+                       "یک بار به او سر زده‌اید — تاریخچه‌تان دروغ نمی‌گوید. "
+                       "پیدایش کنید، روشنش کنید، و پورتِ واقعی‌اش را پیدا کنید.",
+        "hint": "مسیرش زیر ~/lab است (سرنخ: ~/.bash_history) → python3 ~/lab/.ghost/ghost.py & → ss -tlnp | grep python → curl localhost:<پورت>",
         "hint_cost": 60,
     },
 
@@ -375,10 +378,10 @@ CHALLENGES = [
         "category": "آسان",
         "points": 150,
         "draft": True,
-        "description": "در آزمایشگاه شما /opt/lab/docs.tar.gz یک بایگانی شلوغ است. "
+        "description": "در آزمایشگاه شما ~/lab/docs.tar.gz یک بایگانی شلوغ است. "
                        "می‌دانیم پرچم داخل یکی از فایل‌های متنی‌اش است — اما کدام؟ "
                        "(درس آرشیو را ببینید.)",
-        "hint": "mkdir /tmp/e4 && tar xzf /opt/lab/docs.tar.gz -C /tmp/e4 → grep -r FLAG /tmp/e4",
+        "hint": "mkdir ~/tmp/e4 && tar xzf ~/lab/docs.tar.gz -C ~/tmp/e4 → grep -r FLAG ~/tmp/e4",
         "hint_cost": 25,
     },
     {
@@ -387,9 +390,9 @@ CHALLENGES = [
         "category": "آسان",
         "points": 150,
         "draft": True,
-        "description": "فایل /opt/lab/queue.log هزاران خط دارد و پرچم، طبق رسم "
+        "description": "فایل ~/lab/queue.log هزاران خط دارد و پرچم، طبق رسم "
                        "همیشگی، آخر از قافله است. (درس پردازش متن را ببینید.)",
-        "hint": "tail -1 /opt/lab/queue.log — یا: tail -5 و بگرد",
+        "hint": "tail -1 ~/lab/queue.log — یا: tail -5 و بگرد",
         "hint_cost": 25,
     },
     {
@@ -398,10 +401,10 @@ CHALLENGES = [
         "category": "آسان",
         "points": 150,
         "draft": True,
-        "description": "در فایل /opt/lab/people.csv رکوردهای زیادی هست. فقط ردیف‌های "
+        "description": "در فایل ~/lab/people.csv رکوردهای زیادی هست. فقط ردیف‌های "
                        "شهرشان shiraz است را ببینید؛ پرچم در ستون یادداشت آن‌ها قایم شده. "
                        "(درس پردازش متن — cut را یاد بگیرید.)",
-        "hint": "grep shiraz /opt/lab/people.csv → با cut -d, -f4 ستون یادداشت را ببر → نگاه کن",
+        "hint": "grep shiraz ~/lab/people.csv → با cut -d, -f4 ستون یادداشت را ببر → نگاه کن",
         "hint_cost": 25,
     },
     {
@@ -444,9 +447,9 @@ CHALLENGES = [
         "category": "آسان",
         "points": 150,
         "draft": True,
-        "description": "اسکریپتی در /opt/lab/whisper.sh دارد چیزی زمزمه می‌کند اما "
+        "description": "اسکریپتی در ~/lab/whisper.sh دارد چیزی زمزمه می‌کند اما "
                        "اجازه‌ی حرف زدن ندارد. به او اعتماد به نفس بدهید. (درس اسکریپت bash.)",
-        "hint": "chmod +x /opt/lab/whisper.sh && /opt/lab/whisper.sh — یا سریع‌تر: bash /opt/lab/whisper.sh",
+        "hint": "chmod +x ~/lab/whisper.sh && ~/lab/whisper.sh — یا سریع‌تر: bash ~/lab/whisper.sh",
         "hint_cost": 25,
     },
     {
@@ -466,10 +469,10 @@ CHALLENGES = [
         "category": "آسان",
         "points": 150,
         "draft": True,
-        "description": "برنامه‌ی /opt/lab/myapp لاگش هر شب می‌چرخد: لاگ امروز در "
+        "description": "برنامه‌ی ~/lab/myapp لاگش هر شب می‌چرخد: لاگ امروز در "
                        "myapp.log است و دیروز در myapp.log.1. اتفاق مهم، همان دیشب افتاد. "
                        "(درس پردازش متن.)",
-        "hint": "grep FLAG /opt/lab/myapp.log.1 — به پسوند 1. دقت کنید",
+        "hint": "grep FLAG ~/lab/myapp.log.1 — به پسوند 1. دقت کنید",
         "hint_cost": 25,
     },
     {
@@ -478,9 +481,9 @@ CHALLENGES = [
         "category": "آسان",
         "points": 150,
         "draft": True,
-        "description": "در /opt/lab یک بسته‌ی دوپوشه است: داخل آرشیو، آرشیو. "
+        "description": "در ~/lab یک بسته‌ی دوپوشه است: داخل آرشیو، آرشیو. "
                        "هر دو لایه را باز کنید. (درس آرشیو — آرشیوِ داخل آرشیو.)",
-        "hint": "tar xzf outer.tar.gz -C /tmp/e13 → داخلش inner.tar.gz است → دوباره tar xzf",
+        "hint": "tar xzf outer.tar.gz -C ~/tmp/e13 → داخلش inner.tar.gz است → دوباره tar xzf",
         "hint_cost": 25,
     },
 
@@ -494,7 +497,7 @@ CHALLENGES = [
         "description": "در آزمایشگاه هر ۲ دقیقه، کاری پشتِ صحنه پرچم را به مسیری "
                        "تصادفی در /tmp می‌برد و بعد از ۹۰ ثانیه پاکش می‌کند. "
                        "شکارچی خوب قبل از دویدن، قانونِ بازی را می‌خواند. (درس فرایندها.)",
-        "hint": "cat /etc/crontab → اسکریپت کار را باز و بخوان: الگوی نام فایل و مسیر آنجاست → دستی همان را بساز یا حلقه بزن: for i in $(seq 1 60); do ls /tmp/.run-* 2>/dev/null && break; sleep 2; done",
+        "hint": "cat /etc/crontab → اسکریپت کار را باز و بخوان: الگوی نام فایل و مسیر آنجاست → دستی همان را بساز یا حلقه بزن: for i in $(seq 1 60); do ls ~/tmp/.run-* 2>/dev/null && break; sleep 2; done",
         "hint_cost": 40,
     },
     {
@@ -588,10 +591,10 @@ CHALLENGES = [
         "category": "بسیار سخت",
         "points": 400,
         "draft": True,
-        "description": "فایل گاوصندوق (/opt/lab/vault/vault.enc) با رمز قفل شده که "
+        "description": "فایل گاوصندوق (~/lab/vault/vault.enc) با رمز قفل شده که "
                        "در هیچ فایلی به صورت صریح نیست؛ سه سرنخ پشت هم باید باز "
                        "شوند تا به عبارتِ رمز برسی. (درس کاربران + پردازش متن + زنجیره‌فکری.)",
-        "hint": "۱: ls -la /opt/lab/vault → README سرنخ اول. ۲: سرنخ‌ها به هم می‌چسبند (بخوانید: base64 -d ها). ۳: openssl enc -d -aes-256-cbc -pbkdf2 -pass pass:<عبارت‌ساخته>",
+        "hint": "۱: ls -la ~/lab/vault → README سرنخ اول. ۲: سرنخ‌ها به هم می‌چسبند (بخوانید: base64 -d ها). ۳: openssl enc -d -aes-256-cbc -pbkdf2 -pass pass:<عبارت‌ساخته>",
         "hint_cost": 60,
     },
     {
@@ -601,10 +604,10 @@ CHALLENGES = [
         "category": "بسیار سخت",
         "points": 400,
         "draft": True,
-        "description": "در /opt/lab/hay سه هزار فایل هست؛ پر از خط‌های فریبنده‌ی "
+        "description": "در ~/lab/hay سه هزار فایل هست؛ پر از خط‌های فریبنده‌ی "
                        "«FLAG»-نما (FL4G، FLAG‌، FAKEFLAG...). فقط یکی الگوی دقیق "
                        "پرچم را دارد — و با دست نمی‌شود گشت. (درس لوله‌ها + ریجکس + xargs.)",
-        "hint": "grep -rlE 'FLAG\\{[a-z0-9_-]+\\}' /opt/lab/hay — حرف‌های بزرگ/کوچک و الگوی دقیق، تفاوت فریب و واقعیت است",
+        "hint": "grep -rlE 'FLAG\\{[a-z0-9_-]+\\}' ~/lab/hay — حرف‌های بزرگ/کوچک و الگوی دقیق، تفاوت فریب و واقعیت است",
         "hint_cost": 60,
     },
 
@@ -621,13 +624,13 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 100,
         "session": 6,
-        "description": "در آزمایشگاه شما /opt/lab/cron-pack.tar.gz بایگانی‌ای از "
+        "description": "در آزمایشگاه شما ~/lab/cron-pack.tar.gz بایگانی‌ای از "
                        "برنامه‌های زمان‌بندی است. اول بدون باز کردن، فهرستش را "
                        "ببینید؛ نام یکی از فایل‌ها با بقیه فرق دارد — فقط همان "
                        "یک عضو را بیرون بیاورید. (تمرین جلسه ۶ — درس آرشیو: "
                        "docs.helli-10th-computer.ir/archives.html)",
-        "hint": "tar tzf /opt/lab/cron-pack.tar.gz → نامِ متفاوت را پیدا کن → "
-                "tar xzf /opt/lab/cron-pack.tar.gz <نام‌عضو> -C /tmp/m61 → cat",
+        "hint": "tar tzf ~/lab/cron-pack.tar.gz → نامِ متفاوت را پیدا کن → "
+                "tar xzf ~/lab/cron-pack.tar.gz <نام‌عضو> -C ~/tmp/m61 → cat",
         "hint_cost": 20,
     },
     {
@@ -636,13 +639,13 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 125,
         "session": 6,
-        "description": "پشتیبانِ یک وب‌سایت قدیمی در /opt/lab/site-backup.tar.gz "
-                       "خوابیده. آن را داخل پوشه‌ی تازه‌ی /tmp/restore باز کنید — "
+        "description": "پشتیبانِ یک وب‌سایت قدیمی در ~/lab/site-backup.tar.gz "
+                       "خوابیده. آن را داخل پوشه‌ی تازه‌ی ~/tmp/restore باز کنید — "
                        "نه اینکه ریخته همه‌جا پخش شود! — و پرچم را در همان درخت "
                        "پیدا کنید. (تمرین جلسه ۶ — درس آرشیو: "
                        "docs.helli-10th-computer.ir/archives.html)",
-        "hint": "mkdir -p /tmp/restore && tar xzf /opt/lab/site-backup.tar.gz "
-                "-C /tmp/restore → بعد: grep -r FLAG /tmp/restore",
+        "hint": "mkdir -p ~/tmp/restore && tar xzf ~/lab/site-backup.tar.gz "
+                "-C ~/tmp/restore → بعد: grep -r FLAG ~/tmp/restore",
         "hint_cost": 20,
     },
     {
@@ -651,11 +654,11 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 150,
         "session": 6,
-        "description": "در پوشه‌ی فقط‌خواندنی /opt/lab/ro-backups یک notes.gz "
+        "description": "در پوشه‌ی فقط‌خواندنی ~/lab/ro-backups یک notes.gz "
                        "هست. آن پوشه اجازه‌ی نوشتن نمی‌دهد؛ محتوای فایل فشرده را "
                        "بدون خارج کردن ببینید و پرچم را بردارید. (تمرین جلسه ۶ — "
                        "درس آرشیو: docs.helli-10th-computer.ir/archives.html)",
-        "hint": "zcat /opt/lab/ro-backups/notes.gz | grep FLAG — یا کل‌اش را ببینید: zcat /opt/lab/ro-backups/notes.gz",
+        "hint": "zcat ~/lab/ro-backups/notes.gz | grep FLAG — یا کل‌اش را ببینید: zcat ~/lab/ro-backups/notes.gz",
         "hint_cost": 20,
     },
     {
@@ -664,11 +667,11 @@ CHALLENGES = [
         "category": "اختیاری — آسان",
         "points": 150,
         "session": 6,
-        "description": "فایل /opt/lab/mystery.tar.gz هر کاری کنید با کلید z باز "
+        "description": "فایل ~/lab/mystery.tar.gz هر کاری کنید با کلید z باز "
                        "نمی‌شود! از او بپرسید واقعاً چیست (ابزار file) و با کلیدِ "
                        "درست بازش کنید. (تمرین جلسه ۶ — درس آرشیو: "
                        "docs.helli-10th-computer.ir/archives.html)",
-        "hint": "file /opt/lab/mystery.tar.gz — اگر gzip نبود، کلید z را بردار: tar xf /opt/lab/mystery.tar.gz -C /tmp/m61",
+        "hint": "file ~/lab/mystery.tar.gz — اگر gzip نبود، کلید z را بردار: tar xf ~/lab/mystery.tar.gz -C ~/tmp/m61",
         "hint_cost": 25,
     },
     {
@@ -677,11 +680,11 @@ CHALLENGES = [
         "category": "اختیاری — آسان",
         "points": 150,
         "session": 6,
-        "description": "در /opt/lab دو یادداشت هم‌نام هستند: notes.txt معمولی و "
+        "description": "در ~/lab دو یادداشت هم‌نام هستند: notes.txt معمولی و "
                        "notes.txt.gz فشرده. یکی پرچم قلابی دارد؛ واقعی در دوقلوی "
                        "فشرده است. (تمرین جلسه ۶ — درس آرشیو: "
                        "docs.helli-10th-computer.ir/archives.html)",
-        "hint": "cat /opt/lab/notes.txt (قلابی است!) → zcat /opt/lab/notes.txt.gz",
+        "hint": "cat ~/lab/notes.txt (قلابی است!) → zcat ~/lab/notes.txt.gz",
         "hint_cost": 25,
     },
     {
@@ -690,13 +693,13 @@ CHALLENGES = [
         "category": "اختیاری — متوسط",
         "points": 200,
         "session": 6,
-        "description": "بایگانی /opt/lab/table.tar.gz دویست عضو دارد و تقریباً "
+        "description": "بایگانی ~/lab/table.tar.gz دویست عضو دارد و تقریباً "
                        "همه ته‌خالی‌اند. فهرستِ پرجزئیات بگیرید؛ تنها عضوی که "
                        "حجمِ واقعی دارد پرچم را حمل می‌کند — بدون باز کردن کل "
                        "بایگانی، همان یک عضو را بیرون بکشید. (تمرین جلسه ۶ — "
                        "درس آرشیو: docs.helli-10th-computer.ir/archives.html)",
-        "hint": "tar tvzf /opt/lab/table.tar.gz | grep -v ' 0 ' → حجم‌دارها → "
-                "tar xzf /opt/lab/table.tar.gz <نام‌عضو> -C /tmp/m61",
+        "hint": "tar tvzf ~/lab/table.tar.gz | grep -v ' 0 ' → حجم‌دارها → "
+                "tar xzf ~/lab/table.tar.gz <نام‌عضو> -C ~/tmp/m61",
         "hint_cost": 30,
     },
     {
@@ -705,13 +708,13 @@ CHALLENGES = [
         "category": "اختیاری — سخت",
         "points": 250,
         "session": 6,
-        "description": "در /opt/lab/vault.tar.gz سیصد گنجِ هم‌نما و هم‌حجم هست؛ "
+        "description": "در ~/lab/vault.tar.gz سیصد گنجِ هم‌نما و هم‌حجم هست؛ "
                        "همه FAKEFLAG قلابی دارند و فقط یکی الگوی واقعی پرچم شما "
                        "(FLAG{...}) را. با فهرستِ پرجزئیات و استخراجِ گزینشی — یا "
                        "یک زنجیره‌ی خوب — پیدایش کنید. (تمرین جلسه ۶ — درس آرشیو: "
                        "docs.helli-10th-computer.ir/archives.html)",
-        "hint": "mkdir /tmp/m61 && tar xzf /opt/lab/vault.tar.gz -C /tmp/m61 → "
-                "grep -rlE 'FLAG\\{[a-z]+-[0-9a-f]{6}\\}' /tmp/m61",
+        "hint": "mkdir ~/tmp/m61 && tar xzf ~/lab/vault.tar.gz -C ~/tmp/m61 → "
+                "grep -rlE 'FLAG\\{[a-z]+-[0-9a-f]{6}\\}' ~/tmp/m61",
         "hint_cost": 40,
     },
 
@@ -722,12 +725,12 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 100,
         "session": 7,
-        "description": "در /opt/lab/rows.txt هزاران خط هست. شماره‌ی خطِ پرچم‌دار "
+        "description": "در ~/lab/rows.txt هزاران خط هست. شماره‌ی خطِ پرچم‌دار "
                        "= تعدادِ خط‌هایی که کلمه‌ی ERROR دارند. یک دستور بشمارد، "
                        "یکی همان خط را ببرد. (تمرین جلسه ۷ — درس لوله‌ها: "
                        "docs.helli-10th-computer.ir/pipes.html)",
-        "hint": "grep -c ERROR /opt/lab/rows.txt → عدد = N → sed -n 'Np' "
-                "/opt/lab/rows.txt (یا: head -N | tail -1)",
+        "hint": "grep -c ERROR ~/lab/rows.txt → عدد = N → sed -n 'Np' "
+                "~/lab/rows.txt (یا: head -N | tail -1)",
         "hint_cost": 20,
     },
     {
@@ -736,14 +739,14 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 125,
         "session": 7,
-        "description": "دفترِ /opt/lab/journal.txt پرچم را دو نیم کرده: نیمه‌ی "
+        "description": "دفترِ ~/lab/journal.txt پرچم را دو نیم کرده: نیمه‌ی "
                        "اول در ۵ خطِ اول، نیمه‌ی دوم در ۱۰ خطِ آخر. مثل یک "
                        "پرونده: آخرِ پرونده را در فایلی بریزید (>) و اولِ آن را "
                        "به همان فایل بچسبانید (>>). پرچم = دو نیمه به هم. "
                        "(تمرین جلسه ۷ — درس لوله‌ها: "
                        "docs.helli-10th-computer.ir/pipes.html)",
-        "hint": "tail -10 /opt/lab/journal.txt > /tmp/j.txt && head -5 "
-                "/opt/lab/journal.txt >> /tmp/j.txt → cat /tmp/j.txt → نیمه‌ها را به هم بچسبانید",
+        "hint": "tail -10 ~/lab/journal.txt > ~/tmp/j.txt && head -5 "
+                "~/lab/journal.txt >> ~/tmp/j.txt → cat ~/tmp/j.txt → نیمه‌ها را به هم بچسبانید",
         "hint_cost": 20,
     },
     {
@@ -752,13 +755,13 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 150,
         "session": 7,
-        "description": "اسکریپت /opt/lab/noisy.sh مدام جملات بی‌مصرف روی صفحه "
+        "description": "اسکریپت ~/lab/noisy.sh مدام جملات بی‌مصرف روی صفحه "
                        "می‌ریزد؛ اما رازش را جای دیگری می‌فرستد... خروجیِ معمولی‌اش "
                        "را بی‌صدا کنید (>/dev/null) تا زمزمه‌ی واقعی بشنوید. "
                        "(تمرین جلسه ۷ — درس لوله‌ها: "
                        "docs.helli-10th-computer.ir/pipes.html)",
-        "hint": "bash /opt/lab/noisy.sh > /dev/null 2>/tmp/whisper.txt → "
-                "cat /tmp/whisper.txt (کلید: 2> یعنی جریانِ دوم)",
+        "hint": "bash ~/lab/noisy.sh > /dev/null 2>~/tmp/whisper.txt → "
+                "cat ~/tmp/whisper.txt (کلید: 2> یعنی جریانِ دوم)",
         "hint_cost": 25,
     },
     {
@@ -767,12 +770,12 @@ CHALLENGES = [
         "category": "اختیاری — آسان",
         "points": 150,
         "session": 7,
-        "description": "سنسور /opt/lab/sensor.sh هر بار دویست خط «قرائت» می‌کند "
+        "description": "سنسور ~/lab/sensor.sh هر بار دویست خط «قرائت» می‌کند "
                        "و پرچم فقط در یکی از آن‌هاست — صفحه تند رد می‌شود. هم روی "
                        "صفحه ببینید هم در فایل نگه دارید؛ بعد در فایل بگردید. "
                        "(تمرین جلسه ۷ — درس لوله‌ها: "
                        "docs.helli-10th-computer.ir/pipes.html)",
-        "hint": "bash /opt/lab/sensor.sh | tee /tmp/keep.txt → grep FLAG /tmp/keep.txt",
+        "hint": "bash ~/lab/sensor.sh | tee ~/tmp/keep.txt → grep FLAG ~/tmp/keep.txt",
         "hint_cost": 25,
     },
     {
@@ -781,13 +784,13 @@ CHALLENGES = [
         "category": "اختیاری — متوسط",
         "points": 200,
         "session": 7,
-        "description": "در فایلِ ۵۰۰ خطیِ /opt/lab/passwd-like کاربرانِ واقعی "
+        "description": "در فایلِ ۵۰۰ خطیِ ~/lab/passwd-like کاربرانِ واقعی "
                        "(پوسته‌ی bash و خانه‌شان زیر /home) چند نفرند؟ بگویید N — "
-                       "پرچم دقیقاً روی خطِ N فایلِ /opt/lab/gate.txt نشسته. "
+                       "پرچم دقیقاً روی خطِ N فایلِ ~/lab/gate.txt نشسته. "
                        "(تمرین جلسه ۷ — درس لوله‌ها: "
                        "docs.helli-10th-computer.ir/pipes.html)",
-        "hint": "grep '/bin/bash' /opt/lab/passwd-like | grep '/home/' | wc -l "
-                "→ N → sed -n 'Np' /opt/lab/gate.txt",
+        "hint": "grep '/bin/bash' ~/lab/passwd-like | grep '/home/' | wc -l "
+                "→ N → sed -n 'Np' ~/lab/gate.txt",
         "hint_cost": 30,
     },
     {
@@ -796,13 +799,13 @@ CHALLENGES = [
         "category": "اختیاری — سخت",
         "points": 250,
         "session": 7,
-        "description": "در /opt/lab/haystack صدها پرونده است و /opt/lab/clues.txt "
+        "description": "در ~/lab/haystack صدها پرونده است و ~/lab/clues.txt "
                        "نامِ ۷ تا از آن‌ها را فهرست کرده (مواظب باشید: دو نام "
                        "فاصله دارد!). هر پرونده‌ی سرنخ یک تکه SEG<k>=... دارد؛ "
                        "تکه‌ها را به ترتیبِ k بچینید تا پرچم کامل شود. (xargs "
                        "امتیازی است — تمرین جلسه ۷ — درس لوله‌ها: "
                        "docs.helli-10th-computer.ir/pipes.html)",
-        "hint": "(cd /opt/lab/haystack && cat /opt/lab/clues.txt | xargs -d '\\n' "
+        "hint": "(cd ~/lab/haystack && cat ~/lab/clues.txt | xargs -d '\\n' "
                 "cat | sort | cut -d= -f2 | tr -d '\\n') → تکه‌های SEG1 تا SEG7 پشت‌سرهم",
         "hint_cost": 40,
     },
@@ -814,11 +817,11 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 100,
         "session": 8,
-        "description": "فایل /opt/lab/attendees.csv فهرستِ حاضران است؛ ردیفِ "
+        "description": "فایل ~/lab/attendees.csv فهرستِ حاضران است؛ ردیفِ "
                        "«winner» در ستون یادداشتِ خودش پرچم را دارد. اول ردیفش "
                        "را پیدا کنید، بعد ستونش را ببرید. (تمرین جلسه ۸ — درس "
                        "پردازش متن: docs.helli-10th-computer.ir/texttools.html)",
-        "hint": "grep winner /opt/lab/attendees.csv → cut -d, -f4",
+        "hint": "grep winner ~/lab/attendees.csv → cut -d, -f4",
         "hint_cost": 20,
     },
     {
@@ -827,12 +830,12 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 125,
         "session": 8,
-        "description": "در /opt/lab/chat.log یک واژه بیش از همه تکرار شده — نامِ "
-                       "فایلی در /opt/lab/words است که پرچم داخلش است. شمارش "
+        "description": "در ~/lab/chat.log یک واژه بیش از همه تکرار شده — نامِ "
+                       "فایلی در ~/lab/words است که پرچم داخلش است. شمارش "
                        "کنید، صدرِ جدول را ببینید. (تمرین جلسه ۸ — درس پردازش "
                        "متن: docs.helli-10th-computer.ir/texttools.html)",
-        "hint": "tr ' ' '\\n' < /opt/lab/chat.log | sort | uniq -c | sort -rn | "
-                "head -3 → واژه‌ی صدر → cat /opt/lab/words/<واژه>",
+        "hint": "tr ' ' '\\n' < ~/lab/chat.log | sort | uniq -c | sort -rn | "
+                "head -3 → واژه‌ی صدر → cat ~/lab/words/<واژه>",
         "hint_cost": 25,
     },
     {
@@ -841,12 +844,12 @@ CHALLENGES = [
         "category": "اجباری",
         "points": 150,
         "session": 8,
-        "description": "یادداشتِ /opt/lab/hint.txt را نخوانید — بشمارید! تعداد "
+        "description": "یادداشتِ ~/lab/hint.txt را نخوانید — بشمارید! تعداد "
                        "کاراکترهایش (wc -c) عددی می‌سازد: N. از بایتِ Nام فایل "
-                       "/opt/lab/blob.bin به بعد را بخوانید؛ پرچم همان‌جا "
+                       "~/lab/blob.bin به بعد را بخوانید؛ پرچم همان‌جا "
                        "نشسته. (تمرین جلسه ۸ — درس پردازش متن: "
                        "docs.helli-10th-computer.ir/texttools.html)",
-        "hint": "N=$(wc -c < /opt/lab/hint.txt) → tail -c +$N /opt/lab/blob.bin | head -c 60",
+        "hint": "N=$(wc -c < ~/lab/hint.txt) → tail -c +$N ~/lab/blob.bin | head -c 60",
         "hint_cost": 25,
     },
     {
@@ -855,11 +858,11 @@ CHALLENGES = [
         "category": "اختیاری — آسان",
         "points": 150,
         "session": 8,
-        "description": "دو نسخه‌ی تنظیمات در /opt/lab هست: old.conf و new.conf. "
+        "description": "دو نسخه‌ی تنظیمات در ~/lab هست: old.conf و new.conf. "
                        "تفاوت‌شان را ببینید — یکی از خط‌های تغییریافته پرچم را لو "
                        "می‌دهد. (تمرین جلسه ۸ — درس پردازش متن: "
                        "docs.helli-10th-computer.ir/texttools.html)",
-        "hint": "diff /opt/lab/old.conf /opt/lab/new.conf → خط‌های + (اضافه‌شده) را بخوانید",
+        "hint": "diff ~/lab/old.conf ~/lab/new.conf → خط‌های + (اضافه‌شده) را بخوانید",
         "hint_cost": 25,
     },
     {
@@ -868,14 +871,14 @@ CHALLENGES = [
         "category": "اختیاری — متوسط",
         "points": 200,
         "session": 8,
-        "description": "گزارش /opt/lab/app.log پر از رخداد است؛ فقط خط‌های "
+        "description": "گزارش ~/lab/app.log پر از رخداد است؛ فقط خط‌های "
                        "status=FAIL مهم‌اند. کدام ماژول بیشتر از همه شکست خورده؟ "
-                       "کلیدِ پرچم در /opt/lab/modules زیرِ نامِ همان ماژول است. "
+                       "کلیدِ پرچم در ~/lab/modules زیرِ نامِ همان ماژول است. "
                        "(تمرین جلسه ۸ — درس پردازش متن: "
                        "docs.helli-10th-computer.ir/texttools.html)",
-        "hint": "grep 'status=FAIL' /opt/lab/app.log | cut -d' ' -f3 | sort | "
+        "hint": "grep 'status=FAIL' ~/lab/app.log | cut -d' ' -f3 | sort | "
                 "uniq -c | sort -rn | head -3 → نام ماژول صدر (module=...) → "
-                "cat /opt/lab/modules/<نام>.key",
+                "cat ~/lab/modules/<نام>.key",
         "hint_cost": 30,
     },
     {
@@ -884,14 +887,14 @@ CHALLENGES = [
         "category": "اختیاری — سخت",
         "points": 250,
         "session": 8,
-        "description": "در /opt/lab/cases ده‌ها پرونده هست (case-*/notes.txt). "
+        "description": "در ~/lab/cases ده‌ها پرونده هست (case-*/notes.txt). "
                        "ماژولی که در بیشترین پرونده‌ها status=FAIL داشته، مقصر "
-                       "اصلی است؛ پرچم در پرونده‌ی هم‌نامش در /opt/lab/suspects "
+                       "اصلی است؛ پرچم در پرونده‌ی هم‌نامش در ~/lab/suspects "
                        "است — اما بزرگ و کوچکِ حروفش برعکس شده! (تمرین جلسه ۸ — "
                        "درس پردازش متن: docs.helli-10th-computer.ir/texttools.html)",
-        "hint": "grep -h 'status=FAIL' /opt/lab/cases/*/notes.txt | cut -d' ' "
+        "hint": "grep -h 'status=FAIL' ~/lab/cases/*/notes.txt | cut -d' ' "
                 "-f3 | sort | uniq -c | sort -rn | head -1 → نام ماژول → "
-                "tr 'A-Za-z' 'a-zA-Z' < /opt/lab/suspects/<نام>",
+                "tr 'A-Za-z' 'a-zA-Z' < ~/lab/suspects/<نام>",
         "hint_cost": 40,
     },
 
