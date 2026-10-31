@@ -2,6 +2,7 @@ CHALLENGES = [
     # ---------------- mandatory: simple & direct (what/where, never how) -----
     {
         "name": "m-welcome",
+        "board_name": "01 — خوش آمدید (ls & cat)",
         "title": "خوش آمدید",
         "category": "اجباری",
         "points": 50,
@@ -11,6 +12,7 @@ CHALLENGES = [
     },
     {
         "name": "m-readme",
+        "board_name": "02 — خواندن فایل طولانی (cd & tail/cat)",
         "title": "خواندن فایل طولانی",
         "category": "اجباری",
         "points": 75,
@@ -20,6 +22,7 @@ CHALLENGES = [
     },
     {
         "name": "m-manyfiles",
+        "board_name": "03 — کلاف سردرگم (ls -la & cat)",
         "title": "کلاف سردرگم",
         "category": "اجباری",
         "points": 75,
@@ -29,6 +32,7 @@ CHALLENGES = [
     },
     {
         "name": "m-grep",
+        "board_name": "04 — سوزن در انبار کاه (grep در فایل‌های بزرگ)",
         "title": "سوزن در انبار کاه",
         "category": "اجباری",
         "points": 100,
@@ -38,15 +42,17 @@ CHALLENGES = [
     },
     {
         "name": "m-maze",
+        "board_name": "05 — هزارتو (find و پوشه‌های تودرتو)",
         "title": "هزارتو",
         "category": "اجباری",
-        "points": 100,
+        "points": 125,
         "description": "در level2/maze پوشه‌های تودرتو ساخته شده است. فایلی به نام end.flag را پیدا کنید.",
         "hint": "find level2/maze -name end.flag و بعد vim روی مسیر پیدا‌شده.",
         "hint_cost": 20,
     },
     {
         "name": "m-fakeext",
+        "board_name": "06 — ظاهر فریبنده (تشخیص نوع فایل با file)",
         "title": "ظاهر فریبنده",
         "category": "اجباری",
         "points": 125,
@@ -56,18 +62,20 @@ CHALLENGES = [
     },
     {
         "name": "m-dots",
+        "board_name": "07 — فایل نقطه‌دار (فایل‌های مخفی با ls -a)",
         "title": "فایل نقطه‌دار",
         "category": "اجباری",
-        "points": 100,
+        "points": 125,
         "description": "در level3 فایلی پنهان شده که نامش با نقطه شروع می‌شود و در فهرستِ معمولی دیده نمی‌شود.",
         "hint": "find level3 -type f همه‌ی فایل‌ها را نشان می‌دهد (حتی مخفی‌ها)؛ بعد vim کنید.",
         "hint_cost": 20,
     },
     {
         "name": "m-vimedit",
+        "board_name": "08 — پرچم شکسته (ترکیب و ویرایش تکه‌ها)",
         "title": "پرچم شکسته",
         "category": "اجباری",
-        "points": 125,
+        "points": 150,
         "description": "در ctf/fixme.txt پرچم شما به ۴ تکه شکسته شده است. تکه‌ها را به ترتیب در یک خط "
                        "به هم بچسبانید، فایل را ذخیره کنید و همان رشته‌ی کامل را ثبت کنید.",
         "hint": "در vim: با v روی حروف بروید تا انتخاب شود، y بزنید، روی مقصد بروید و p بزنید؛ آخرش :w",
@@ -886,6 +894,7 @@ CHALLENGES = [
     # per-student key inside ~/netlab/mylink.txt.
     {
         "name": "n1-selfserver",
+        "board_name": "09 — سرور خودت (http.server & curl)",
         "title": "سرور خودت",
         "category": "چالش‌های هفته دوم — آسان",
         "points": 50,
@@ -900,6 +909,7 @@ CHALLENGES = [
     },
     {
         "name": "n2-headerbox",
+        "board_name": "10 — روی پاکت نوشته (curl -i)",
         "title": "روی پاکت نوشته",
         "category": "چالش‌های هفته دوم — آسان",
         "points": 75,
@@ -914,6 +924,7 @@ CHALLENGES = [
     },
     {
         "name": "n3-fileshare",
+        "board_name": "11 — فایل اشتراکی (share & curl)",
         "title": "فایل اشتراکی",
         "category": "چالش‌های هفته دوم — آسان",
         "points": 100,
@@ -927,6 +938,7 @@ CHALLENGES = [
     },
     {
         "name": "n4-portfarm",
+        "board_name": "12 — مزرعه‌ی درها (حلقه‌ی curl)",
         "title": "مزرعه‌ی درها",
         "category": "چالش‌های هفته دوم — سخت",
         "points": 125,
@@ -940,6 +952,7 @@ CHALLENGES = [
     },
     {
         "name": "n5-redirect",
+        "board_name": "13 — دنبال‌کننده‌ی مسیر (curl -L)",
         "title": "دنبال‌کننده‌ی مسیر",
         "category": "چالش‌های هفته دوم — سخت",
         "points": 150,
@@ -954,6 +967,7 @@ CHALLENGES = [
     },
     {
         "name": "n6-detective",
+        "board_name": "14 — کارآگاه شبکه (curl -H)",
         "title": "کارآگاه شبکه",
         "category": "چالش‌های هفته دوم — سخت",
         "points": 175,
@@ -970,6 +984,7 @@ CHALLENGES = [
     # هفته ۲ — شبکه (اختیاری) — پروتکل‌های عمیق‌تر، همان سرویس مشترک
     {
         "name": "n7-postbox",
+        "board_name": "15 — پیک موتوری (curl -d)",
         "title": "پیک موتوری",
         "category": "چالش‌های هفته دوم — اختیاری",
         "points": 175,
@@ -982,6 +997,7 @@ CHALLENGES = [
     },
     {
         "name": "n8-cookiejar",
+        "board_name": "16 — بلیت را نگه‌دار (curl -c/-b)",
         "title": "بلیت را نگه‌دار",
         "category": "چالش‌های هفته دوم — اختیاری",
         "points": 175,
@@ -995,6 +1011,7 @@ CHALLENGES = [
     },
     {
         "name": "n9-vhost",
+        "board_name": "17 — پنت‌هاوس (Host header)",
         "title": "پنت‌هاوس",
         "category": "چالش‌های هفته دوم — اختیاری",
         "points": 200,
@@ -1008,6 +1025,7 @@ CHALLENGES = [
     },
     {
         "name": "n10-rawport",
+        "board_name": "18 — زیرِ HTTP (nc)",
         "title": "زیرِ HTTP",
         "category": "چالش‌های هفته دوم — اختیاری",
         "points": 225,
@@ -1021,6 +1039,7 @@ CHALLENGES = [
     },
     {
         "name": "n11-codehunt",
+        "board_name": "19 — شکارچی کدها (status codes)",
         "title": "شکارچی کدها",
         "category": "چالش‌های هفته دوم — اختیاری",
         "points": 250,
@@ -1218,6 +1237,12 @@ def numbered_titles():
     seq = {}
     out = {}
     for ch in CHALLENGES:
+        if ch.get("board_name"):
+            # exact CTFd display name pinned by hand (week-format challenges
+            # whose board names don't follow the «NN — title» generator);
+            # prevents ctf_setup from re-creating renamed challenges
+            out[ch["name"]] = ch["board_name"]
+            continue
         cat = display_category(ch)
         seq[cat] = seq.get(cat, 0) + 1
         out[ch["name"]] = f"{seq[cat]:02d} — {ch['title']}" + lesson_tag(ch)
