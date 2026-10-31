@@ -538,6 +538,8 @@ def scatter_box_group(home, group, manifest, uid):
                                 f"('0.0.0.0', {r4port})")
         parts.append(text)
     section = "\n".join(parts).replace("\r\n", "\n")
+    section = (f"mkdir -p {home}/lab {home}/labweb\n"
+               + section)
     subprocess.run(["bash", "-s"], input=section.encode("utf-8"),
                    check=True)
     os.makedirs(home + "/labweb", exist_ok=True)
