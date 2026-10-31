@@ -966,6 +966,73 @@ CHALLENGES = [
                 "$(cat ~/netlab/mylink.txt)/vault",
         "hint_cost": 30,
     },
+
+    # هفته ۲ — شبکه (اختیاری) — پروتکل‌های عمیق‌تر، همان سرویس مشترک
+    {
+        "name": "n7-postbox",
+        "title": "پیک موتوری",
+        "category": "چالش‌های هفته دوم — اختیاری",
+        "points": 175,
+        "description": "به parcel در لینک شخصی‌تان سر بزنید: «این در GET "
+                       "قبول نمی‌کند». مرسوله باید POST شود — یک فیلد فرم "
+                       "هم کافی است. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "curl -s -d 'gift=something' $(cat ~/netlab/mylink.txt)/parcel",
+        "hint_cost": 10,
+    },
+    {
+        "name": "n8-cookiejar",
+        "title": "بلیت را نگه‌دار",
+        "category": "چالش‌های هفته دوم — اختیاری",
+        "points": 175,
+        "description": "سرور در cookie/start به شما یک «بلیت» (کوکی) می‌دهد. "
+                       "بلیت را نگه دارید و در بازدید بعدی نشان دهید تا پرچم "
+                       "دریافت شود — جلسه‌ی ورود و خروج. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "curl -s -c jar $(cat ~/netlab/mylink.txt)/cookie/start → "
+                "curl -s -b jar $(cat ~/netlab/mylink.txt)/cookie/flag",
+        "hint_cost": 15,
+    },
+    {
+        "name": "n9-vhost",
+        "title": "پنت‌هاوس",
+        "category": "چالش‌های هفته دوم — اختیاری",
+        "points": 200,
+        "description": "یک ساختمان می‌تواند چند آدرس داشته باشد (هاست‌های "
+                       "مجازی). پنت‌هاوسِ لینک شخصی شما فقط برای درِ "
+                       "attic.lab.local باز می‌شود — هدر Host را عوض کنید. "
+                       "(درس شبکه: docs.helli-10th-computer.ir/networking.html)",
+        "hint": "curl -s -H 'Host: attic.lab.local' "
+                "$(cat ~/netlab/mylink.txt)/penthouse",
+        "hint_cost": 20,
+    },
+    {
+        "name": "n10-rawport",
+        "title": "زیرِ HTTP",
+        "category": "چالش‌های هفته دوم — اختیاری",
+        "points": 225,
+        "description": "روی پورت ۸۹۰۲ هیچ HTTP‌ای نیست — حرفِ خام! با nc "
+                       "وصل شوید: اول اسمتان، بعد جواب یک جمع، بعد کدِ "
+                       "گاوصندوق‌تان (code.txt). پرچم آخر خط است. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "nc localhost 8902 → سه سؤال را جواب بدهید: نام کاربری، "
+                "جمع دو عدد، و محتوای ~/netlab/code.txt",
+        "hint_cost": 25,
+    },
+    {
+        "name": "n11-codehunt",
+        "title": "شکارچی کدها",
+        "category": "چالش‌های هفته دوم — اختیاری",
+        "points": 250,
+        "description": "هشت مسیر /codes/a تا /codes/h روی لینک شخصی‌تان هست؛ "
+                       "هفت‌تا جواب‌های عجیب می‌دهند (۴۰۴، ۴۰۳، حتی ۴۱۸!) و "
+                       "فقط یکی ۲۰۰ با پرچم. کدها را شکار کنید. (درس شبکه: "
+                       "docs.helli-10th-computer.ir/networking.html)",
+        "hint": "for p in a b c d e f g h; do echo \"$p $(curl -s "
+                "-o /dev/null -w '%{http_code}' "
+                "$(cat ~/netlab/mylink.txt)/codes/$p)\"; done",
+        "hint_cost": 30,
+    },
 ]
 
 
@@ -1085,6 +1152,11 @@ DOCS_MAP = {
     "n4-portfarm": ["networking"],
     "n5-redirect": ["networking"],
     "n6-detective": ["networking"],
+    "n7-postbox": ["networking"],
+    "n8-cookiejar": ["networking"],
+    "n9-vhost": ["networking"],
+    "n10-rawport": ["networking"],
+    "n11-codehunt": ["networking"],
 }
 DOCS_MARKER = "📚"
 

@@ -431,6 +431,11 @@ SCATTERERS = {
     "n4-portfarm": scatter_r_stub,
     "n5-redirect": scatter_r_stub,
     "n6-detective": scatter_n6_detective,
+    "n7-postbox": scatter_r_stub,
+    "n8-cookiejar": scatter_r_stub,
+    "n9-vhost": scatter_r_stub,
+    "n10-rawport": scatter_r_stub,
+    "n11-codehunt": scatter_r_stub,
 }
 
 # session exercises are box-only (box_scatter.py owns them); anything not

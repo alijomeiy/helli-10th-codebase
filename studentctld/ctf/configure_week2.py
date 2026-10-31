@@ -10,6 +10,7 @@ with app.app_context():
     # (ctf_setup names them «01/02/03 — title» inside these categories)
     easy_cat = "چالش‌های هفته دوم — آسان"
     hard_cat = "چالش‌های هفته دوم — سخت"
+    opt_cat = "چالش‌های هفته دوم — اختیاری"
 
     # final display names: numbering continues across the week-1 set (01..08).
     # lookup keys are matched as prefixes of the registered names, which
@@ -21,10 +22,16 @@ with app.app_context():
         ("01 — مزرعه‌ی درها",     "12 — مزرعه‌ی درها (حلقه‌ی curl)", 125),
         ("02 — دنبال‌کننده‌ی مسیر", "13 — دنبال‌کننده‌ی مسیر (curl -L)", 150),
         ("03 — کارآگاه شبکه",     "14 — کارآگاه شبکه (curl -H)", 175),
+        # optional batch (15..19)
+        ("01 — پیک موتوری",       "15 — پیک موتوری (curl -d)", 175),
+        ("02 — بلیت را نگه‌دار",   "16 — بلیت را نگه‌دار (curl -c/-b)", 175),
+        ("03 — پنت‌هاوس",         "17 — پنت‌هاوس (Host header)", 200),
+        ("04 — زیرِ HTTP",        "18 — زیرِ HTTP (nc)", 225),
+        ("05 — شکارچی کدها",      "19 — شکارچی کدها (status codes)", 250),
     ]
 
     touched = []
-    for cat in (easy_cat, hard_cat):
+    for cat in (easy_cat, hard_cat, opt_cat):
         rows = Challenges.query.filter_by(category=cat).all()
         if not rows:
             print(f"WARNING: no challenges found in category '{cat}'")
@@ -42,7 +49,7 @@ with app.app_context():
 
     # week convention: hints are free
     for c in Challenges.query.filter(
-            Challenges.category.in_([easy_cat, hard_cat])).all():
+            Challenges.category.in_([easy_cat, hard_cat, opt_cat])).all():
         for h in Hints.query.filter_by(challenge_id=c.id).all():
             h.cost = 0
 
