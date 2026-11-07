@@ -455,6 +455,8 @@ for _ch in CHALLENGES:
 # dropped (the wrapper chowns).
 
 BOX_GROUPS = {
+    "apt": (["e1-kit", "e2-forest", "e3-json"],
+            ["e1", "e2", "e3"]),
     "extras": (["r3-nightlog", "r4-web", "r6-history", "h2-tarhunt",
                 "h3-shift", "v3-ghost"],
                ["r3 + h1", "r4", "r6", "h2", "h3", "v3"]),
@@ -618,7 +620,8 @@ def main():
             manifest["students"].append({"username": username, "uid": uid})
             known.add(username)
         for ch in chals:
-            flag = make_flag(username)
+            flag = (manifest["flags"].get(ch["name"], {}).get(username)
+                    if merge else None) or make_flag(username)
             SCATTERERS[ch["name"]](home, flag)
             manifest["flags"][ch["name"]][username] = flag
         for sub in wipe + (".level1", "public_html", "ctf"):

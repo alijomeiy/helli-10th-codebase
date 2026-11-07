@@ -269,7 +269,7 @@ CHALLENGES = [
         "title": "بسته‌ی مرموز",
         "category": "آسان",
         "points": 150,
-        "description": "در آزمایشگاه (mybox) یک بسته‌ی آماده برای شما گذاشته‌ایم: "
+        "description": "یک بسته‌ی آماده برای شما گذاشته‌ایم: "
                        "~/lab/kit.deb — نصبش کنید و ببینید داخلش چه است. "
                        "درس apt: docs.helli-10th-computer.ir/apt.html",
         "hint": "apt install ~/lab/kit.deb  (یا dpkg -i) — بعد فایل را که در /usr/share گذاشت پیدا و بخوانید: dpkg -L flagpkg",
