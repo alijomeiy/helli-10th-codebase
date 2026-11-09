@@ -1,18 +1,72 @@
 {% extends "base.html" %}
 {% block title %}پنل مدیریت{% endblock %}
 {% block content %}
+
+<style>
+  /* Responsive expanded wrap for admin dashboard */
+  .wrap { max-width: 1280px; width: 95%; margin: 20px auto; }
+  @media (min-width: 1440px) { .wrap { max-width: 1380px; } }
+
+  /* Compact Admin Tables */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--bd); }
+  .compact-table { width: 100%; border-collapse: collapse; min-width: 0; background: var(--panel); margin: 0; }
+  .compact-table th { background: #12151c; font-size: 12px; padding: 9px 10px; color: #94a3b8; font-weight: 600; border-bottom: 2px solid var(--bd); }
+  .compact-table td { padding: 7px 10px; border-bottom: 1px solid var(--bd); font-size: 13px; vertical-align: middle; }
+  .compact-table tr:hover { background: rgba(255, 255, 255, 0.025); }
+
+  /* Compact Action Buttons */
+  .btn-compact {
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+    padding: 3px 7px; min-height: 27px; font-size: 11.5px; font-weight: 500;
+    border-radius: 5px; border: 0; cursor: pointer; white-space: nowrap; line-height: 1;
+    transition: opacity 0.15s, background 0.15s;
+  }
+  .btn-compact:hover { opacity: 0.88; }
+  .btn-warn { background: #b45309; color: #fff; }
+  .btn-neutral { background: #374151; color: #fff; }
+  .btn-danger { background: #991b1b; color: #fff; }
+  .btn-ok { background: #15803d; color: #fff; }
+  .btn-delete { background: #450a0a; color: #fca5a5; padding: 3px 6px; }
+
+  /* Filter Chips */
+  .filter-chip {
+    background: #171a21; color: #94a3b8; border: 1px solid var(--bd);
+    border-radius: 6px; padding: 3px 9px; font-size: 12px; cursor: pointer;
+    min-height: auto; font-weight: 500; transition: 0.15s;
+  }
+  .filter-chip:hover { background: #222733; color: #e2e8f0; }
+  .filter-chip.active { background: #0284c7; color: #fff; border-color: #38bdf8; font-weight: 700; }
+
+  /* Class Badge */
+  .class-badge {
+    cursor: pointer; background: #082f49; color: #38bdf8; border: 1px solid #0369a1;
+    padding: 2px 7px; border-radius: 5px; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 3px;
+  }
+  .class-badge:hover { background: #0c4a6e; }
+
+  /* Password Pill */
+  .pw-pill {
+    font-family: ui-monospace, monospace; font-size: 11.5px; background: #0b0d12;
+    padding: 2px 6px; border-radius: 4px; border: 1px solid #262b36; color: #cbd5e1;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .pw-pill:hover { border-color: #3b82f6; color: #60a5fa; }
+</style>
+
 <h1>کنسول مدیریت</h1>
 
 <h2>مدیریت کلاس‌ها</h2>
 
 {% if classes_summary %}
-<div class="table-scroll">
-<table>
+<div class="table-scroll" style="max-width: 840px;">
+<table class="compact-table">
   <thead>
     <tr>
       <th>کلاس</th>
-      <th>تعداد کل دانش‌آموزان</th>
-      <th>دانش‌آموزان فعال</th>
+      <th style="text-align: center;">تعداد کل دانش‌آموزان</th>
+      <th style="text-align: center;">دانش‌آموزان فعال</th>
+      <th style="text-align: center; width: 100px;">فیلتر</th>
     </tr>
   </thead>
   <tbody>
@@ -20,13 +74,33 @@
     <tr>
       <td>
         {% if c.class_label %}
-          <strong style="font-size:15px; color:#38bdf8;">کلاس {{ c.class_label }}</strong>
+          <strong style="font-size:14px; color:#38bdf8;">کلاس {{ c.class_label }}</strong>
+          {% if c.total == 0 %}
+            <span style="font-size:11px; color:#64748b; margin-right:6px;">(خالی — آماده دریافت لیست)</span>
+          {% endif %}
         {% else %}
-          <strong style="font-size:14px; color:#94a3b8;">— (تخصیص‌نیافته)</strong>
+          <strong style="font-size:13.5px; color:#94a3b8;">— (تخصیص‌نیافته)</strong>
         {% endif %}
       </td>
-      <td>{{ c.total }}</td>
-      <td>{{ c.active }}</td>
+      <td style="text-align: center;">
+        {% if c.total > 0 %}
+          <span style="font-weight:700; color:#f1f5f9;">{{ c.total }} نفر</span>
+        {% else %}
+          <span style="color:#64748b;">۰</span>
+        {% endif %}
+      </td>
+      <td style="text-align: center;">
+        {% if c.active > 0 %}
+          <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:2px 7px; border-radius:5px; font-size:11.5px; font-weight:600;">{{ c.active }} فعال</span>
+        {% else %}
+          <span style="color:#64748b;">۰</span>
+        {% endif %}
+      </td>
+      <td style="text-align: center;">
+        <button type="button" class="filter-chip" onclick="filterClass('{{ c.class_label }}', null)" title="نمایش دانش‌آموزان این کلاس در جدول پایین">
+          🔍 مشاهده
+        </button>
+      </td>
     </tr>
   {% endfor %}
   </tbody>
@@ -36,15 +110,15 @@
 <p class="muted">هیچ کلاسی ثبت نشده است.</p>
 {% endif %}
 
-<details style="margin: 14px 0 28px 0; background:#121620; border:1px solid var(--bd); border-radius:8px; padding:12px 18px;">
+<details style="margin: 14px 0 24px 0; background:#121620; border:1px solid var(--bd); border-radius:8px; padding:12px 18px; max-width: 840px;">
   <summary style="cursor:pointer; font-weight:600; color:var(--ink);">➕ تخصیص دسته‌جمعی کلاس به دانش‌آموزان</summary>
   <form method="post" action="{{ url_for('admin.bulk_assign_class') }}" class="form" style="margin-top:14px;">
     <div style="display:flex; gap:16px; flex-wrap:wrap;">
-      <label style="flex:1; min-width:200px;">نام یا شماره کلاس مقصد (مثلاً 101)
-        <input name="class_label" required placeholder="مثال: 101" dir="ltr">
+      <label style="flex:1; min-width:180px;">نام یا شماره کلاس مقصد (مثلاً 10-4)
+        <input name="class_label" required placeholder="مثال: 10-4" dir="ltr">
       </label>
-      <label style="flex:2; min-width:280px;">نام‌های کاربری دانش‌آموزان (با فاصله، ویرگول یا خط جدید)
-        <textarea name="usernames" rows="3" required placeholder="ali_reza mohammad_ahmadi ajomei" dir="ltr"></textarea>
+      <label style="flex:2; min-width:260px;">نام‌های کاربری دانش‌آموزان (با فاصله، ویرگول یا خط جدید)
+        <textarea name="usernames" rows="3" required placeholder="user1 user2 user3" dir="ltr"></textarea>
       </label>
     </div>
     <button type="submit" class="ok" style="margin-top:8px;">ثبت و تخصیص کلاس</button>
@@ -53,38 +127,38 @@
 
 <h2>مدیریت تسک‌ها و تابلوی امتیازات</h2>
 
-<div class="actions" style="margin:12px 0">
+<div class="actions" style="margin:10px 0; gap:8px;">
   <form method="post" action="{{ url_for('admin.deploy_task', task_name='task1') }}"
         onsubmit="return confirm('تسک ۱ برای همه دانشجویان فعال مستقر شود؟ داده‌های قبلی بازنویسی می‌شود.');">
-    <button class="ok">استقرار تسک ۱</button>
+    <button class="btn-compact btn-ok" style="min-height:34px; padding:5px 12px; font-size:12.5px;">استقرار تسک ۱</button>
   </form>
   <form method="post" action="{{ url_for('admin.deploy_task', task_name='task2') }}"
         onsubmit="return confirm('تسک ۲ فعال شود؟');">
-    <button class="ok">فعال‌سازی تسک ۲</button>
+    <button class="btn-compact btn-ok" style="min-height:34px; padding:5px 12px; font-size:12.5px;">فعال‌سازی تسک ۲</button>
   </form>
 </div>
 
 {% if tasks_info %}
-<div class="table-scroll">
-<table>
+<div class="table-scroll" style="max-width: 840px; margin-bottom: 8px;">
+<table class="compact-table">
   <thead><tr><th>تسک</th><th>عنوان</th><th>وضعیت</th><th>تکمیل‌شده</th><th>زمان استقرار</th><th>عملیات</th></tr></thead>
   <tbody>
   {% for t in tasks_info %}
     <tr>
-      <td dir="ltr">{{ t.name }}</td>
+      <td dir="ltr" style="font-family:ui-monospace,monospace;">{{ t.name }}</td>
       <td>{{ t.title }}</td>
       <td>{{ "فعال" if t.is_active else "غیرفعال" }}</td>
       <td>{{ t.completed }} / {{ t.total }}</td>
-      <td>{{ t.deployed_at if t.deployed_at else "—" }}</td>
+      <td style="font-size:12px; color:#94a3b8;">{{ t.deployed_at if t.deployed_at else "—" }}</td>
       <td class="actions">
         <form method="post" action="{{ url_for('admin.deploy_task', task_name=t.name) }}"
               onsubmit="return confirm('این تسک بازاستقرار شود؟');">
-          <button class="ok">بازاستقرار</button>
+          <button class="btn-compact btn-ok">بازاستقرار</button>
         </form>
         {% if t.is_active %}
           <form method="post" action="{{ url_for('admin.reset_task', task_name=t.name) }}"
                 onsubmit="return confirm('امتیازات این تسک بازنشانی شود؟');">
-            <button class="warn">بازنشانی</button>
+            <button class="btn-compact btn-warn">بازنشانی</button>
           </form>
         {% endif %}
       </td>
@@ -96,99 +170,148 @@
 {% else %}
 <p class="muted">هنوز تسکی مستقر نشده است. از دکمه‌های بالا برای شروع استفاده کنید.</p>
 {% endif %}
-<p class="muted"><a href="{{ url_for('leaderboard') }}">مشاهده تابلوی امتیازات</a></p>
+<p class="muted" style="margin-bottom: 24px;"><a href="{{ url_for('leaderboard') }}">مشاهده تابلوی امتیازات</a></p>
 
-<h2>درخواست‌های در انتظار ({{ pending|length }})</h2>
 {% if pending %}
-<div class="table-scroll">
-<table>
-  <thead><tr><th>نام کاربری</th><th>نام</th><th>کلاس</th><th>رایانامه</th><th>تاریخ درخواست</th><th></th></tr></thead>
+<h2>درخواست‌های در انتظار ({{ pending|length }})</h2>
+<div class="table-scroll" style="margin-bottom: 24px;">
+<table class="compact-table">
+  <thead><tr><th>دانش‌آموز</th><th>کلاس</th><th>رایانامه</th><th>تاریخ درخواست</th><th style="text-align:center;">عملیات</th></tr></thead>
   <tbody>
   {% for u in pending %}
     <tr>
-      <td dir="ltr">{{ u.username }}</td><td>{{ u.full_name }}</td><td><strong style="color:#38bdf8;">{{ u.class_label or '—' }}</strong></td><td dir="ltr">{{ u.email }}</td>
-      <td>{{ u.created_at }}</td>
-      <td class="actions">
-        <form method="post" action="{{ url_for('admin.approve', uid=u.id) }}"><button class="ok">تأیید</button></form>
-        <form method="post" action="{{ url_for('admin.reject', uid=u.id) }}"><button class="warn">رد</button></form>
+      <td>
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <strong style="color:var(--ink);">{{ u.full_name or u.username }}</strong>
+          <span style="color:#64748b; font-size:11.5px; font-family:ui-monospace,monospace;" dir="ltr">@{{ u.username }}</span>
+        </div>
+      </td>
+      <td><strong style="color:#38bdf8;">{{ u.class_label or '—' }}</strong></td>
+      <td dir="ltr" style="font-size:12px; color:#94a3b8;">{{ u.email }}</td>
+      <td style="font-size:12px; color:#94a3b8;">{{ u.created_at.strftime('%Y-%m-%d %H:%M') if u.created_at else '' }}</td>
+      <td>
+        <div style="display:flex; gap:4px; justify-content:center;">
+          <form method="post" action="{{ url_for('admin.approve', uid=u.id) }}" style="margin:0;"><button class="btn-compact btn-ok">تأیید</button></form>
+          <form method="post" action="{{ url_for('admin.reject', uid=u.id) }}" style="margin:0;"><button class="btn-compact btn-danger">رد</button></form>
+        </div>
       </td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
-{% else %}<p class="muted">درخواستی در انتظار نیست.</p>{% endif %}
+{% endif %}
 
-<div style="display:flex; justify-content:space-between; align-items:center; margin-top:28px; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
-  <h2 style="margin:0;">مدیریت حساب‌های کاربران ({{ active|length }})</h2>
-  <input type="text" id="userSearch" placeholder="🔍 جست‌وجوی نام کاربری، نام یا UID..." onkeyup="filterUsers()" style="max-width:320px; padding:9px 14px; font-size:14px; border-radius:8px; border:1px solid var(--bd); background:#0b0d12; color:var(--ink);">
+<!-- Active Users Section -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-top:28px; margin-bottom:12px; flex-wrap:wrap; gap:12px;">
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+    <h2 style="margin:0;">مدیریت حساب‌های کاربران ({{ active|length }})</h2>
+    <div style="display:flex; gap:4px; flex-wrap:wrap; margin-right:12px;">
+      <button type="button" class="filter-chip active" id="chip-all" onclick="filterClass('all', this)">همه</button>
+      <button type="button" class="filter-chip" id="chip-10-1" onclick="filterClass('10-1', this)">10-1</button>
+      <button type="button" class="filter-chip" id="chip-10-2" onclick="filterClass('10-2', this)">10-2</button>
+      <button type="button" class="filter-chip" id="chip-10-3" onclick="filterClass('10-3', this)">10-3</button>
+      <button type="button" class="filter-chip" id="chip-10-4" onclick="filterClass('10-4', this)">10-4</button>
+      <button type="button" class="filter-chip" id="chip-10-5" onclick="filterClass('10-5', this)">10-5</button>
+      <button type="button" class="filter-chip" id="chip-none" onclick="filterClass('', this)">بدون کلاس</button>
+    </div>
+  </div>
+  <input type="text" id="userSearch" placeholder="🔍 جست‌وجوی نام، یوزرنیم یا UID..." onkeyup="applyFilters()" style="max-width:280px; padding:7px 12px; font-size:13px; border-radius:7px; border:1px solid var(--bd); background:#0b0d12; color:var(--ink);">
 </div>
+
 {% if active %}
 <div class="table-scroll">
-<table id="activeUsersTable">
+<table id="activeUsersTable" class="compact-table">
   <thead>
     <tr>
-      <th>نام کاربری</th>
-      <th>نام دانش‌آموز</th>
-      <th>کلاس</th>
-      <th>UID</th>
-      <th>پورت</th>
-      <th>وضعیت</th>
-      <th>رمز عبور جاری</th>
-      <th style="min-width:260px;">عملیات نظارتی</th>
+      <th style="min-width: 170px;">دانش‌آموز</th>
+      <th style="width: 80px; text-align: center;">کلاس</th>
+      <th style="min-width: 120px;" dir="ltr">مشخصات لینوکس</th>
+      <th style="min-width: 125px;" dir="ltr">رمز عبور جاری</th>
+      <th style="width: 70px; text-align: center;">وضعیت</th>
+      <th style="min-width: 200px; text-align: center;">عملیات</th>
     </tr>
   </thead>
   <tbody>
   {% for u in active %}
-    <tr>
-      <td dir="ltr" style="font-weight:600;">{{ u.username }}</td>
-      <td>{{ u.full_name or '—' }}</td>
+    <tr data-class="{{ u.class_label or '' }}" data-username="{{ u.username }}" data-fullname="{{ u.full_name or '' }}" data-uid="{{ u.uid }}">
       <td>
-        <span style="font-weight:600; color:#38bdf8;">{{ u.class_label or '—' }}</span>
-        <button type="button" onclick="promptClass({{ u.id }}, '{{ u.username }}', '{{ u.class_label or '' }}')"
-                style="padding:2px 7px; font-size:11px; margin-right:4px; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:4px; cursor:pointer;"
-                title="تغییر کلاس دانش‌آموز">✏️</button>
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <span style="font-weight:600; color:var(--ink); font-size:13.5px;">{{ u.full_name or u.username }}</span>
+          <span style="color:#64748b; font-size:12px; font-family:ui-monospace,monospace;" dir="ltr">@{{ u.username }}</span>
+        </div>
       </td>
-      <td dir="ltr">{{ u.uid }}</td>
-      <td dir="ltr">{{ u.port }}</td>
-      <td>
+      <td style="text-align: center;">
+        {% if u.class_label %}
+          <span class="class-badge" onclick="promptClass({{ u.id }}, '{{ u.username }}', '{{ u.class_label }}')"
+                title="کلیک جهت ویرایش کلاس">
+            {{ u.class_label }} <span style="font-size:9px; opacity:0.6;">✏️</span>
+          </span>
+        {% else %}
+          <button type="button" onclick="promptClass({{ u.id }}, '{{ u.username }}', '')"
+                  style="padding:2px 7px; font-size:11px; min-height:auto; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:5px; cursor:pointer;"
+                  title="تخصیص کلاس">+ کلاس</button>
+        {% endif %}
+      </td>
+      <td dir="ltr">
+        <span style="font-family:ui-monospace,monospace; font-size:12px; color:#cbd5e1;">
+          <span style="color:#64748b; font-size:11px;">UID:</span>{{ u.uid }} <span style="color:#64748b; margin:0 2px;">:</span>{{ u.port }}
+        </span>
+      </td>
+      <td dir="ltr">
+        <span class="pw-pill" onclick="copyToClipboard('{{ u.ssh_password }}')" title="کلیک برای کپی رمز">
+          {{ u.ssh_password or '—' }} <span style="font-size:10px; opacity:0.6;">📋</span>
+        </span>
+      </td>
+      <td style="text-align: center;">
         {% if u.status == 'approved' %}
-          <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:2px 8px; border-radius:6px; font-size:12px; font-weight:600;">فعال</span>
+          <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:600;">فعال</span>
         {% elif u.status == 'disabled' %}
-          <span style="background:#2a1010; color:#fecaca; border:1px solid #5b1d1d; padding:2px 8px; border-radius:6px; font-size:12px; font-weight:600;">مسدود / تعلیق</span>
+          <span style="background:#2a1010; color:#fecaca; border:1px solid #5b1d1d; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:600;">مسدود</span>
         {% else %}
-          <span class="muted">{{ u.status }}</span>
+          <span class="muted" style="font-size:11px;">{{ u.status }}</span>
         {% endif %}
       </td>
-      <td dir="ltr"><code>{{ u.ssh_password or '—' }}</code></td>
-      <td class="actions">
-        <!-- Change Password -->
-        <button type="button" class="warn" onclick="promptPassword({{ u.id }}, '{{ u.username }}')" title="تغییر رمز عبور در لینوکس، پنل و CTF">تغییر رمز</button>
+      <td>
+        <div style="display:flex; gap:4px; align-items:center; justify-content:center; flex-wrap:nowrap;">
+          <!-- Change Password -->
+          <button type="button" class="btn-compact btn-warn" onclick="promptPassword({{ u.id }}, '{{ u.username }}')" title="تغییر رمز عبور در لینوکس، پنل و CTF">
+            🔑 رمز
+          </button>
 
-        <!-- Kill active sessions -->
-        <form method="post" action="{{ url_for('admin.kill_user', uid=u.id) }}"
-              onsubmit="return confirm('تمامی نشست‌های فعال و پردازه‌های {{ u.username }} بلافاصله متوقف شوند؟');">
-          <button type="submit" style="background:#374151; color:#fff;" title="قطع فوری نشست‌های فعال و بستن پردازه‌ها">خروج اجباری</button>
-        </form>
-
-        <!-- Ban / Unban -->
-        {% if u.status == 'approved' %}
-          <form method="post" action="{{ url_for('admin.disable', uid=u.id) }}"
-                onsubmit="return confirm('دسترسی {{ u.username }} مسدود، نشست‌های او قطع و در CTF نیز بن شود؟');">
-            <button type="submit" class="danger" title="مسدودسازی کامل و بستن دسترسی‌ها">مسدودسازی</button>
+          <!-- Kill active sessions -->
+          <form method="post" action="{{ url_for('admin.kill_user', uid=u.id) }}"
+                onsubmit="return confirm('تمامی نشست‌های فعال و پردازه‌های {{ u.username }} بلافاصله متوقف شوند؟');" style="margin:0;">
+            <button type="submit" class="btn-compact btn-neutral" title="قطع فوری نشست‌های فعال و بستن پردازه‌ها">
+              ⚡ قطع
+            </button>
           </form>
-        {% else %}
-          <form method="post" action="{{ url_for('admin.enable', uid=u.id) }}"
-                onsubmit="return confirm('حساب {{ u.username }} رفع مسدودی شده و دسترسی‌های او بازگردد؟');">
-            <button type="submit" class="ok" title="رفع مسدودی و فعال‌سازی مجدد">رفع مسدودی</button>
-          </form>
-        {% endif %}
 
-        <!-- Delete -->
-        <form method="post" action="{{ url_for('admin.delete', uid=u.id) }}"
-              onsubmit="return confirm('حساب {{ u.username }} و تمام داده‌های آن برای همیشه حذف شود؟');">
-          <button type="submit" style="background:#7f1d1d;" title="حذف دائمی حساب">حذف</button>
-        </form>
+          <!-- Ban / Unban -->
+          {% if u.status == 'approved' %}
+            <form method="post" action="{{ url_for('admin.disable', uid=u.id) }}"
+                  onsubmit="return confirm('دسترسی {{ u.username }} مسدود و نشست‌های او قطع شود؟');" style="margin:0;">
+              <button type="submit" class="btn-compact btn-danger" title="مسدودسازی حساب">
+                ⛔ مسدود
+              </button>
+            </form>
+          {% else %}
+            <form method="post" action="{{ url_for('admin.enable', uid=u.id) }}"
+                  onsubmit="return confirm('حساب {{ u.username }} رفع مسدودی شود؟');" style="margin:0;">
+              <button type="submit" class="btn-compact btn-ok" title="رفع مسدودی و فعال‌سازی">
+                🔓 فعال
+              </button>
+            </form>
+          {% endif %}
+
+          <!-- Delete -->
+          <form method="post" action="{{ url_for('admin.delete', uid=u.id) }}"
+                onsubmit="return confirm('حساب {{ u.username }} و تمام داده‌های آن برای همیشه حذف شود؟');" style="margin:0;">
+            <button type="submit" class="btn-compact btn-delete" title="حذف دائمی حساب">
+              🗑️
+            </button>
+          </form>
+        </div>
       </td>
     </tr>
   {% endfor %}
@@ -198,13 +321,58 @@
 {% else %}<p class="muted">هنوز حساب فعالی وجود ندارد.</p>{% endif %}
 
 <script>
-function filterUsers() {
-  const query = document.getElementById("userSearch").value.toLowerCase();
+let currentClassFilter = 'all';
+
+function filterClass(cls, btn) {
+  currentClassFilter = cls;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const targetId = cls === 'all' ? 'chip-all' : (cls === '' ? 'chip-none' : `chip-${cls}`);
+    const chip = document.getElementById(targetId);
+    if (chip) chip.classList.add('active');
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  const query = (document.getElementById("userSearch").value || "").toLowerCase().trim();
   const rows = document.querySelectorAll("#activeUsersTable tbody tr");
   rows.forEach(row => {
+    const rowClass = row.getAttribute("data-class") || "";
     const text = row.innerText.toLowerCase();
-    row.style.display = text.includes(query) ? "" : "none";
+    
+    const matchesClass = (currentClassFilter === 'all') || 
+                         (currentClassFilter === '' && rowClass === '') || 
+                         (rowClass === currentClassFilter);
+    const matchesQuery = !query || text.includes(query);
+    
+    row.style.display = (matchesClass && matchesQuery) ? "" : "none";
   });
+}
+
+function showToast(msg) {
+  let toast = document.getElementById("adminToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "adminToast";
+    toast.style.cssText = "position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 18px; border-radius:8px; font-size:13px; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,0.4); z-index:9999; transition:opacity 0.2s;";
+    document.body.appendChild(toast);
+  }
+  toast.innerText = msg;
+  toast.style.opacity = "1";
+  setTimeout(() => { toast.style.opacity = "0"; }, 2000);
+}
+
+function copyToClipboard(text) {
+  if (!text || text === '—') return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast("رمز عبور کپی شد! ✅"));
+  } else {
+    prompt("رمز عبور:", text);
+  }
 }
 
 function promptPassword(uid, username) {

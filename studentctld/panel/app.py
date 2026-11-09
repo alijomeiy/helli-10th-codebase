@@ -366,8 +366,9 @@ def admin_index():
             "total": total_attempts,
         })
 
+    standard_classes = ["10-1", "10-2", "10-3", "10-4", "10-5"]
+    class_map = {c: {"class_label": c, "total": 0, "active": 0} for c in standard_classes}
     all_students = User.query.filter_by(role="student").all()
-    class_map = {}
     for s in all_students:
         cl = (s.class_label or "").strip()
         if cl not in class_map:
