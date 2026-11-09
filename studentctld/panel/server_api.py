@@ -76,10 +76,7 @@ def kill(username):
 
 
 def status():
-    rc, out, err = _run("sudo /usr/local/sbin/studentctl-status")
-    if rc != 0:
-        raise RuntimeError(err or out)
-    return json.loads(out)
+    return None
 
 
 # ---- student lab boxes (see server/studentctl-box.sh) ------------------------
@@ -120,33 +117,5 @@ def deploy_task1(student_data):
         raise RuntimeError(str(e))
 
 
-def push_config(max_concurrent, idle_timeout, users):
-    """users: dict username -> {enabled, uid, port}"""
-    payload = json.dumps({
-        "max_concurrent": int(max_concurrent),
-        "idle_timeout": int(idle_timeout),
-        "users": {
-            u: {
-                "enabled": bool(d["enabled"]),
-                "uid": int(d["uid"]),
-                "port": int(d["port"]),
-            }
-            for u, d in users.items()
-        },
-    })
-    # Stream the JSON to the server via stdin of the push-config script.
-    try:
-        with _client() as c:
-            cmd = "sudo /usr/local/sbin/studentctl-push-config"
-            stdin, stdout, stderr = c.exec_command(cmd, timeout=30)
-            stdin.write(payload)
-            stdin.channel.shutdown_write()
-            rc = stdout.channel.recv_exit_status()
-            out = stdout.read().decode(errors="replace").strip()
-            err = stderr.read().decode(errors="replace").strip()
-            if rc != 0:
-                raise RuntimeError(err or out)
-            return out
-    except Exception as e:
-        log.exception("push_config failed")
-        raise RuntimeError(str(e))
+def push_config(max_concurrent=0, idle_timeout=0, users=None):
+    return ""

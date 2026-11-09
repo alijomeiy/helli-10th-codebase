@@ -24,17 +24,6 @@
 {% else %}
   <h1>حساب لینوکس شما</h1>
 
-  {% if class_ctf_locked %}
-  <div style="background:#2a1b07; border:1px solid #78350f; border-radius:12px; padding:18px 22px; margin:20px 0;">
-    <h3 style="color:#f59e0b; margin-top:0; display:flex; align-items:center; gap:8px;">
-      🔒 دسترسی کلاس {{ current_user.class_label }} به سامانه مسابقات موقتاً بسته است
-    </h3>
-    <p style="font-size:14px; color:#fef3c7; line-height:1.7; margin-bottom:0;">
-      دسترسی کلاس شما به سامانه مسابقه CTF در این بازه زمانی توسط مدیر دوره متوقف شده است. ورود به سرور لینوکس و اجرای تمرین‌ها از طریق ترمینال وب همچنان برای شما فعال است.
-    </p>
-  </div>
-  {% endif %}
-
   <div class="creds">
     <div><span>کلاس</span><code>{{ current_user.class_label or 'تعیین‌نشده' }}</code></div>
     <div><span>نشانی سرور</span><code>{{ config.SERVER_DOMAIN }}</code></div>
@@ -55,13 +44,6 @@
   <p>و در مرورگر باز کنید:
     <a href="http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/" dir="ltr">http://{{ config.SERVER_DOMAIN }}:{{ current_user.port }}/</a>
   </p>
-
-  {% if capacity %}
-  <h2>ظرفیت فعلی سرور</h2>
-  <p>دانشجویان واردشده: <strong>{{ capacity.current }} از {{ capacity.max }}</strong>
-     ({{ capacity.available }} جای خالی).</p>
-  <p class="muted">هر زمان که ظرفیت آزاد باشد می‌توانید وارد شوید؛ در صورت بیکار ماندن، نشست شما به‌صورت خودکار بسته می‌شود.</p>
-  {% endif %}
 {% endif %}
 
 {% endblock %}

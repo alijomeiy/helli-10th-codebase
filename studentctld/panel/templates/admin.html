@@ -3,25 +3,7 @@
 {% block content %}
 <h1>کنسول مدیریت</h1>
 
-{% if capacity %}
-<p class="muted">وضعیت لحظه‌ای: <strong>{{ capacity.current }} از {{ capacity.max }}</strong> دانشجو وارد شده ({{ capacity.available }} جای خالی).</p>
-{% else %}
-<p class="muted">وضعیت لحظه‌ای در دسترس نیست (ارتباط با سرور لینوکس برقرار نیست).</p>
-{% endif %}
-
-<h2>تنظیمات دسترسی</h2>
-<form method="post" action="{{ url_for('admin.settings') }}" class="form inline">
-  <label>حداکثر دانشجوی هم‌زمان
-    <input type="number" name="max_concurrent" value="{{ max_conc }}" min="1" max="50">
-  </label>
-  <label>خروج خودکار بیکار (ثانیه)
-    <input type="number" name="idle_timeout" value="{{ idle }}" min="60" max="86400">
-  </label>
-  <button>ذخیره و همگام‌سازی</button>
-</form>
-<p class="muted">هر دانشجو هر زمان که ظرفیت آزاد باشد می‌تواند وارد شود. اگر بی‌کار بماند، پس از این مدت به‌صورت خودکار خارج می‌شود تا جای او آزاد شود.</p>
-
-<h2>مدیریت کلاس‌ها و دسترسی به مسابقات (CTF)</h2>
+<h2>مدیریت کلاس‌ها</h2>
 
 {% if classes_summary %}
 <div class="table-scroll">
@@ -31,8 +13,6 @@
       <th>کلاس</th>
       <th>تعداد کل دانش‌آموزان</th>
       <th>دانش‌آموزان فعال</th>
-      <th>وضعیت مسابقه CTF</th>
-      <th>عملیات کنترل دسترسی</th>
     </tr>
   </thead>
   <tbody>
@@ -47,34 +27,6 @@
       </td>
       <td>{{ c.total }}</td>
       <td>{{ c.active }}</td>
-      <td>
-        {% if not c.class_label %}
-          <span class="muted">بدون کلاس</span>
-        {% elif c.is_locked %}
-          <span style="background:#2a1010; color:#fecaca; border:1px solid #5b1d1d; padding:3px 10px; border-radius:6px; font-size:12px; font-weight:600;">🔒 قفل‌شده</span>
-        {% else %}
-          <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:3px 10px; border-radius:6px; font-size:12px; font-weight:600;">🔓 باز / فعال</span>
-        {% endif %}
-      </td>
-      <td class="actions">
-        {% if c.class_label %}
-          {% if c.is_locked %}
-            <form method="post" action="{{ url_for('admin.class_unlock') }}"
-                  onsubmit="return confirm('دسترسی CTF برای کلاس «{{ c.class_label }}» بازگشایی شود؟');">
-              <input type="hidden" name="class_label" value="{{ c.class_label }}">
-              <button type="submit" class="ok" title="بازگشایی دسترسی CTF برای این کلاس">🔓 بازگشایی مسابقه</button>
-            </form>
-          {% else %}
-            <form method="post" action="{{ url_for('admin.class_lock') }}"
-                  onsubmit="return confirm('دسترسی CTF برای کلاس «{{ c.class_label }}» قفل شود؟ حساب‌های مسابقه تمام دانش‌آموزان این کلاس مسدود می‌شوند.');">
-              <input type="hidden" name="class_label" value="{{ c.class_label }}">
-              <button type="submit" class="danger" title="قفل دسترسی CTF برای این کلاس">🔒 قفل مسابقه</button>
-            </form>
-          {% endif %}
-        {% else %}
-          <span class="muted">—</span>
-        {% endif %}
-      </td>
     </tr>
   {% endfor %}
   </tbody>
