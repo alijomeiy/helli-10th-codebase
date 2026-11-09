@@ -32,8 +32,6 @@ install -m 0750 studentctl-enable.sh        /usr/local/sbin/studentctl-enable
 install -m 0750 studentctl-delete.sh        /usr/local/sbin/studentctl-delete
 install -m 0750 studentctl-push-config.sh   /usr/local/sbin/studentctl-push-config
 install -m 0750 studentctl-status.sh        /usr/local/sbin/studentctl-status
-install -m 0750 studentctl-deploy-task1.sh  /usr/local/sbin/studentctl-deploy-task1
-install -m 0755 studentctl-submit.sh        /usr/local/bin/submit
 install -m 0755 studentctl-check-login.sh   /usr/local/bin/studentctl-check-login
 
 echo "==> Wiring PAM login check into sshd"
@@ -113,8 +111,7 @@ studentctl ALL=(root) NOPASSWD: /usr/local/sbin/studentctl-provision, \
  /usr/local/sbin/studentctl-enable, \
  /usr/local/sbin/studentctl-delete, \
  /usr/local/sbin/studentctl-push-config, \
- /usr/local/sbin/studentctl-status, \
- /usr/local/sbin/studentctl-deploy-task1
+ /usr/local/sbin/studentctl-status
 EOF
 chmod 0440 "$SUDOERS"
 visudo -cf "$SUDOERS"

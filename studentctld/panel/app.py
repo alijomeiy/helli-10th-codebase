@@ -21,10 +21,9 @@ from server_api import (
 )
 from config import Config
 from models import (
-    db, User, Setting, LoginLog, Task, TaskAttempt,
+    db, User, Setting, LoginLog,
     STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED, STATUS_DISABLED,
 )
-import tasks as task_mgr
 import activities as hub
 from activities import hub_bp, my_bp
 
@@ -221,21 +220,7 @@ def index():
 
 @app.route("/leaderboard")
 def leaderboard():
-    t_list, rows = task_mgr.leaderboard_data()
-    return render_template("leaderboard.html", tasks=t_list, rows=rows)
-
-
-@app.route("/api/tasks/submit", methods=["POST"])
-def api_submit_task():
-    data = request.get_json(force=True, silent=True) or {}
-    username = data.get("username", "").strip().lower()
-    answer = str(data.get("answer", "")).strip()
-    task1_exists = bool(data.get("task1_exists", False))
-    task2_ok = bool(data.get("task2_ok", False))
-    result, code = task_mgr.process_submission(
-        username, answer, task1_exists, task2_ok
-    )
-    return jsonify(result), code
+    return redirect("https://ctf.helli-10th-computer.ir/scoreboard")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -353,18 +338,6 @@ def admin_index():
     pending = User.query.filter_by(role="student", status=STATUS_PENDING).order_by(User.created_at).all()
     active = User.query.filter(User.role == "student",
                                User.status.in_([STATUS_APPROVED, STATUS_DISABLED])).order_by(User.username).all()
-    tasks_info = []
-    for t in Task.query.order_by(Task.id).all():
-        completed = TaskAttempt.query.filter_by(task_id=t.id, completed=True).count()
-        total_attempts = TaskAttempt.query.filter_by(task_id=t.id).count()
-        tasks_info.append({
-            "name": t.name,
-            "title": t.title,
-            "is_active": t.is_active,
-            "deployed_at": t.deployed_at,
-            "completed": completed,
-            "total": total_attempts,
-        })
 
     standard_classes = ["10-1", "10-2", "10-3", "10-4", "10-5"]
     class_map = {c: {"class_label": c, "total": 0, "active": 0} for c in standard_classes}
@@ -380,7 +353,7 @@ def admin_index():
     classes_summary = sorted(class_map.values(), key=lambda x: (x["class_label"] == "", x["class_label"]))
 
     return render_template(
-        "admin.html", pending=pending, active=active, tasks_info=tasks_info,
+        "admin.html", pending=pending, active=active,
         classes_summary=classes_summary,
     )
 
@@ -588,34 +561,6 @@ def delete(uid):
     return redirect(url_for("admin.admin_index"))
 
 
-@admin_bp.route("/tasks/deploy/<task_name>", methods=["POST"])
-@admin_required
-def deploy_task(task_name):
-    try:
-        if task_name == "task1":
-            n = task_mgr.deploy_task1()
-            flash(f"تسک ۱ برای {n} دانشجو مستقر شد.", "ok")
-        elif task_name == "task2":
-            n = task_mgr.deploy_task2()
-            flash(f"تسک ۲ برای {n} دانشجو فعال شد.", "ok")
-        else:
-            flash("تسک نامعتبر.", "error")
-    except Exception as e:
-        flash(f"خطا در استقرار تسک: {e}", "error")
-    return redirect(url_for("admin.admin_index"))
-
-
-@admin_bp.route("/tasks/reset/<task_name>", methods=["POST"])
-@admin_required
-def reset_task(task_name):
-    task = Task.query.filter_by(name=task_name).first()
-    if task:
-        TaskAttempt.query.filter_by(task_id=task.id).delete()
-        task.is_active = False
-        task.deployed_at = None
-        db.session.commit()
-        flash(f"تسک {task_name} بازنشانی شد.", "ok")
-    return redirect(url_for("admin.admin_index"))
 
 
 app.register_blueprint(admin_bp)

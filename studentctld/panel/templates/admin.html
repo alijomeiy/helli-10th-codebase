@@ -125,52 +125,6 @@
   </form>
 </details>
 
-<h2>مدیریت تسک‌ها و تابلوی امتیازات</h2>
-
-<div class="actions" style="margin:10px 0; gap:8px;">
-  <form method="post" action="{{ url_for('admin.deploy_task', task_name='task1') }}"
-        onsubmit="return confirm('تسک ۱ برای همه دانشجویان فعال مستقر شود؟ داده‌های قبلی بازنویسی می‌شود.');">
-    <button class="btn-compact btn-ok" style="min-height:34px; padding:5px 12px; font-size:12.5px;">استقرار تسک ۱</button>
-  </form>
-  <form method="post" action="{{ url_for('admin.deploy_task', task_name='task2') }}"
-        onsubmit="return confirm('تسک ۲ فعال شود؟');">
-    <button class="btn-compact btn-ok" style="min-height:34px; padding:5px 12px; font-size:12.5px;">فعال‌سازی تسک ۲</button>
-  </form>
-</div>
-
-{% if tasks_info %}
-<div class="table-scroll" style="max-width: 840px; margin-bottom: 8px;">
-<table class="compact-table">
-  <thead><tr><th>تسک</th><th>عنوان</th><th>وضعیت</th><th>تکمیل‌شده</th><th>زمان استقرار</th><th>عملیات</th></tr></thead>
-  <tbody>
-  {% for t in tasks_info %}
-    <tr>
-      <td dir="ltr" style="font-family:ui-monospace,monospace;">{{ t.name }}</td>
-      <td>{{ t.title }}</td>
-      <td>{{ "فعال" if t.is_active else "غیرفعال" }}</td>
-      <td>{{ t.completed }} / {{ t.total }}</td>
-      <td style="font-size:12px; color:#94a3b8;">{{ t.deployed_at if t.deployed_at else "—" }}</td>
-      <td class="actions">
-        <form method="post" action="{{ url_for('admin.deploy_task', task_name=t.name) }}"
-              onsubmit="return confirm('این تسک بازاستقرار شود؟');">
-          <button class="btn-compact btn-ok">بازاستقرار</button>
-        </form>
-        {% if t.is_active %}
-          <form method="post" action="{{ url_for('admin.reset_task', task_name=t.name) }}"
-                onsubmit="return confirm('امتیازات این تسک بازنشانی شود؟');">
-            <button class="btn-compact btn-warn">بازنشانی</button>
-          </form>
-        {% endif %}
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
-{% else %}
-<p class="muted">هنوز تسکی مستقر نشده است. از دکمه‌های بالا برای شروع استفاده کنید.</p>
-{% endif %}
-<p class="muted" style="margin-bottom: 24px;"><a href="{{ url_for('leaderboard') }}">مشاهده تابلوی امتیازات</a></p>
 
 {% if pending %}
 <h2>درخواست‌های در انتظار ({{ pending|length }})</h2>

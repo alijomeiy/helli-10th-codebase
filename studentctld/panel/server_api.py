@@ -3,7 +3,6 @@
 Each server action is an idempotent sudo call from the whitelist set up in
 setup_server.sh. Config is pushed as a JSON blob read by the PAM login hook.
 """
-import json
 import logging
 import paramiko
 from flask import current_app
@@ -95,26 +94,6 @@ def box_reset(username):
 
 def box_status(username):
     return {"exists": False, "running": False}
-
-def deploy_task1(student_data):
-    """SSH to server, pipe JSON to studentctl-deploy-task1 which creates
-    a random tree + answer files per student."""
-    payload = json.dumps(student_data)
-    try:
-        with _client() as c:
-            cmd = "sudo /usr/local/sbin/studentctl-deploy-task1"
-            stdin, stdout, stderr = c.exec_command(cmd, timeout=120)
-            stdin.write(payload)
-            stdin.channel.shutdown_write()
-            rc = stdout.channel.recv_exit_status()
-            out = stdout.read().decode(errors="replace").strip()
-            err = stderr.read().decode(errors="replace").strip()
-            if rc != 0:
-                raise RuntimeError(err or out)
-            return out
-    except Exception as e:
-        log.exception("deploy_task1 failed")
-        raise RuntimeError(str(e))
 
 
 def push_config(max_concurrent=0, idle_timeout=0, users=None):
