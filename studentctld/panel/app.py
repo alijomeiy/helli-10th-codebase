@@ -178,11 +178,91 @@ def ctfd_change_password(username, new_password):
 
 
 def get_locked_classes():
+    """Return a set of class labels whose CTF access is currently locked."""
+    try:
+        db.session.expire_all()
+    except Exception:
+        pass
+    row = Setting.query.get("locked_ctf_classes")
+    if not row or not row.value:
+        return set()
+    try:
+        data = json.loads(row.value)
+        if isinstance(data, list):
+            return set(str(x) for x in data)
+    except Exception:
+        pass
     return set()
 
 
 def set_locked_classes(locked_set):
-    pass
+    """Save the set of locked class labels."""
+    Setting.set("locked_ctf_classes", json.dumps(sorted(list(locked_set))))
+    db.session.commit()
+
+
+def ctfd_set_class_banned(class_label, banned=True):
+    """Ban or unban all students belonging to a class_label in CTFd.
+    Also updates locked_ctf_classes in Setting.
+    """
+    class_label = (class_label or "").strip()
+    if not class_label:
+        return 0, 0
+
+    locked = get_locked_classes()
+    if banned:
+        locked.add(class_label)
+    else:
+        locked.discard(class_label)
+    set_locked_classes(locked)
+
+    students = User.query.filter_by(role="student", class_label=class_label).all()
+    if not students:
+        return 0, 0
+
+    student_usernames = {u.username for u in students}
+    mapping = ctfd_fetch_all_users()
+    url = (app.config.get("CTFD_URL") or "").rstrip("/")
+    token = app.config.get("CTFD_TOKEN") or ""
+    if not url or not token:
+        return 0, len(students)
+
+    h = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
+    
+    if not banned:
+        # Only unban students whose account status is approved (not disabled/rejected)
+        target_ids = [
+            mapping[u.username]
+            for u in students
+            if u.username in mapping and u.status == STATUS_APPROVED
+        ]
+    else:
+        target_ids = [
+            mapping[u.username]
+            for u in students
+            if u.username in mapping
+        ]
+
+    def _patch_ban(ctf_uid):
+        import requests
+        try:
+            r = requests.patch(
+                f"{url}/api/v1/users/{ctf_uid}",
+                headers=h,
+                json={"banned": banned},
+                timeout=6,
+                verify=False,
+            )
+            return r.status_code == 200
+        except Exception:
+            return False
+
+    success_count = 0
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(_patch_ban, target_ids))
+        success_count = sum(1 for res in results if res)
+
+    return success_count, len(students)
 
 
 def ctfd_fetch_all_users():
@@ -292,9 +372,12 @@ def dashboard():
     if current_user.status == STATUS_DISABLED:
         return render_template("dashboard.html", disabled=True)
 
+    class_ctf_locked = bool(current_user.class_label and current_user.class_label in get_locked_classes())
+
     return render_template(
         "dashboard.html",
         pending=False, rejected=False, disabled=False,
+        class_ctf_locked=class_ctf_locked,
     )
 
 
@@ -340,12 +423,21 @@ def admin_index():
                                User.status.in_([STATUS_APPROVED, STATUS_DISABLED])).order_by(User.username).all()
 
     standard_classes = ["10-1", "10-2", "10-3", "10-4", "10-5"]
-    class_map = {c: {"class_label": c, "total": 0, "active": 0} for c in standard_classes}
+    locked_classes = get_locked_classes()
+    class_map = {
+        c: {"class_label": c, "total": 0, "active": 0, "is_locked": c in locked_classes}
+        for c in standard_classes
+    }
     all_students = User.query.filter_by(role="student").all()
     for s in all_students:
         cl = (s.class_label or "").strip()
         if cl not in class_map:
-            class_map[cl] = {"class_label": cl, "total": 0, "active": 0}
+            class_map[cl] = {
+                "class_label": cl,
+                "total": 0,
+                "active": 0,
+                "is_locked": cl in locked_classes if cl else False,
+            }
         class_map[cl]["total"] += 1
         if s.status == STATUS_APPROVED:
             class_map[cl]["active"] += 1
@@ -354,7 +446,7 @@ def admin_index():
 
     return render_template(
         "admin.html", pending=pending, active=active,
-        classes_summary=classes_summary,
+        classes_summary=classes_summary, locked_classes=locked_classes,
     )
 
 
@@ -502,6 +594,32 @@ def kill_user(uid):
     return redirect(url_for("admin.admin_index"))
 
 
+@admin_bp.route("/class/lock", methods=["POST"])
+@admin_required
+def class_lock():
+    class_label = request.form.get("class_label", "").strip()
+    if not class_label:
+        flash("شناسه کلاس نامعتبر است.", "error")
+        return redirect(url_for("admin.admin_index"))
+    succ, total = ctfd_set_class_banned(class_label, banned=True)
+    log_event(current_user.username, "class_ctf_lock", f"class={class_label} banned={succ}/{total}")
+    flash(f"دسترسی مسابقه CTF برای کلاس «{class_label}» قفل شد ({succ} حساب در سامانه CTF مسدود شدند).", "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
+@admin_bp.route("/class/unlock", methods=["POST"])
+@admin_required
+def class_unlock():
+    class_label = request.form.get("class_label", "").strip()
+    if not class_label:
+        flash("شناسه کلاس نامعتبر است.", "error")
+        return redirect(url_for("admin.admin_index"))
+    succ, total = ctfd_set_class_banned(class_label, banned=False)
+    log_event(current_user.username, "class_ctf_unlock", f"class={class_label} unbanned={succ}/{total}")
+    flash(f"دسترسی مسابقه CTF برای کلاس «{class_label}» بازگشایی شد ({succ} حساب در سامانه CTF فعال شدند).", "ok")
+    return redirect(url_for("admin.admin_index"))
+
+
 @admin_bp.route("/user/class/<int:uid>", methods=["POST"])
 @admin_required
 def set_user_class(uid):
@@ -510,6 +628,12 @@ def set_user_class(uid):
     old_class = u.class_label or ""
     u.class_label = new_class
     db.session.commit()
+
+    locked = get_locked_classes()
+    if new_class and new_class in locked:
+        ctfd_set_banned(u.username, banned=True)
+    elif u.status == STATUS_APPROVED:
+        ctfd_set_banned(u.username, banned=False)
 
     log_event(u.username, "class_changed", f"from '{old_class}' to '{new_class}' by {current_user.username}")
     flash(f"کلاس کاربر {u.username} به «{new_class or 'تعیین‌نشده'}» تغییر یافت.", "ok")
@@ -535,8 +659,15 @@ def bulk_assign_class():
         flash("هیچ کاربری با شناسه‌های وارد شده یافت نشد.", "error")
         return redirect(url_for("admin.admin_index"))
 
+    locked = get_locked_classes()
+    is_locked = target_class in locked
+
     for u in matched:
         u.class_label = target_class
+        if is_locked:
+            ctfd_set_banned(u.username, banned=True)
+        elif u.status == STATUS_APPROVED:
+            ctfd_set_banned(u.username, banned=False)
     db.session.commit()
 
     log_event(current_user.username, "bulk_class_assign", f"{len(matched)} users -> {target_class}")

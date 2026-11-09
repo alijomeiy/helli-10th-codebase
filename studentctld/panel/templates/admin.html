@@ -66,7 +66,8 @@
       <th>کلاس</th>
       <th style="text-align: center;">تعداد کل دانش‌آموزان</th>
       <th style="text-align: center;">دانش‌آموزان فعال</th>
-      <th style="text-align: center; width: 100px;">فیلتر</th>
+      <th style="text-align: center; min-width: 170px;">دسترسی CTF</th>
+      <th style="text-align: center; width: 80px;">فیلتر</th>
     </tr>
   </thead>
   <tbody>
@@ -94,6 +95,27 @@
           <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:2px 7px; border-radius:5px; font-size:11.5px; font-weight:600;">{{ c.active }} فعال</span>
         {% else %}
           <span style="color:#64748b;">۰</span>
+        {% endif %}
+      </td>
+      <td style="text-align: center;">
+        {% if c.class_label %}
+          {% if c.is_locked %}
+            <span style="background:#450a0a; color:#fca5a5; border:1px solid #7f1d1d; padding:2px 7px; border-radius:5px; font-size:11px; font-weight:600; margin-left:6px;">🔒 قفل</span>
+            <form method="post" action="{{ url_for('admin.class_unlock') }}" style="display:inline;"
+                  onsubmit="return confirm('دسترسی مسابقه CTF برای کلاس «{{ c.class_label }}» بازگشایی شود؟');">
+              <input type="hidden" name="class_label" value="{{ c.class_label }}">
+              <button class="btn-compact btn-ok" style="font-size:11.5px; padding:3px 9px;">🔓 بازگشایی</button>
+            </form>
+          {% else %}
+            <span style="background:#052e16; color:#86efac; border:1px solid #14532d; padding:2px 7px; border-radius:5px; font-size:11px; font-weight:600; margin-left:6px;">🟢 باز</span>
+            <form method="post" action="{{ url_for('admin.class_lock') }}" style="display:inline;"
+                  onsubmit="return confirm('دسترسی کلاس «{{ c.class_label }}» به سامانه مسابقه CTF قفل شود؟ حساب‌های این کلاس در CTFd مسدود می‌شوند.');">
+              <input type="hidden" name="class_label" value="{{ c.class_label }}">
+              <button class="btn-compact btn-warn" style="font-size:11.5px; padding:3px 9px;">🔒 قفل کردن</button>
+            </form>
+          {% endif %}
+        {% else %}
+          <span style="color:#64748b;">—</span>
         {% endif %}
       </td>
       <td style="text-align: center;">
@@ -220,6 +242,9 @@
       <td style="text-align: center;">
         {% if u.status == 'approved' %}
           <span style="background:#0f2a16; color:#a7f3d0; border:1px solid #14532d; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:600;">فعال</span>
+          {% if u.class_label and u.class_label in locked_classes %}
+            <span style="background:#450a0a; color:#fca5a5; border:1px solid #7f1d1d; padding:1px 5px; border-radius:4px; font-size:10px; font-weight:600; margin-right:3px;" title="دسترسی مسابقه CTF این کلاس قفل است">CTF 🔒</span>
+          {% endif %}
         {% elif u.status == 'disabled' %}
           <span style="background:#2a1010; color:#fecaca; border:1px solid #5b1d1d; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:600;">مسدود</span>
         {% else %}
